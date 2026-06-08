@@ -1,0 +1,20 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--cor-fundo-principal);
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
+  position: relative;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Styles removidos e movidos para Estoque.module.css */

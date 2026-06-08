@@ -1,0 +1,362 @@
+.container {
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  min-height: calc(100vh - 80px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 16px;
+}
+
+.titleArea h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.titleArea p {
+  margin: 4px 0 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.btnNovaRequisicao {
+  background: #f97316;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.btnNovaRequisicao:hover {
+  background: #ea580c;
+}
+
+.listaPedidos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+}
+
+.emptyState h3 {
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.pedidoCard {
+  border: 1px solid #e2e8f0;
+  border-left: 6px solid #10b981;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.2s;
+}
+
+.pedidoCard:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.pedidoHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.protocolo {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.data {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.solicitante {
+  font-size: 1rem;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+.itensList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.itemBadge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+.statusTag {
+  background: #ecfccb;
+  color: #4d7c0f;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Modal de Entrega / Conferência */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnFechar {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btnFechar:hover { color: #ef4444; }
+
+.modalBody {
+  padding: 24px;
+}
+
+.taxBox {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.taxInfo p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.taxInfo strong {
+  color: #1e293b;
+  display: block;
+  font-size: 0.95rem;
+  margin-top: 2px;
+}
+
+.listaConferencia {
+  margin-bottom: 24px;
+}
+
+.barcodeArea {
+  background: #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #cbd5e1;
+}
+
+.barcodeArea input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-family: monospace;
+}
+
+.barcodeArea input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+
+.itemConferencia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.itemConferencia:last-child { border-bottom: none; }
+
+.itemCompleto {
+  background: #ecfccb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #bef264;
+}
+
+.itemIncompleto {
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.qtdControle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+.qtdControle button {
+  background: #f1f5f9;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #475569;
+}
+
+.qtdControle button:hover { background: #e2e8f0; }
+
+.qtdControle input {
+  width: 50px;
+  text-align: center;
+  border: none;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.qtdControle input:focus { outline: none; }
+
+.progressoLabel {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.vendedorInputArea {
+  margin-bottom: 24px;
+}
+
+.vendedorInputArea label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.vendedorInputArea input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.modalFooter {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btnConfirmar {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnConfirmar:hover {
+  background: #059669;
+}
+
+.btnConfirmar:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}

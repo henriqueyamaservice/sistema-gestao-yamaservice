@@ -1,0 +1,119 @@
+.card {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cor-fundo-sutil-forte);
+}
+
+.logoIcon {
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil-forte);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formGroupFull {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  font-size: 0.85rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+}
+
+.input[readonly] {
+  background-color: var(--cor-fundo-sutil);
+  cursor: not-allowed;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.btnPrimary {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+}
+
+.btnPrimary:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 107, 0, 0.3);
+}
+
+.animateFadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

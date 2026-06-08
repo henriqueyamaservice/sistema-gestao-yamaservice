@@ -1,0 +1,147 @@
+@import url('./reset.css');
+
+/* =========================================
+   VARIÁVEIS DE CORES (MODO ESCURO - PADRÃO)
+========================================= */
+:root {
+  /* Laranja da empresa */
+  --cor-destaque: #FF6B00;
+  --cor-destaque-hover: #E66000;
+
+  /* Paleta Escura */
+  --cor-fundo-principal: #121416;
+  --cor-fundo-secundario: #1E2225;
+  --cor-fundo-cartao: #1E2225;
+  --cor-texto-principal: #F1F3F5;
+  --cor-texto-secundario: #A1AAB2;
+  --cor-texto-inverso: #FFFFFF;
+  /* Texto branco em fundos com destaque */
+  --cor-borda-cartao: #2D3238;
+
+  /* Fundos Sutis (Transparências inteligentes) */
+  --cor-fundo-sutil: rgba(255, 255, 255, 0.05);
+  --cor-fundo-sutil-forte: rgba(255, 255, 255, 0.1);
+
+  /* Alertas / Status */
+  --cor-sucesso: #10b981;
+  --cor-erro: #ef4444;
+}
+
+/* =========================================
+   VARIÁVEIS DE CORES (MODO CLARO)
+========================================= */
+[data-theme="light"] {
+  /* Paleta Clara */
+  --cor-fundo-principal: #F8F9FA;
+  --cor-fundo-secundario: #FFFFFF;
+  --cor-fundo-cartao: #FFFFFF;
+  --cor-texto-principal: #1A1D20;
+  --cor-texto-secundario: #5A626A;
+  --cor-texto-inverso: #FFFFFF;
+  /* O texto invertido do laranja continua branco */
+  --cor-borda-cartao: #E2E8F0;
+
+  /* Fundos Sutis (Transparências inteligentes) */
+  --cor-fundo-sutil: rgba(0, 0, 0, 0.03);
+  --cor-fundo-sutil-forte: rgba(0, 0, 0, 0.06);
+
+  /* Alertas / Status */
+  --cor-sucesso: #10b981;
+  --cor-erro: #ef4444;
+}
+
+/* =========================================
+   ESTILOS GERAIS DO SISTEMA (EXEMPLO)
+========================================= */
+body {
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Ajuste sutil para o hover de botões (onde background for transparente) */
+[data-theme="light"] button[style*="transparent"]:hover {
+  background-color: #F1F3F5 !important;
+}
+
+
+/* =========================================
+   ESTILOS DE IMPRESSÃO (RECIBO TÉRMICO)
+========================================= */
+.area-impressao {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .area-impressao,
+  .area-impressao * {
+    visibility: visible;
+  }
+
+  .area-impressao {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    /* Largura padrão de impressora térmica */
+    background: white !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .recibo-termico {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    padding: 5mm;
+  }
+
+  .recibo-titulo {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  .recibo-data {
+    text-align: center;
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .recibo-divider {
+    border-bottom: 1px dashed black;
+    margin: 8px 0;
+  }
+
+  .recibo-info p {
+    margin: 4px 0;
+  }
+
+  .recibo-via {
+    text-align: center;
+    font-weight: bold;
+    margin: 12px 0;
+  }
+
+  .recibo-assinatura {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .linha-assinatura {
+    border-bottom: 1px solid black;
+    width: 80%;
+    margin: 20px auto 5px auto;
+  }
+
+  .recibo-cortar {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 10px;
+  }
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "PED-2023-0001",
+    "fornecedor": "Ferragens Silva LTDA",
+    "dataEmissao": "2023-10-25T10:00:00.000Z",
+    "status": "Aguardando Recebimento",
+    "itens": [
+      {
+        "codigo": "789123456001",
+        "descricao": "Alicate Universal 8 Polegadas",
+        "quantidadeEsperada": 5,
+        "quantidadeRecebida": 0
+      },
+      {
+        "codigo": "789123456002",
+        "descricao": "Parafuso Sextavado M8",
+        "quantidadeEsperada": 50,
+        "quantidadeRecebida": 0
+      }
+    ]
+  },
+  {
+    "id": "PED-2023-0002",
+    "fornecedor": "Elétrica Santos",
+    "dataEmissao": "2023-10-26T14:30:00.000Z",
+    "status": "Aguardando Recebimento",
+    "itens": [
+      {
+        "codigo": "789123456003",
+        "descricao": "Fio de Cobre 2.5mm Rolo 100m",
+        "quantidadeEsperada": 2,
+        "quantidadeRecebida": 0
+      }
+    ]
+  },
+  {
+    "id": "REC-1780398763988",
+    "requisicaoOrigemId": "1780398763988",
+    "fornecedor": "FORNECEDOR SIMULADO S/A",
+    "dataEmissao": "2026-06-02T20:10:18.831Z",
+    "status": "Recebido Parcialmente",
+    "itens": [
+      {
+        "codigo": "PRD11302",
+        "codigoNfeOriginal": "PRD11302",
+        "descricao": "RETENTOR 35X62X12 - SAV",
+        "quantidadeEsperada": 5,
+        "quantidadeRecebida": 0
+      }
+    ],
+    "itensRecebidosConfirmados": {
+      "PRD11302": 0
+    },
+    "observacao": "veio produto errado",
+    "dataRecebimento": "2026-06-03T12:55:55.140Z"
+  }
+]

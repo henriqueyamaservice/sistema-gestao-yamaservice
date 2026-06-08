@@ -1,0 +1,105 @@
+/* Padrões base para a tabela de impressão */
+.container {
+  display: none; /* Escondido por padrão na tela */
+  font-family: Arial, sans-serif;
+  color: #000;
+  background-color: #fff;
+  width: 210mm; /* A4 width */
+  padding: 10mm;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  border: 2px solid #000;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.logo {
+  height: 60px;
+  width: auto;
+  margin-right: 20px;
+}
+
+.headerText h1 {
+  font-size: 20px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.headerText h2 {
+  font-size: 16px;
+  margin: 5px 0 0 0;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  background-color: #f0f0f0;
+  border: 1px solid #000;
+  border-bottom: none;
+  margin: 15px 0 0 0;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  -webkit-print-color-adjust: exact; /* Force color in printing */
+  print-color-adjust: exact;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.table th, .table td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f0f0f0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-weight: bold;
+}
+
+/* Tabelas com linhas em branco para preencher */
+.linhas tbody tr {
+  height: 25px;
+}
+
+/* 
+ * O MÁGICO: MODO DE IMPRESSÃO
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body * {
+    visibility: hidden; /* Esconde tudo no body */
+  }
+
+  /* Ocultar elementos da interface */
+  :global(.no-print) {
+    display: none !important;
+  }
+
+  /* Mostrar o container de impressão */
+  .container, .container * {
+    visibility: visible;
+  }
+
+  .container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0; /* padding dealt with by @page margin */
+  }
+}

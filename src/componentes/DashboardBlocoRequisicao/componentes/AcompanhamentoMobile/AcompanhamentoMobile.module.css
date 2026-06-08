@@ -1,0 +1,91 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.titulo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  color: #64748b;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.cardPedido {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.protocolo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.data {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status_aguardando_diretoria {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status_pendente, .status_aguardando_separacao {
+  background: #ecfccb;
+  color: #65a30d;
+}
+
+.status_rejeitado_diretoria {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.infoLinha {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.motivoRejeicao {
+  background: #fef2f2;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #b91c1c;
+  border-left: 3px solid #ef4444;
+}
