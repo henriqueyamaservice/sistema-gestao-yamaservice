@@ -40,7 +40,9 @@ const TabelaOS = ({ osList, onRowClick, onPrint, onStart }) => {
       matchTermo = 
         (os.requisitante && os.requisitante.toLowerCase().includes(termo)) ||
         (os.codigo && os.codigo.toLowerCase().includes(termo)) ||
-        (os.descricao && os.descricao.toLowerCase().includes(termo));
+        (os.descricao && os.descricao.toLowerCase().includes(termo)) ||
+        (os.setor && os.setor.toLowerCase().includes(termo)) ||
+        (os.centroCusto && os.centroCusto.toLowerCase().includes(termo));
     }
 
     if (dataInicioBusca || dataFimBusca) {
@@ -59,7 +61,7 @@ const TabelaOS = ({ osList, onRowClick, onPrint, onStart }) => {
       {/* Barra de Pesquisa */}
       <div className={styles.searchBar}>
         <div className={styles.searchGroup}>
-          <label className={styles.searchLabel}>Buscar por Nome, Código ou Descrição</label>
+          <label className={styles.searchLabel}>Buscar por Código, Requisitante, Descrição, Setor ou C.Custo</label>
           <div style={{ position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--cor-texto-secundario)' }} />
             <input 

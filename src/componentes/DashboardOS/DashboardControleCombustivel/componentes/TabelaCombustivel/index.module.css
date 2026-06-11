@@ -1,0 +1,135 @@
+.card {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.searchBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  background-color: var(--cor-fundo-sutil);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.searchGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.searchGroupDate {
+  flex: 0 1 auto;
+  min-width: 130px;
+}
+
+.searchLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: var(--cor-destaque);
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.table th,
+.table td {
+  padding: 4px 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-sutil-forte);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(255, 107, 0, 0.05); /* Laranja super sutil ao passar o mouse */
+}
+
+.tableRow {
+  cursor: pointer;
+}
+
+.emptyState {
+  padding: 20px;
+  text-align: center;
+  color: var(--cor-texto-secundario);
+}
+
+/* Badges */
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.badgeInfo {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.badgeSuccess {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.badgeNeutral {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-secundario);
+}
+
+.animateFadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

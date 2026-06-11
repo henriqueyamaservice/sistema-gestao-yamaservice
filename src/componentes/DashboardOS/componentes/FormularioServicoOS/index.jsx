@@ -24,15 +24,27 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
   const [consumiveis, setConsumiveis] = useState(os.consumiveis || []);
   const [maoDeObra, setMaoDeObra] = useState(os.maoDeObra || []);
   const [servicosExecutados, setServicosExecutados] = useState(os.servicosExecutados || []);
-  const [veiculos, setVeiculos] = useState(
-    os.veiculos ? os.veiculos : (os.usouVeiculo === 'Sim' && os.placaVeiculo ? [{placa: os.placaVeiculo, km: os.kmRodado}] : [])
-  );
+  
+  // Extrair o veículo sendo mantido (se existir nos registros antigos)
+  const veiculoManutencaoInit = os.veiculos?.find(v => v.placa === os.centroCusto && (v.kmInicial === undefined || v.kmInicial === ''));
+  const [kmManutencao, setKmManutencao] = useState(veiculoManutencaoInit ? veiculoManutencaoInit.kmFinal : '');
+
+  const [veiculos, setVeiculos] = useState(() => {
+    let lista = os.veiculos ? [...os.veiculos] : [];
+    if (os.usouVeiculo === 'Sim' && os.placaVeiculo && lista.length === 0) {
+      lista.push({placa: os.placaVeiculo, kmInicial: os.kmInicial || '', kmFinal: os.kmFinal || '', km: os.kmRodado});
+    }
+    // Removemos da lista visual de 'deslocamento' o registro que é APENAS da manutenção do equipamento
+    return lista.filter(v => !(v.placa === os.centroCusto && (v.kmInicial === undefined || v.kmInicial === '')));
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mostrarJustificativa, setMostrarJustificativa] = useState(!!os.observacao);
   const [produtosEstoque, setProdutosEstoque] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
+  const [veiculosConfig, setVeiculosConfig] = useState([]);
 
-  // Buscar produtos e funcionários (fornecedores) para autocomplete
+  // Buscar produtos, fornecedores e veículos para autocomplete/regras
   useEffect(() => {
     fetch('http://localhost:3000/api/produtos')
       .then(res => res.json())
@@ -43,6 +55,11 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       .then(res => res.json())
       .then(data => setFornecedores(data))
       .catch(err => console.error('Erro ao buscar funcionários:', err));
+
+    fetch('http://localhost:3000/api/veiculos')
+      .then(res => res.json())
+      .then(data => setVeiculosConfig(data))
+      .catch(err => console.error('Erro ao buscar veículos:', err));
   }, []);
 
   const handleChange = (e) => {
@@ -128,12 +145,35 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
   };
 
   const addVeiculo = () => {
-    setVeiculos([...veiculos, { placa: '', km: '' }]);
+    setVeiculos([...veiculos, { placa: '', kmInicial: '', kmFinal: '', km: '' }]);
   };
 
   const updateVeiculo = (index, field, value) => {
     const newVeiculos = [...veiculos];
     newVeiculos[index][field] = value;
+    
+    if (field === 'placa') {
+      const vEncontrado = veiculosConfig.find(vc => vc.placa === value);
+      if (vEncontrado) {
+        const k1 = parseFloat(vEncontrado.kmAtual) || 0;
+        const k2 = parseFloat(vEncontrado.kmTrocaOleo) || 0;
+        const k3 = parseFloat(vEncontrado.kmRevisao) || 0;
+        const maxKm = Math.max(k1, k2, k3);
+        const kmSugerido = maxKm > 0 ? maxKm : '';
+        newVeiculos[index].kmInicial = kmSugerido;
+      }
+    }
+
+    if (field === 'kmInicial' || field === 'kmFinal' || field === 'placa') {
+      const inicial = parseFloat(newVeiculos[index].kmInicial) || 0;
+      const final = parseFloat(newVeiculos[index].kmFinal) || 0;
+      if (final > 0 && final >= inicial) {
+        newVeiculos[index].km = parseFloat((final - inicial).toFixed(1));
+      } else {
+        newVeiculos[index].km = '';
+      }
+    }
+    
     setVeiculos(newVeiculos);
   };
 
@@ -162,6 +202,19 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       else if (formData.resultado === 'AGUARDANDO INSUMO') statusFinal = 'AGUARDANDO INSUMO';
       else if (formData.resultado === 'CANCELADA') statusFinal = 'CANCELADO';
 
+      const veiculoCadastrado = veiculosConfig.find(vc => vc.placa === os.centroCusto);
+      const isManutencaoVeiculo = !!veiculoCadastrado;
+
+      // O veículo em manutenção (se houver e tiver KM preenchido)
+      const veiculoManutencaoData = (isManutencaoVeiculo && kmManutencao !== '') 
+        ? [{ placa: os.centroCusto, kmFinal: kmManutencao }]
+        : [];
+
+      // Os veículos de deslocamento
+      const veiculosDeslocamento = formData.usouVeiculo === 'Sim' ? veiculos : [];
+      
+      const todosVeiculos = [...veiculoManutencaoData, ...veiculosDeslocamento];
+
       const updates = {
         maoDeObra: maoDeObra,
         servicosExecutados: servicosExecutados,
@@ -170,8 +223,10 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
         dataFim: formData.dataFim,
         horaFim: formData.horaFim,
         usouVeiculo: formData.usouVeiculo,
-        veiculos: formData.usouVeiculo === 'Sim' ? veiculos : [],
+        veiculos: todosVeiculos,
         placaVeiculo: formData.usouVeiculo === 'Sim' && veiculos.length > 0 ? veiculos[0].placa : '',
+        kmInicial: formData.usouVeiculo === 'Sim' && veiculos.length > 0 ? veiculos[0].kmInicial : '',
+        kmFinal: formData.usouVeiculo === 'Sim' && veiculos.length > 0 ? veiculos[0].kmFinal : '',
         kmRodado: formData.usouVeiculo === 'Sim' && veiculos.length > 0 ? veiculos[0].km : '',
         descricaoServico: formData.descricaoServico,
         dataJustificativa: mostrarJustificativa ? formData.dataJustificativa : null,
@@ -220,6 +275,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
         <div className={styles.summaryGrid}>
           <div><strong>Requisitante:</strong> <br/>{os.requisitante}</div>
           <div><strong>Setor:</strong> <br/>{os.setor}</div>
+          <div><strong>Centro de Custo:</strong> <br/>{os.centroCusto || '-'}</div>
           <div><strong>Prazo Original:</strong> <br/>{os.prazo ? os.prazo.split('-').reverse().join('/') : 'Não definido'}</div>
           <div><strong>Complexidade:</strong> <br/>{os.complexidade}</div>
           <div className={styles.summaryDesc}>
@@ -396,9 +452,62 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             </div>
           </div>
 
+          {(() => {
+            const veiculoCadastrado = veiculosConfig.find(vc => vc.placa === os.centroCusto);
+            if (!veiculoCadastrado) return null;
+            const isHorimetro = veiculoCadastrado.tipoMedicao === 'Horas';
+            let labelBase = isHorimetro ? 'Horímetro Atual' : 'KM Atual';
+
+            const textoBusca = (
+              (os.descricaoProblema || os.descricao || '') + ' ' +
+              (formData.descricaoServico || '') + ' ' + 
+              (formData.observacao || '') + ' ' +
+              (servicosExecutados || []).map(s => s.descricao || '').join(' ')
+            ).toUpperCase();
+
+            const trocouOleo = textoBusca.includes('TROCA DE ÓLEO') || textoBusca.includes('TROCA DE OLEO');
+            const fezRevisao = textoBusca.includes('REVISÃO') || textoBusca.includes('REVISAO');
+
+            let complemento = '(Fechamento da O.S.)';
+            if (trocouOleo && fezRevisao) complemento = '(REVISÃO E TROCA DE ÓLEO)';
+            else if (trocouOleo) complemento = '(TROCA DE ÓLEO)';
+            else if (fezRevisao) complemento = '(REVISÃO)';
+
+            const labelKM = `${labelBase} ${complemento}`;
+
+            return (
+              <div className={styles.veiculosContainer} style={{ marginBottom: '24px', backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
+                <div className={styles.veiculosHeader} style={{ borderBottom: '1px solid #bae6fd', backgroundColor: '#e0f2fe' }}>
+                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', margin: 0 }}>
+                    <Wrench size={18} /> Manutenção da Frota ({os.centroCusto})
+                  </h4>
+                </div>
+                <div style={{ padding: '16px' }}>
+                  <div className={styles.formGroup} style={{ maxWidth: '400px' }}>
+                    <label className={styles.label} style={{ color: '#0c4a6e', fontWeight: 'bold' }}>{labelKM}</label>
+                    <input 
+                      type="number" className={styles.input} 
+                      value={kmManutencao} onChange={(e) => setKmManutencao(e.target.value)} 
+                      disabled={isFinalizada} placeholder={`Ex: ${isHorimetro ? '5000' : '50000'}`}
+                      style={{ borderColor: '#7dd3fc', backgroundColor: 'white' }}
+                    />
+                  </div>
+                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#e0f2fe', borderRadius: '8px', border: '1px dashed #7dd3fc' }}>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', color: '#0369a1', fontWeight: 'bold' }}>
+                      ⚠️ Importante para a Automação:
+                    </p>
+                    <p style={{ margin: '0', fontSize: '0.8rem', color: '#0284c7' }}>
+                      Informe o KM atual acima e certifique-se de escrever <strong>"TROCA DE ÓLEO"</strong>, <strong>"REVISÃO"</strong> ou <strong>"TROCA DE ÓLEO E REVISÃO"</strong> nos serviços executados para que o sistema atualize as metas da frota.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>Utilizou Veículo na Execução?</label>
+              <label className={styles.label}>Utilizou OUTRO veículo da frota para deslocamento?</label>
               <select className={styles.select} name="usouVeiculo" value={formData.usouVeiculo} onChange={handleChange} disabled={isFinalizada}>
                 <option value="Não">Não</option>
                 <option value="Sim">Sim</option>
@@ -421,29 +530,58 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                 <p className={styles.veiculoEmpty}>Nenhum veículo adicionado.</p>
               ) : (
                 <div className={styles.veiculoList}>
-                  {veiculos.map((v, index) => (
-                    <div key={index} className={styles.veiculoItem}>
-                      <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
-                        <label className={styles.label}>Placa do Veículo</label>
-                        <input 
-                          type="text" className={styles.input} placeholder="Ex: ABC-1234"
-                          value={v.placa} onChange={(e) => updateVeiculo(index, 'placa', e.target.value)} required disabled={isFinalizada}
-                        />
+                  {veiculos.map((v, index) => {
+                    const veiculoCadastrado = veiculosConfig.find(vc => vc.placa === v.placa);
+                    const isHorimetro = veiculoCadastrado && veiculoCadastrado.tipoMedicao === 'Horas';
+                    const labelInicial = isHorimetro ? 'Horímetro Inicial' : 'KM Inicial';
+                    const labelFinal = isHorimetro ? 'Horímetro Final' : 'KM Final';
+                    const labelRodado = isHorimetro ? 'Horas Totais' : 'KM Rodado';
+
+                    return (
+                      <div key={index} className={styles.veiculoItem}>
+                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                          <label className={styles.label}>Placa do Veículo</label>
+                          <select 
+                            className={styles.select}
+                            value={v.placa} onChange={(e) => updateVeiculo(index, 'placa', e.target.value)} required disabled={isFinalizada}
+                          >
+                            <option value="" disabled>Selecione um veículo</option>
+                            {veiculosConfig.map(vc => (
+                              <option key={vc.placa} value={vc.placa}>{vc.placa} {vc.modelo ? `- ${vc.modelo}` : ''}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                          <label className={styles.label}>{labelInicial}</label>
+                          <input 
+                            type="number" className={styles.input} placeholder="Ex: 15000" min="0" step="0.1"
+                            value={v.kmInicial} onChange={(e) => updateVeiculo(index, 'kmInicial', e.target.value)} required disabled={isFinalizada}
+                          />
+                        </div>
+                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                          <label className={styles.label}>{labelFinal}</label>
+                          <input 
+                            type="number" className={styles.input} placeholder="Ex: 15050" min="0" step="0.1"
+                            value={v.kmFinal} onChange={(e) => updateVeiculo(index, 'kmFinal', e.target.value)} required disabled={isFinalizada}
+                          />
+                        </div>
+                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                          <label className={styles.label}>{labelRodado}</label>
+                          <input 
+                            type="number" className={styles.input} placeholder="Auto"
+                            value={v.km} readOnly disabled
+                            style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
+                          />
+                        </div>
+                        {!isFinalizada && (
+                          <button type="button" onClick={() => removeVeiculo(index)} className={`${styles.btnDangerIcon} ${styles.btnDangerIconSmall}`} style={{ marginBottom: '2px' }}>
+                            <Trash2 size={20} />
+                          </button>
+                        )}
                       </div>
-                      <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
-                        <label className={styles.label}>KM Rodado</label>
-                        <input 
-                          type="number" className={styles.input} placeholder="Ex: 15" min="0" step="0.1"
-                          value={v.km} onChange={(e) => updateVeiculo(index, 'km', e.target.value)} required disabled={isFinalizada}
-                        />
-                      </div>
-                      {!isFinalizada && (
-                        <button type="button" onClick={() => removeVeiculo(index)} className={`${styles.btnDangerIcon} ${styles.btnDangerIconSmall}`} style={{ marginBottom: '2px' }}>
-                          <Trash2 size={20} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
+
                 </div>
               )}
             </div>

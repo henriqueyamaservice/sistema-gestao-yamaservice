@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Save, Clock, AlertCircle, Wrench, Calendar } from 'lucide-react';
+import { FileText, Save, Clock, AlertCircle, Wrench, Calendar, X } from 'lucide-react';
 import styles from './index.module.css';
 
-const FormularioOS = ({ onAddOS, osList }) => {
+const FormularioOS = ({ onAddOS, osList, onClose }) => {
   const [formData, setFormData] = useState({
     codigo: '',
     data: new Date().toISOString().split('T')[0],
@@ -15,9 +15,32 @@ const FormularioOS = ({ onAddOS, osList }) => {
     prazo: '',
     tipo: 'CORRETIVA',
     situacao: 'À EXECUTAR',
+    situacao: 'À EXECUTAR',
     descricao: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [servicosPadraoList, setServicosPadraoList] = useState({});
+  const [mostrarAddServicoPadrao, setMostrarAddServicoPadrao] = useState(false);
+  const [novoServicoPadrao, setNovoServicoPadrao] = useState('');
+  const [dropdownAberto, setDropdownAberto] = useState(false);
+  const [modoExclusao, setModoExclusao] = useState(false);
+  const [veiculos, setVeiculos] = useState([]);
+
+  // Busca veículos para o datalist
+  useEffect(() => {
+    fetch('http://localhost:3000/api/veiculos')
+      .then(res => res.json())
+      .then(data => setVeiculos(data))
+      .catch(err => console.error('Erro ao buscar veículos:', err));
+  }, []);
+
+  // Busca serviços padrão do backend
+  useEffect(() => {
+    fetch('http://localhost:3000/api/servicos-padrao')
+      .then(res => res.json())
+      .then(data => setServicosPadraoList(data))
+      .catch(err => console.error('Erro ao buscar serviços padrão:', err));
+  }, []);
 
   // Calcula o próximo código automaticamente
   useEffect(() => {
@@ -46,7 +69,9 @@ const FormularioOS = ({ onAddOS, osList }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const isDateOrTime = name === 'data' || name === 'hora';
+    const finalValue = (typeof value === 'string' && !isDateOrTime) ? value.toUpperCase() : value;
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
   const handleSubmit = async (e) => {
@@ -71,6 +96,8 @@ const FormularioOS = ({ onAddOS, osList }) => {
       const dataSalva = await response.json();
       onAddOS(dataSalva.os);
 
+      if (onClose) onClose();
+      
       // Limpar formulário mantendo alguns defaults e calculando novo código será feito pelo useEffect 
       // pois osList vai ser atualizada pelo parent (DashboardOS)
       setFormData(prev => ({
@@ -90,12 +117,85 @@ const FormularioOS = ({ onAddOS, osList }) => {
     }
   };
 
+  const handleAddServicoPadraoText = (servico) => {
+    setFormData(prev => ({
+      ...prev,
+      descricao: prev.descricao ? `${prev.descricao}\n- ${servico}` : `- ${servico}`
+    }));
+  };
+
+  const handleSalvarNovoServicoPadrao = async () => {
+    if (!formData.setor) {
+      alert('Selecione um Setor de Execução primeiro.');
+      return;
+    }
+    if (!novoServicoPadrao.trim()) return;
+
+    try {
+      const response = await fetch('http://localhost:3000/api/servicos-padrao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setor: formData.setor, servico: novoServicoPadrao.trim() })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setServicosPadraoList(data.servicos);
+        setNovoServicoPadrao('');
+        setMostrarAddServicoPadrao(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao salvar o serviço padrão.');
+    }
+  };
+
+  const handleExcluirServicoPadrao = async (servico) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o serviço "${servico}" da lista padrão?`)) {
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:3000/api/servicos-padrao', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setor: formData.setor, servico })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setServicosPadraoList(data.servicos);
+        setModoExclusao(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao excluir o serviço padrão.');
+    }
+  };
+
+  const servicosExibicao = servicosPadraoList[formData.setor] ? [...servicosPadraoList[formData.setor]] : [];
+  
+  const isCentroCustoVeiculo = veiculos.some(v => v.placa === formData.centroCusto);
+
+  if (formData.setor === 'MECANICA' && isCentroCustoVeiculo) {
+    const padroesMecanica = ['TROCA DE ÓLEO E REVISÃO', 'REVISÃO', 'TROCA DE ÓLEO']; // Ordem inversa pois usa unshift
+    padroesMecanica.forEach(p => {
+      if (!servicosExibicao.includes(p)) {
+        servicosExibicao.unshift(p);
+      }
+    });
+  }
+
   return (
-    <div className={`${styles.card} ${styles.animateFadeIn}`}>
-      <h2 className={styles.cardTitle}>
-        <FileText size={20} className={styles.logoIcon} />
-        Cadastrar Ordem de Serviço
-      </h2>
+    <div className={styles.overlay}>
+      <div className={`${styles.modalCard} ${styles.animateFadeIn}`}>
+        {onClose && (
+          <button type="button" onClick={onClose} className={styles.closeButton}>
+            <X size={24} />
+          </button>
+        )}
+
+        <h2 className={styles.cardTitle}>
+          <FileText size={20} className={styles.logoIcon} />
+          Cadastrar Ordem de Serviço
+        </h2>
 
       <form onSubmit={handleSubmit}>
         {/* Informações Principais */}
@@ -190,16 +290,22 @@ const FormularioOS = ({ onAddOS, osList }) => {
             </select>
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Centro de Custo Alvo</label>
+            <label className={styles.label}>Centro de Custo Alvo / Veículo</label>
             <input
               type="text"
               className={styles.input}
               name="centroCusto"
               value={formData.centroCusto}
               onChange={handleChange}
-              placeholder="Ex: EL-1102"
+              placeholder="Ex: Granja ou Placa (ABC-1234)"
+              list="veiculos-list"
               required
             />
+            <datalist id="veiculos-list">
+              {veiculos.map(v => (
+                <option key={v.placa} value={v.placa}>{v.modelo ? `${v.placa} - ${v.modelo}` : v.placa}</option>
+              ))}
+            </datalist>
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Complexidade</label>
@@ -269,6 +375,103 @@ const FormularioOS = ({ onAddOS, osList }) => {
           </div>
         </div>
 
+        {/* Serviços Padrão */}
+        {formData.setor && (
+          <div className={styles.formGrid}>
+            <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+              <label className={styles.label}>Serviços Padrão ({formData.setor})</label>
+              
+              <div className={styles.servicosContainer} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                
+                {servicosExibicao.length > 0 ? (
+                  <div style={{ position: 'relative', width: '350px' }}>
+                    <div 
+                      className={styles.select} 
+                      onClick={() => setDropdownAberto(!dropdownAberto)}
+                      style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--cor-fundo-principal)' }}
+                    >
+                      <span>Selecione um serviço para adicionar...</span>
+                      <span style={{ fontSize: '10px' }}>{dropdownAberto ? '▲' : '▼'}</span>
+                    </div>
+
+                    {dropdownAberto && (
+                      <div style={{ 
+                        position: 'absolute', top: '100%', left: 0, right: 0, 
+                        backgroundColor: 'var(--cor-fundo-principal)', 
+                        border: '1px solid var(--cor-destaque)', 
+                        borderRadius: '6px', marginTop: '4px', zIndex: 50,
+                        maxHeight: '220px', overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}>
+                        {servicosExibicao.map((svc, i) => {
+                          const isHardcoded = ['TROCA DE ÓLEO', 'REVISÃO', 'TROCA DE ÓLEO E REVISÃO'].includes(svc);
+                          return (
+                            <div key={i} className={styles.servicoTag} style={{ border: 'none', borderBottom: '1px solid var(--cor-borda-cartao)', borderRadius: 0, boxShadow: 'none' }}>
+                              <span 
+                                className={styles.servicoTagTexto} 
+                                onClick={() => { handleAddServicoPadraoText(svc); setDropdownAberto(false); }}
+                              >
+                                {svc}
+                              </span>
+                              {!isHardcoded && (
+                                <button
+                                  type="button"
+                                  className={styles.servicoTagExcluir}
+                                  onClick={(e) => { e.stopPropagation(); handleExcluirServicoPadrao(svc); }}
+                                  title="Excluir serviço padrão"
+                                >
+                                  X
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span className={styles.ajudaTexto} style={{ marginRight: '8px', marginTop: 0 }}>Nenhum serviço padrão cadastrado para este setor.</span>
+                )}
+                
+                {!mostrarAddServicoPadrao ? (
+                  <button
+                    type="button"
+                    className={styles.novoServicoBtn}
+                    onClick={() => setMostrarAddServicoPadrao(true)}
+                  >
+                    + Novo Serviço Padrão
+                  </button>
+                ) : (
+                  <div className={styles.novoServicoForm}>
+                    <input
+                      type="text"
+                      className={styles.novoServicoInput}
+                      placeholder="EX: TROCA DE LÂMPADA"
+                      value={novoServicoPadrao}
+                      onChange={(e) => setNovoServicoPadrao(e.target.value.toUpperCase())}
+                    />
+                    <button
+                      type="button"
+                      className={`${styles.btnAcaoPequeno} ${styles.btnSalvar}`}
+                      onClick={handleSalvarNovoServicoPadrao}
+                    >
+                      Salvar
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.btnAcaoPequeno} ${styles.btnCancelar}`}
+                      onClick={() => { setMostrarAddServicoPadrao(false); setNovoServicoPadrao(''); }}
+                    >
+                      X
+                    </button>
+                  </div>
+                )}
+              </div>
+              <small className={styles.ajudaTexto}>Clique no texto de um serviço acima para adicioná-lo à descrição, ou clique no X para excluí-lo permanentemente da lista.</small>
+            </div>
+          </div>
+        )}
+
         {/* Descrição */}
         <div className={styles.formGrid}>
           <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
@@ -292,6 +495,7 @@ const FormularioOS = ({ onAddOS, osList }) => {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 };

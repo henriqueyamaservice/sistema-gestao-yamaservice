@@ -31,7 +31,7 @@ const ImpressaoOS = ({ os }) => {
             <td colSpan="4"><strong>Solicitante:</strong> {os.requisitante}</td>
           </tr>
           <tr>
-            <td colSpan="4" style={{ height: '70px', verticalAlign: 'top' }}>
+            <td colSpan="4" style={{ height: '50px', verticalAlign: 'top' }}>
               <strong>Descrição do Problema/Serviço:</strong><br />
               {os.descricaoProblema || os.descricao}
             </td>
@@ -60,8 +60,52 @@ const ImpressaoOS = ({ os }) => {
               </tr>
             ))
           ) : (
-            [...Array(4)].map((_, i) => (
+            [...Array(10)].map((_, i) => (
               <tr key={`mao-${i}`}><td></td><td></td><td></td><td></td></tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      <h3 className={styles.sectionTitle}>Veículos Utilizados</h3>
+      <table className={`${styles.table} ${styles.linhas}`}>
+        <thead>
+          <tr>
+            <th style={{width: '15%'}}>Utilizou Veículo?</th>
+            <th style={{width: '25%'}}>Placa</th>
+            <th style={{width: '20%'}}>KM Inicial</th>
+            <th style={{width: '20%'}}>KM Final</th>
+            <th style={{width: '20%'}}>KM Rodado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isConcluida && os.veiculos && os.veiculos.length > 0 ? (
+            os.veiculos.map((item, i) => (
+              <tr key={`veiculo-${i}`}>
+                <td>Sim</td>
+                <td>{item.placa}</td>
+                <td>{item.kmInicial || ''}</td>
+                <td>{item.kmFinal || ''}</td>
+                <td>{item.km}</td>
+              </tr>
+            ))
+          ) : isConcluida && os.usouVeiculo === 'Sim' && os.placaVeiculo ? (
+            <tr>
+              <td>Sim</td>
+              <td>{os.placaVeiculo}</td>
+              <td>{os.kmInicial || ''}</td>
+              <td>{os.kmFinal || ''}</td>
+              <td>{os.kmRodado}</td>
+            </tr>
+          ) : (
+            [...Array(6)].map((_, i) => (
+              <tr key={`veiculo-${i}`}>
+                <td>{i === 0 && !isConcluida ? '( ) Sim   ( ) Não' : ''}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
             ))
           )}
         </tbody>
@@ -129,21 +173,6 @@ const ImpressaoOS = ({ os }) => {
           <tr>
             {isConcluida ? (
               <>
-                <td colSpan="2"><strong>Utilizou Veículo?</strong> {os.usouVeiculo || 'Não'}</td>
-                <td><strong>Placa:</strong> {os.placaVeiculo || ''}</td>
-                <td><strong>KM:</strong> {os.kmRodado || ''}</td>
-              </>
-            ) : (
-              <>
-                <td colSpan="2"><strong>Utilizou Veículo?</strong> ( ) Sim &nbsp; ( ) Não</td>
-                <td><strong>Placa:</strong></td>
-                <td><strong>KM:</strong></td>
-              </>
-            )}
-          </tr>
-          <tr>
-            {isConcluida ? (
-              <>
                 <td colSpan="2"><strong>Data/Hora Fim:</strong> {os.dataFim ? os.dataFim.split('-').reverse().join('/') : ''} às {os.horaFim || ''}</td>
                 <td colSpan="2"><strong>Atraso/Motivo:</strong> {os.observacao || ''}</td>
               </>
@@ -154,7 +183,7 @@ const ImpressaoOS = ({ os }) => {
               </>
             )}
           </tr>
-          <tr style={{ height: '70px', verticalAlign: 'bottom', textAlign: 'center' }}>
+          <tr style={{ height: '50px', verticalAlign: 'bottom', textAlign: 'center' }}>
             <td colSpan="2" style={{ borderBottom: 'none' }}>__________________________________________<br/>Assinatura do Técnico</td>
             <td colSpan="2" style={{ borderBottom: 'none' }}>__________________________________________<br/>Assinatura do Solicitante / Recebedor</td>
           </tr>

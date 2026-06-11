@@ -1,0 +1,120 @@
+.card {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--cor-fundo-sutil-forte);
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.logoIcon {
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil-forte);
+  padding: 8px;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--cor-fundo-sutil);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.filterIcon {
+  color: var(--cor-texto-secundario);
+}
+
+.select {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--cor-destaque);
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.table th,
+.table td {
+  padding: 4px 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-sutil-forte);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(255, 107, 0, 0.05); /* Laranja super sutil ao passar o mouse */
+}
+
+.tableRow {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.animateFadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
