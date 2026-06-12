@@ -186,3 +186,34 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.relativeContainer {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  color: var(--cor-texto-secundario);
+}
+
+.searchInputIconPadding {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.tdIndex {
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.tdBold {
+  font-weight: bold;
+}
+
+.actionsContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

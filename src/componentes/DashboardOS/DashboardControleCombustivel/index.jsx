@@ -10,6 +10,7 @@ import DetalhesAbastecimentoModal from './componentes/DetalhesAbastecimentoModal
 import CadastroVeiculos from './componentes/CadastroVeiculos';
 import RevisaoVeiculo from './componentes/RevisaoVeiculo';
 import EstoqueCombustivel from './componentes/EstoqueCombustivel';
+import RelatorioGeradores from './componentes/RelatorioGeradores';
 
 const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
   const [abaAtiva, setAbaAtiva] = useState('geral');
@@ -53,11 +54,11 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
     <div className={styles.dashboardContainer}>
       {/* Header */}
       <header className={`${styles.header} ${styles.animateFadeIn}`}>
-        <div className={styles.logoContainer} style={{ display: 'flex', alignItems: 'center' }}>
+        <div className={`${styles.logoContainer} ${styles.logoContainerHeader}`}>
           {onOpenMenu && (
             <button 
               onClick={onOpenMenu}
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#1e293b', padding: '4px', display: 'flex', alignItems: 'center', marginRight: '16px' }}
+              className={styles.menuBtn}
               title="Abrir Menu"
             >
               <Menu size={32} />
@@ -66,7 +67,7 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
           <img
             src={logoYamaservice}
             alt="Yamaservice Logo"
-            style={{ height: '48px', width: 'auto', borderRadius: '8px' }}
+            className={styles.logoImg}
           />
           <div className={styles.title}>
             yamaservice
@@ -100,6 +101,14 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
           </button>
 
           <button
+            className={`${styles.btnSecondary} ${abaAtiva === 'geradores' ? styles.active : ''}`}
+            onClick={() => setAbaAtiva('geradores')}
+          >
+            <Fuel size={18} />
+            Granjas
+          </button>
+
+          <button
             className={`${styles.btnSecondary} ${abaAtiva === 'frota' ? styles.active : ''}`}
             onClick={() => setAbaAtiva('frota')}
           >
@@ -114,20 +123,19 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
         {abaAtiva === 'geral' && (
           <div>
             <div className={styles.flexRow}>
-              <h2 className={styles.cardTitle} style={{ borderBottom: 'none', margin: 0, padding: 0 }}>
+              <h2 className={`${styles.cardTitle} ${styles.noBorderBottom}`}>
                 Gerenciamento de Abastecimentos
               </h2>
               <button
-                className={styles.btnSecondary}
+                className={`${styles.btnSecondary} ${styles.btnDestaque}`}
                 onClick={() => setShowNovaRequisicao(true)}
-                style={{ backgroundColor: 'var(--cor-destaque)', color: '#fff', border: 'none' }}
               >
                 <Plus size={18} />
                 Nova Requisição
               </button>
             </div>
 
-            <div className={styles.tableSection} style={{ padding: 0, backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}>
+            <div className={`${styles.tableSection} ${styles.tableSectionTransparent}`}>
               <TabelaCombustivel requisicoes={requisicoes} onRowClick={handleRowClick} />
             </div>
 
@@ -163,6 +171,10 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
 
         {abaAtiva === 'estoque' && (
           <EstoqueCombustivel />
+        )}
+
+        {abaAtiva === 'geradores' && (
+          <RelatorioGeradores />
         )}
 
         {abaAtiva === 'cadastro' && (

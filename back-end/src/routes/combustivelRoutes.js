@@ -87,6 +87,63 @@ router.put('/entradas/:id', async (req, res) => {
   }
 });
 
+// Transferência de Combustível (Origem -> Destino)
+router.post('/transferencia', async (req, res) => {
+  try {
+    const { data, origem, destino, produto, quantidade, observacao } = req.body;
+    const timestamp = Date.now();
+
+    // 1. Criar Saída na Origem (Requisição Concluída)
+    let requisicoes = [];
+    try {
+      const reqData = await fs.readFile(getFilePath(), 'utf-8');
+      requisicoes = JSON.parse(reqData);
+    } catch (e) {}
+
+    const novaSaida = {
+      id: `${timestamp}_S`,
+      numeroRequisicao: `TRANSF-${timestamp}`,
+      data: data,
+      fornecedor: origem,
+      combustivel: produto,
+      qtde: quantidade,
+      veiculo: destino, // O destino é o "veículo" recebedor nesta saída
+      status: 'CONCLUÍDO',
+      observacao: observacao || `Transferência para ${destino}`,
+      valorTotal: 0 // Transferências internas não geram custo financeiro
+    };
+    requisicoes.push(novaSaida);
+    await fs.writeFile(getFilePath(), JSON.stringify(requisicoes, null, 2), 'utf-8');
+
+    // 2. Criar Entrada no Destino
+    let entradas = [];
+    try {
+      const entData = await fs.readFile(getEntradasPath(), 'utf-8');
+      entradas = JSON.parse(entData);
+    } catch (e) {}
+
+    const novaEntrada = {
+      id: `${timestamp}_E`,
+      data: data,
+      fornecedor: origem, // A origem do combustível é o estoque remetente
+      produto: produto,
+      quantidade: quantidade,
+      valorUn: 0,
+      valorTotal: 0,
+      notaFiscal: `TRANSF-${timestamp}`,
+      estoque: destino, // Entrando no novo estoque
+      situacaoAuto: 'INTEGRO',
+      observacao: observacao || `Transferência de ${origem}`
+    };
+    entradas.push(novaEntrada);
+    await fs.writeFile(getEntradasPath(), JSON.stringify(entradas, null, 2), 'utf-8');
+
+    res.status(201).json({ message: 'Transferência realizada com sucesso', saida: novaSaida, entrada: novaEntrada });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao registrar transferência', error: error.message });
+  }
+});
+
 // Criar nova Requisição
 router.post('/requisicao', async (req, res) => {
   try {
@@ -177,7 +234,34 @@ router.put('/abastecimento/:id', async (req, res) => {
     } catch (err) {
       console.error('Erro ao atualizar KM do veículo via Abastecimento:', err);
     }
-    // === Fim da Automação ===
+    // === Fim da Automação de Frota ===
+
+    // === Automação de Geradores: Atualiza o Horímetro Atual do Gerador ===
+    try {
+      if (req.body.km && requisicoes[index].veiculo) {
+        const geradoresPath = path.resolve(process.cwd(), 'data', 'geradores.json');
+        let geradores = [];
+        try {
+          const gData = await fs.readFile(geradoresPath, 'utf-8');
+          geradores = JSON.parse(gData);
+        } catch(e) {}
+        
+        const granjaRef = requisicoes[index].veiculo.trim();
+        const gIndex = geradores.findIndex(g => g.granja === granjaRef);
+        
+        if (gIndex !== -1) {
+          const novoHorimetro = parseFloat(req.body.km);
+          if (novoHorimetro > (parseFloat(geradores[gIndex].horimetroAtual) || 0)) {
+            geradores[gIndex].horimetroAtual = novoHorimetro;
+            await fs.writeFile(geradoresPath, JSON.stringify(geradores, null, 2), 'utf-8');
+            console.log(`Horímetro do gerador da granja ${granjaRef} atualizado para ${novoHorimetro} via Abastecimento.`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar Horímetro do gerador via Abastecimento:', err);
+    }
+    // === Fim da Automação de Geradores ===
 
     res.json({ message: 'Abastecimento registrado com sucesso', requisicao: requisicoes[index] });
 

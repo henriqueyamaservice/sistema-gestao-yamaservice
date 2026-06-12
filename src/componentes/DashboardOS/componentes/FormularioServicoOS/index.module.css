@@ -391,3 +391,80 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Utilities adicionados */
+.w100px { width: 100px; }
+.w80px { width: 80px; }
+.w60px { width: 60px; }
+.w110px { width: 110px; }
+.w120px { width: 120px; }
+.w130px { width: 130px; }
+
+.flex1 { flex: 1; }
+.mb0 { margin-bottom: 0; }
+.mb2 { margin-bottom: 2px; }
+.mt12 { margin-top: 12px; }
+.mt16 { margin-top: 16px; }
+
+.veiculoManutencaoContainer {
+  margin-bottom: 24px;
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.veiculoManutencaoHeader {
+  border-bottom: 1px solid #bae6fd;
+  background-color: #e0f2fe;
+}
+
+.veiculoManutencaoTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0369a1;
+  margin: 0;
+}
+
+.veiculoManutencaoBody {
+  padding: 16px;
+}
+
+.maxWidth400 {
+  max-width: 400px;
+}
+
+.labelVeiculoManutencao {
+  color: #0c4a6e;
+  font-weight: bold;
+}
+
+.inputVeiculoManutencao {
+  border-color: #7dd3fc;
+  background-color: white;
+}
+
+.avisoContainer {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #e0f2fe;
+  border-radius: 8px;
+  border: 1px dashed #7dd3fc;
+}
+
+.avisoTitle {
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: #0369a1;
+  font-weight: bold;
+}
+
+.avisoText {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #0284c7;
+}
+
+.inputDisabledCustom {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+}

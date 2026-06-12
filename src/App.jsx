@@ -4,7 +4,7 @@ import DashboardCompras from './componentes/DashboardCompras';
 import DashboardBlocoRequisicao from './componentes/DashboardBlocoRequisicao';
 import DashboardDiretor from './componentes/DashboardDiretor';
 import DashboardOS from './componentes/DashboardOS';
-import PortalFornecedor from './componentes/PortalFornecedor';
+import PortalFornecedor from './componentes/DashboardCompras/componentes/PortalFornecedor';
 import { ArrowRightLeft } from 'lucide-react';
 import './index.css';
 

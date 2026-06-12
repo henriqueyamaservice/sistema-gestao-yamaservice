@@ -67,45 +67,25 @@ const DashboardOS = () => {
       {menuOpen && (
         <div 
           onClick={() => setMenuOpen(false)} 
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}
+          className={styles.overlay}
         />
       )}
 
-      <div 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: menuOpen ? 0 : '-340px',
-          width: '320px',
-          height: '100vh',
-          backgroundColor: '#1e293b',
-          color: '#fff',
-          transition: 'left 0.3s ease',
-          zIndex: 10000,
-          boxShadow: menuOpen ? '4px 0 15px rgba(0,0,0,0.3)' : 'none',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155' }}>
-          <h2 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={logoYamaservice} alt="Logo" style={{ height: '30px', borderRadius: '4px' }} />
+      <div className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
+        <div className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarLogoTitle}>
+            <img src={logoYamaservice} alt="Logo" className={styles.sidebarLogoImg} />
             Menu
           </h2>
-          <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
+          <button onClick={() => setMenuOpen(false)} className={styles.closeMenuBtn}>
             <X size={24} />
           </button>
         </div>
 
-        <nav style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+        <nav className={styles.sidebarNav}>
           <button 
             onClick={() => { setViewMode('os'); setMenuOpen(false); }}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', 
-              background: viewMode === 'os' ? '#f97316' : 'transparent', 
-              border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: '1rem', fontWeight: 'bold',
-              transition: 'background 0.2s'
-            }}
+            className={`${styles.navItem} ${viewMode === 'os' ? styles.navItemActive : ''}`}
           >
             <Home size={20} />
             Ordens de Serviço
@@ -113,19 +93,14 @@ const DashboardOS = () => {
 
           <button 
             onClick={() => { setViewMode('combustivel'); setMenuOpen(false); }}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', 
-              background: viewMode === 'combustivel' ? '#f97316' : 'transparent', 
-              border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: '1rem', fontWeight: 'bold',
-              transition: 'background 0.2s'
-            }}
+            className={`${styles.navItem} ${viewMode === 'combustivel' ? styles.navItemActive : ''}`}
           >
             <Fuel size={20} />
             Controle Combustível
           </button>
         </nav>
         
-        <div style={{ padding: '20px', borderTop: '1px solid #334155', fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center' }}>
+        <div className={styles.sidebarFooter}>
           Yamaservice OS v1.0
         </div>
       </div>
@@ -135,12 +110,11 @@ const DashboardOS = () => {
         <DashboardControleCombustivel osList={osList} onOpenMenu={() => setMenuOpen(true)} />
       ) : (
         <>
-          {/* Cabeçalho */}
           <header className={`${styles.osHeader} ${styles.animateFadeIn}`}>
-            <div className={styles.osLogoContainer} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className={styles.osLogoContainer}>
               <button 
                 onClick={() => setMenuOpen(true)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#1e293b', padding: '4px', display: 'flex', alignItems: 'center' }}
+                className={styles.openMenuBtn}
                 title="Abrir Menu"
               >
                 <Menu size={32} />
@@ -148,7 +122,7 @@ const DashboardOS = () => {
               <img 
                 src={logoYamaservice} 
                 alt="Yamaservice Logo" 
-                style={{ height: '48px', width: 'auto', borderRadius: '8px' }} 
+                className={styles.headerLogoImg}
               />
               <div className={styles.osTitle}>
                 yamaservice
@@ -156,19 +130,17 @@ const DashboardOS = () => {
               </div>
             </div>
             
-            <div className={styles.osActions} style={{ display: 'flex', gap: '8px' }}>
+            <div className={styles.osActions}>
               <button 
-                className={styles.btnPrimary}
+                className={`${styles.btnPrimary} ${styles.btnPrimaryMargin}`}
                 onClick={() => setShowNovaOS(true)}
-                style={{ marginRight: '16px' }}
               >
                 + Criar Nova O.S.
               </button>
               
               <button 
-                className={styles.btnSecondary}
+                className={`${styles.btnSecondary} ${abaRelatorio === 'os' ? styles.btnSecondaryActive : ''}`}
                 onClick={() => setAbaRelatorio(abaRelatorio === 'os' ? null : 'os')}
-                style={abaRelatorio === 'os' ? { backgroundColor: 'var(--cor-fundo-sutil-forte)', borderColor: 'var(--cor-destaque)' } : {}}
               >
                 <FileText size={18} />
                 Ordens de Serviço

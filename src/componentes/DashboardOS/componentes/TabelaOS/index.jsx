@@ -62,12 +62,11 @@ const TabelaOS = ({ osList, onRowClick, onPrint, onStart }) => {
       <div className={styles.searchBar}>
         <div className={styles.searchGroup}>
           <label className={styles.searchLabel}>Buscar por Código, Requisitante, Descrição, Setor ou C.Custo</label>
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--cor-texto-secundario)' }} />
+          <div className={styles.relativeContainer}>
+            <Search size={16} className={styles.searchIcon} />
             <input 
               type="text" 
-              className={styles.searchInput} 
-              style={{ width: '100%', paddingLeft: '32px' }}
+              className={`${styles.searchInput} ${styles.searchInputIconPadding}`}
               placeholder="Digite sua busca..." 
               value={termoBusca}
               onChange={e => setTermoBusca(e.target.value)}
@@ -132,8 +131,8 @@ const TabelaOS = ({ osList, onRowClick, onPrint, onStart }) => {
                     className={styles.tableRow}
                     title="Clique para gerenciar esta O.S."
                   >
-                    <td style={{ fontWeight: '500', color: 'var(--cor-texto-secundario)' }}>{index + 1}</td>
-                    <td style={{ fontWeight: 'bold' }}>{os.codigo}</td>
+                    <td className={styles.tdIndex}>{index + 1}</td>
+                    <td className={styles.tdBold}>{os.codigo}</td>
                     <td>{dataFormatada}</td>
                     <td>{os.hora}</td>
                     <td>{os.requisitante}</td>
@@ -148,7 +147,7 @@ const TabelaOS = ({ osList, onRowClick, onPrint, onStart }) => {
                       {os.descricao}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div className={styles.actionsContainer}>
                         <button 
                           type="button" 
                           onClick={(e) => { e.stopPropagation(); onPrint && onPrint(os); }} 

@@ -902,7 +902,7 @@
     "dataCriacao": "2026-06-03T17:33:47.796Z",
     "status": "finalizado",
     "tipo": "reposicao",
-    "status_compras": "pendente_cotacao",
+    "status_compras": "em_orcamento",
     "dataRequisicao": "2026-06-03T17:33:47.786Z",
     "sugestaoEntrega": "",
     "projetoDestino": "",
@@ -917,13 +917,50 @@
         "isAvulso": false,
         "status": "entregue",
         "quantidade_entregue": 1,
-        "devolvido": 0
+        "devolvido": 0,
+        "cotacoes": [
+          {
+            "id": "17811792224957rhaz73",
+            "fornecedorId": "1629713455",
+            "valorUnitario": "74.09",
+            "previsaoDias": "12"
+          },
+          {
+            "id": "1781179320330",
+            "fornecedorId": "11992003967",
+            "valorUnitario": "70",
+            "previsaoDias": "10",
+            "marca": "xXT-CV",
+            "tipoUnidade": "Unidade",
+            "quantidadePacote": "",
+            "desconto": "10",
+            "descontoGeral": 0,
+            "origem": "portal",
+            "dataCotacao": "2026-06-11T12:02:00.330Z"
+          },
+          {
+            "id": "1781179222495ghw57c9",
+            "fornecedorId": "748494106",
+            "valorUnitario": "75.50",
+            "previsaoDias": "14"
+          }
+        ]
       }
     ],
     "departamento": "",
     "vendedor": "HEITOR TOKIO",
     "localEstoque": "PADRAO - Local de Estoque Padrão",
-    "entrega_parcial": false
+    "entrega_parcial": false,
+    "historico_status": [
+      {
+        "status": "em_concorrencia",
+        "data": "2026-06-11T12:00:11.045Z"
+      },
+      {
+        "status": "em_orcamento",
+        "data": "2026-06-11T12:00:40.071Z"
+      }
+    ]
   },
   {
     "id": "1780508586093",

@@ -323,7 +323,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                   maoDeObra.map((item, index) => (
                     <tr key={index}>
                       <td>
-                        <input type="text" className={`${styles.input} ${styles.inputSmall}`} style={{ width: '100px' }} placeholder="Ex: 71"
+                        <input type="text" className={`${styles.input} ${styles.inputSmall} ${styles.w100px}`} placeholder="Ex: 71"
                           value={item.matricula} onChange={(e) => updateMaoDeObra(index, 'matricula', e.target.value)} disabled={isFinalizada} required list="funcionarios-matricula" />
                       </td>
                       <td>
@@ -338,7 +338,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                         </select>
                       </td>
                       <td>
-                        <input type="text" className={`${styles.input} ${styles.inputSmall}`} style={{ width: '80px' }} placeholder="Ex: 9h"
+                        <input type="text" className={`${styles.input} ${styles.inputSmall} ${styles.w80px}`} placeholder="Ex: 9h"
                           value={item.horas} onChange={(e) => updateMaoDeObra(index, 'horas', e.target.value)} disabled={isFinalizada} required />
                       </td>
                       {!isFinalizada && (
@@ -395,11 +395,11 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                 ) : (
                   servicosExecutados.map((item, index) => (
                     <tr key={index}>
-                      <td style={{ width: '130px' }}>
+                      <td className={styles.w130px}>
                         <input type="date" className={`${styles.input} ${styles.inputSmall}`}
                           value={item.data} onChange={(e) => updateServicoExecutado(index, 'data', e.target.value)} disabled={isFinalizada} />
                       </td>
-                      <td style={{ width: '110px' }}>
+                      <td className={styles.w110px}>
                         <input type="time" className={`${styles.input} ${styles.inputSmall}`}
                           value={item.hora} onChange={(e) => updateServicoExecutado(index, 'hora', e.target.value)} disabled={isFinalizada} />
                       </td>
@@ -408,7 +408,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                           value={item.descricao} onChange={(e) => updateServicoExecutado(index, 'descricao', e.target.value)} disabled={isFinalizada} required />
                       </td>
                       {!isFinalizada && (
-                        <td style={{ width: '60px' }}>
+                        <td className={styles.w60px}>
                           <button type="button" onClick={() => removeServicoExecutado(index)} className={styles.btnDangerIcon}>
                             <Trash2 size={18} />
                           </button>
@@ -476,27 +476,25 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             const labelKM = `${labelBase} ${complemento}`;
 
             return (
-              <div className={styles.veiculosContainer} style={{ marginBottom: '24px', backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
-                <div className={styles.veiculosHeader} style={{ borderBottom: '1px solid #bae6fd', backgroundColor: '#e0f2fe' }}>
-                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', margin: 0 }}>
+              <div className={`${styles.veiculosContainer} ${styles.veiculoManutencaoContainer}`}>
+                <div className={`${styles.veiculosHeader} ${styles.veiculoManutencaoHeader}`}>
+                  <h4 className={styles.veiculoManutencaoTitle}>
                     <Wrench size={18} /> Manutenção da Frota ({os.centroCusto})
                   </h4>
                 </div>
-                <div style={{ padding: '16px' }}>
-                  <div className={styles.formGroup} style={{ maxWidth: '400px' }}>
-                    <label className={styles.label} style={{ color: '#0c4a6e', fontWeight: 'bold' }}>{labelKM}</label>
+                <div className={styles.veiculoManutencaoBody}>
+                  <div className={`${styles.formGroup} ${styles.maxWidth400}`}>
+                    <label className={`${styles.label} ${styles.labelVeiculoManutencao}`}>{labelKM}</label>
                     <input 
-                      type="number" className={styles.input} 
+                      type="number" className={`${styles.input} ${styles.inputVeiculoManutencao}`} 
                       value={kmManutencao} onChange={(e) => setKmManutencao(e.target.value)} 
-                      disabled={isFinalizada} placeholder={`Ex: ${isHorimetro ? '5000' : '50000'}`}
-                      style={{ borderColor: '#7dd3fc', backgroundColor: 'white' }}
                     />
                   </div>
-                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#e0f2fe', borderRadius: '8px', border: '1px dashed #7dd3fc' }}>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', color: '#0369a1', fontWeight: 'bold' }}>
+                  <div className={styles.avisoContainer}>
+                    <p className={styles.avisoTitle}>
                       ⚠️ Importante para a Automação:
                     </p>
-                    <p style={{ margin: '0', fontSize: '0.8rem', color: '#0284c7' }}>
+                    <p className={styles.avisoText}>
                       Informe o KM atual acima e certifique-se de escrever <strong>"TROCA DE ÓLEO"</strong>, <strong>"REVISÃO"</strong> ou <strong>"TROCA DE ÓLEO E REVISÃO"</strong> nos serviços executados para que o sistema atualize as metas da frota.
                     </p>
                   </div>
@@ -539,7 +537,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
 
                     return (
                       <div key={index} className={styles.veiculoItem}>
-                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                        <div className={`${styles.formGroup} ${styles.flex1} ${styles.mb0}`}>
                           <label className={styles.label}>Placa do Veículo</label>
                           <select 
                             className={styles.select}
@@ -551,30 +549,29 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                             ))}
                           </select>
                         </div>
-                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                        <div className={`${styles.formGroup} ${styles.flex1} ${styles.mb0}`}>
                           <label className={styles.label}>{labelInicial}</label>
                           <input 
                             type="number" className={styles.input} placeholder="Ex: 15000" min="0" step="0.1"
                             value={v.kmInicial} onChange={(e) => updateVeiculo(index, 'kmInicial', e.target.value)} required disabled={isFinalizada}
                           />
                         </div>
-                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                        <div className={`${styles.formGroup} ${styles.flex1} ${styles.mb0}`}>
                           <label className={styles.label}>{labelFinal}</label>
                           <input 
                             type="number" className={styles.input} placeholder="Ex: 15050" min="0" step="0.1"
                             value={v.kmFinal} onChange={(e) => updateVeiculo(index, 'kmFinal', e.target.value)} required disabled={isFinalizada}
                           />
                         </div>
-                        <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                        <div className={`${styles.formGroup} ${styles.flex1} ${styles.mb0}`}>
                           <label className={styles.label}>{labelRodado}</label>
                           <input 
-                            type="number" className={styles.input} placeholder="Auto"
+                            type="number" className={`${styles.input} ${styles.inputDisabledCustom}`} placeholder="Auto"
                             value={v.km} readOnly disabled
-                            style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
                           />
                         </div>
                         {!isFinalizada && (
-                          <button type="button" onClick={() => removeVeiculo(index)} className={`${styles.btnDangerIcon} ${styles.btnDangerIconSmall}`} style={{ marginBottom: '2px' }}>
+                          <button type="button" onClick={() => removeVeiculo(index)} className={`${styles.btnDangerIcon} ${styles.btnDangerIconSmall} ${styles.mb2}`}>
                             <Trash2 size={20} />
                           </button>
                         )}
@@ -616,19 +613,19 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                 ) : (
                   consumiveis.map((item, index) => (
                     <tr key={index}>
-                      <td style={{ width: '130px' }}>
+                      <td className={styles.w130px}>
                         <input type="date" className={`${styles.input} ${styles.inputSmall}`}
                           value={item.data} onChange={(e) => updateConsumivel(index, 'data', e.target.value)} disabled={isFinalizada} />
                       </td>
-                      <td style={{ width: '110px' }}>
+                      <td className={styles.w110px}>
                         <input type="time" className={`${styles.input} ${styles.inputSmall}`}
                           value={item.hora} onChange={(e) => updateConsumivel(index, 'hora', e.target.value)} disabled={isFinalizada} />
                       </td>
-                      <td style={{ width: '120px' }}>
+                      <td className={styles.w120px}>
                         <input type="text" className={`${styles.input} ${styles.inputSmall}`} placeholder="Código"
                           value={item.codigo} onChange={(e) => updateConsumivel(index, 'codigo', e.target.value)} disabled={isFinalizada} list="produtos-codigo" />
                       </td>
-                      <td style={{ width: '80px' }}>
+                      <td className={styles.w80px}>
                         <input type="number" className={`${styles.input} ${styles.inputSmall}`} min="1"
                           value={item.quantidade} onChange={(e) => updateConsumivel(index, 'quantidade', parseInt(e.target.value))} disabled={isFinalizada} />
                       </td>
@@ -637,7 +634,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                           value={item.descricao} onChange={(e) => updateConsumivel(index, 'descricao', e.target.value)} disabled={isFinalizada} required list="produtos-descricao" />
                       </td>
                       {!isFinalizada && (
-                        <td style={{ width: '60px' }}>
+                        <td className={styles.w60px}>
                           <button type="button" onClick={() => removeConsumivel(index)} className={styles.btnDangerIcon}>
                             <Trash2 size={18} />
                           </button>
@@ -709,7 +706,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                         />
                       </div>
                     </div>
-                    <div className={styles.formGrid} style={{ marginTop: '12px' }}>
+                    <div className={`${styles.formGrid} ${styles.mt12}`}>
                       <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
                         <label className={styles.label}>Observação / Motivo do Atraso</label>
                         <textarea 
@@ -741,7 +738,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
           {isFinalizada && (
             <>
               {formData.observacao && (
-                <div className={styles.formGrid} style={{ marginTop: '16px' }}>
+                <div className={`${styles.formGrid} ${styles.mt16}`}>
                   <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
                     <label className={styles.label}>Justificativa de Atraso / Observações ({formData.dataJustificativa ? formData.dataJustificativa.split('-').reverse().join('/') : ''})</label>
                     <div className={styles.readonlyBox}>

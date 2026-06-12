@@ -287,3 +287,44 @@
   align-items: center;
   margin-bottom: 16px;
 }
+
+.logoContainerHeader {
+  display: flex;
+  align-items: center;
+}
+
+.menuBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #1e293b;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+}
+
+.logoImg {
+  height: 48px;
+  width: auto;
+  border-radius: 8px;
+}
+
+.noBorderBottom {
+  border-bottom: none;
+  margin: 0;
+  padding: 0;
+}
+
+.btnDestaque {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+}
+
+.tableSectionTransparent {
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}

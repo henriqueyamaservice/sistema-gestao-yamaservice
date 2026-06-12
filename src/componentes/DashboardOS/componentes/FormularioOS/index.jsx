@@ -214,7 +214,7 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
           </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Data</label>
-            <div style={{ position: 'relative' }}>
+            <div className={styles.relativeContainer}>
               <input
                 type="date"
                 className={styles.input}
@@ -381,32 +381,24 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
             <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
               <label className={styles.label}>Serviços Padrão ({formData.setor})</label>
               
-              <div className={styles.servicosContainer} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <div className={`${styles.servicosContainer} ${styles.servicosContainerRow}`}>
                 
                 {servicosExibicao.length > 0 ? (
-                  <div style={{ position: 'relative', width: '350px' }}>
+                  <div className={styles.dropdownWrapper}>
                     <div 
-                      className={styles.select} 
+                      className={`${styles.select} ${styles.selectDropdown}`}
                       onClick={() => setDropdownAberto(!dropdownAberto)}
-                      style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--cor-fundo-principal)' }}
                     >
                       <span>Selecione um serviço para adicionar...</span>
                       <span style={{ fontSize: '10px' }}>{dropdownAberto ? '▲' : '▼'}</span>
                     </div>
 
                     {dropdownAberto && (
-                      <div style={{ 
-                        position: 'absolute', top: '100%', left: 0, right: 0, 
-                        backgroundColor: 'var(--cor-fundo-principal)', 
-                        border: '1px solid var(--cor-destaque)', 
-                        borderRadius: '6px', marginTop: '4px', zIndex: 50,
-                        maxHeight: '220px', overflowY: 'auto',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                      }}>
+                      <div className={styles.dropdownList}>
                         {servicosExibicao.map((svc, i) => {
                           const isHardcoded = ['TROCA DE ÓLEO', 'REVISÃO', 'TROCA DE ÓLEO E REVISÃO'].includes(svc);
                           return (
-                            <div key={i} className={styles.servicoTag} style={{ border: 'none', borderBottom: '1px solid var(--cor-borda-cartao)', borderRadius: 0, boxShadow: 'none' }}>
+                            <div key={i} className={`${styles.servicoTag} ${styles.servicoTagItem}`}>
                               <span 
                                 className={styles.servicoTagTexto} 
                                 onClick={() => { handleAddServicoPadraoText(svc); setDropdownAberto(false); }}
@@ -430,7 +422,7 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
                     )}
                   </div>
                 ) : (
-                  <span className={styles.ajudaTexto} style={{ marginRight: '8px', marginTop: 0 }}>Nenhum serviço padrão cadastrado para este setor.</span>
+                  <span className={`${styles.ajudaTexto} ${styles.ajudaTextoInline}`}>Nenhum serviço padrão cadastrado para este setor.</span>
                 )}
                 
                 {!mostrarAddServicoPadrao ? (

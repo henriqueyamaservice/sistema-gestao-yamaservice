@@ -153,16 +153,24 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
                 type="text"
                 value={calcularValorTotal()}
                 readOnly
-                style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
+                className={styles.inputReadOnly}
               />
             </div>
 
             <div className={styles.formGroup}>
               <label>Estoque (Destino)</label>
-              <select name="estoque" value={formData.estoque} onChange={handleChange} required>
-                <option value="P YAMAVES">P YAMAVES</option>
-                <option value="ALMOXARIFADO">ALMOXARIFADO</option>
-              </select>
+              <input 
+                list="estoques-list"
+                name="estoque" 
+                value={formData.estoque} 
+                onChange={handleChange} 
+                required 
+                placeholder="Ex: P YAMAVES, CAMINHÃO X"
+              />
+              <datalist id="estoques-list">
+                <option value="P YAMAVES" />
+                <option value="ALMOXARIFADO" />
+              </datalist>
             </div>
 
             <div className={styles.formGroup}>

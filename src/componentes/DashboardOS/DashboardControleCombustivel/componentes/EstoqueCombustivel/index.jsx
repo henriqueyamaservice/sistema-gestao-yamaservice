@@ -2,16 +2,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Database, TrendingUp, AlertCircle, Download, Edit, X, Search, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import styles from './index.module.css';
-import FormularioEntradaEstoque from './FormularioEntradaEstoque';
-
+import FormularioEntradaEstoque from '../FormularioEntradaEstoque';
+import FormularioTransferencia from '../FormularioTransferencia';
 const CORES = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const EstoqueCombustivel = () => {
   const [entradas, setEntradas] = useState([]);
   const [saidas, setSaidas] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showTransferenciaModal, setShowTransferenciaModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [editandoSituacao, setEditandoSituacao] = useState(null);
+  const [tipoRelatorio, setTipoRelatorio] = useState('entradas');
 
   // Estados de Filtro
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,10 +27,10 @@ const EstoqueCombustivel = () => {
         fetch('http://localhost:3000/api/combustivel/entradas'),
         fetch('http://localhost:3000/api/combustivel')
       ]);
-      
+
       const dataEntradas = await resEntradas.json();
       const dataSaidas = await resSaidas.json();
-      
+
       setEntradas(dataEntradas);
       setSaidas(dataSaidas);
     } catch (error) {
@@ -83,7 +85,7 @@ const EstoqueCombustivel = () => {
       const posto = ent.estoque;
       const prod = ent.produto;
       const qtdEntrada = parseFloat(ent.quantidade) || 0;
-      
+
       let saldo = qtdEntrada;
       let situacao = 'INTEGRO';
 
@@ -133,8 +135,17 @@ const EstoqueCombustivel = () => {
     });
   }, [entradasComFIFO, searchTerm, dataInicio, dataFim]);
 
+  const listaParaExibicao = useMemo(() => {
+    return entradasFiltradas.filter(ent => {
+      const isTransfer = ent.notaFiscal && ent.notaFiscal.startsWith('TRANSF-');
+      if (tipoRelatorio === 'entradas') return !isTransfer;
+      if (tipoRelatorio === 'transferencias') return isTransfer;
+      return true;
+    });
+  }, [entradasFiltradas, tipoRelatorio]);
+
   const handleExportCSV = () => {
-    if (entradasFiltradas.length === 0) {
+    if (listaParaExibicao.length === 0) {
       alert("Não há dados para exportar.");
       return;
     }
@@ -142,7 +153,7 @@ const EstoqueCombustivel = () => {
     // Usando ponto e vírgula como separador para Excel em PT-BR
     let csv = "Data;Fornecedor;Produto;Qtd (L);Nota Fiscal;Valor Un.;Valor Total;Destino;Situacao Automatica;Saldo Restante (L)\n";
 
-    entradasFiltradas.forEach(ent => {
+    listaParaExibicao.forEach(ent => {
       const dataStr = new Date(ent.data).toLocaleDateString('pt-BR');
       const fornecedor = (ent.fornecedor || "").replace(/;/g, ",");
       const produto = (ent.produto || "").replace(/;/g, ",");
@@ -167,13 +178,24 @@ const EstoqueCombustivel = () => {
     document.body.removeChild(link);
   };
 
-  // --- CÁLCULOS DE ESTOQUE FÍSICO (ALMOXARIFADO E P YAMAVES) ---
+  // --- CÁLCULOS DE ESTOQUE FÍSICO (DINÂMICO PARA INCLUIR CAMINHÕES) ---
   const estoqueFisico = useMemo(() => {
-    const postosFisicos = ['P YAMAVES', 'ALMOXARIFADO'];
     const controle = {};
 
+    // Coletar todos os postos (locais de estoque) que existem nas entradas
+    const postosIdentificados = new Set();
+    entradas.forEach(ent => {
+      if (ent.estoque) postosIdentificados.add(ent.estoque);
+    });
+
+    // Se não houver nenhum, garante os padrões
+    if (postosIdentificados.size === 0) {
+      postosIdentificados.add('P YAMAVES');
+      postosIdentificados.add('ALMOXARIFADO');
+    }
+
     // Inicializa
-    postosFisicos.forEach(p => {
+    postosIdentificados.forEach(p => {
       controle[p] = { DIESEL: 0, GASOLINA: 0, 'ARLA REDUX': 0 };
     });
 
@@ -188,7 +210,7 @@ const EstoqueCombustivel = () => {
 
     // Subtrai Saídas (Requisições Concluídas/Abastecidas)
     saidas.forEach(sai => {
-      const posto = sai.fornecedor; // O fornecedor na requisição indica onde foi abastecido
+      const posto = sai.fornecedor; // O fornecedor na requisição indica de onde saiu
       const prod = sai.combustivel;
       if ((sai.status === 'CONCLUÍDO' || sai.status === 'ABASTECIDA') && controle[posto] && controle[posto][prod] !== undefined) {
         controle[posto][prod] -= parseFloat(sai.qtde) || 0;
@@ -199,20 +221,39 @@ const EstoqueCombustivel = () => {
   }, [entradas, saidas]);
 
   // Formatar dados para o gráfico de barras (Estoque Físico)
-  const dadosGraficoEstoque = [
-    {
-      name: 'P YAMAVES',
-      DIESEL: Math.max(0, estoqueFisico['P YAMAVES']?.DIESEL || 0),
-      GASOLINA: Math.max(0, estoqueFisico['P YAMAVES']?.GASOLINA || 0),
-      'ARLA REDUX': Math.max(0, estoqueFisico['P YAMAVES']?.['ARLA REDUX'] || 0),
-    },
-    {
-      name: 'ALMOXARIFADO',
-      DIESEL: Math.max(0, estoqueFisico['ALMOXARIFADO']?.DIESEL || 0),
-      GASOLINA: Math.max(0, estoqueFisico['ALMOXARIFADO']?.GASOLINA || 0),
-      'ARLA REDUX': Math.max(0, estoqueFisico['ALMOXARIFADO']?.['ARLA REDUX'] || 0),
-    }
-  ];
+  const postosFixosGrafico = ['P YAMAVES', 'ALMOXARIFADO', 'ORIENTE', 'POSTO DA RUA'];
+
+  const dadosGraficoEstoqueFixos = Object.keys(estoqueFisico)
+    .filter(posto => postosFixosGrafico.includes(posto.toUpperCase()))
+    .map(posto => ({
+      name: posto,
+      DIESEL: Math.max(0, estoqueFisico[posto]?.DIESEL || 0),
+      GASOLINA: Math.max(0, estoqueFisico[posto]?.GASOLINA || 0),
+      'ARLA REDUX': Math.max(0, estoqueFisico[posto]?.['ARLA REDUX'] || 0),
+    }));
+
+  const dadosGraficoEstoqueMoveis = Object.keys(estoqueFisico)
+    .filter(posto => !postosFixosGrafico.includes(posto.toUpperCase()))
+    .map(posto => ({
+      name: posto,
+      DIESEL: Math.max(0, estoqueFisico[posto]?.DIESEL || 0)
+    }))
+    .filter(d => d.DIESEL > 0);
+
+  // --- CÁLCULO DE SALDO TOTAL GERAL ---
+  const saldoTotalGeral = useMemo(() => {
+    let diesel = 0;
+    let gasolina = 0;
+    let arla = 0;
+
+    Object.values(estoqueFisico).forEach(p => {
+      diesel += Math.max(0, p.DIESEL || 0);
+      gasolina += Math.max(0, p.GASOLINA || 0);
+      arla += Math.max(0, p['ARLA REDUX'] || 0);
+    });
+
+    return { diesel, gasolina, arla };
+  }, [estoqueFisico]);
 
   // --- CÁLCULOS FINANCEIROS (POSTOS SEM ESTOQUE) ---
   const dadosFinanceiros = useMemo(() => {
@@ -222,10 +263,10 @@ const EstoqueCombustivel = () => {
 
     saidas.forEach(sai => {
       // Considera apenas as saídas com status de concluído/abastecida e que sejam dos postos externos
-      // Alguns podem ter outro nome, mas vamos pegar tudo que NÃO é P YAMAVES e ALMOXARIFADO
+      // Vamos pegar tudo que NÃO está no estoqueFisico (que agora inclui os caminhões)
       if (sai.status === 'CONCLUÍDO' || sai.status === 'ABASTECIDA') {
         const fornecedor = sai.fornecedor || '';
-        if (fornecedor !== 'P YAMAVES' && fornecedor !== 'ALMOXARIFADO') {
+        if (!Object.keys(estoqueFisico).includes(fornecedor)) {
           gastoTotal += parseFloat(sai.valorTotal) || 0;
           if (sai.veiculo) carrosAbastecidos.add(sai.veiculo);
         }
@@ -250,18 +291,20 @@ const EstoqueCombustivel = () => {
     saidas.forEach(sai => {
       const isConcluido = sai.status === 'CONCLUÍDO' || sai.status === 'ABASTECIDA';
       const isExterno = postosExternos.includes(sai.fornecedor);
-      
+
       if (isConcluido && isExterno) {
         const posto = sai.fornecedor;
         const prod = sai.combustivel;
-        
+
         if (!postos[posto]) {
           postos[posto] = { name: posto, DIESEL: 0, GASOLINA: 0, 'ARLA REDUX': 0, GastoTotal: 0, veiculos: new Set() };
         }
-        
+
         const valor = parseFloat(sai.valorTotal) || 0;
-        postos[posto][prod] += valor;
-        postos[posto].GastoTotal += valor;
+        const qtde = parseFloat(sai.qtde) || 0;
+        
+        postos[posto][prod] += qtde; // Soma em Litros
+        postos[posto].GastoTotal += valor; // Soma financeira mantida
         if (sai.veiculo) postos[posto].veiculos.add(sai.veiculo);
       }
     });
@@ -295,21 +338,23 @@ const EstoqueCombustivel = () => {
       }
     });
 
-    return Object.keys(postos)
-      .filter(posto => posto === 'ALMOXARIFADO' || posto === 'P YAMAVES')
-      .map(posto => {
-      const pData = postos[posto];
-      const dataArr = [
-        { name: 'DIESEL', value: pData.DIESEL, fill: '#3b82f6' },
-        { name: 'GASOLINA', value: pData.GASOLINA, fill: '#10b981' },
-        { name: 'ARLA REDUX', value: pData['ARLA REDUX'], fill: '#f59e0b' }
-      ].filter(item => item.value > 0);
+    const postosParaPizza = ['P YAMAVES', 'ALMOXARIFADO'];
 
-      return {
-        posto,
-        dataArr
-      };
-    }).filter(p => p.dataArr.length > 0);
+    return Object.keys(postos)
+      .filter(posto => postosParaPizza.includes(posto.toUpperCase()))
+      .map(posto => {
+        const pData = postos[posto];
+        const dataArr = [
+          { name: 'DIESEL', value: pData.DIESEL, fill: '#3b82f6' },
+          { name: 'GASOLINA', value: pData.GASOLINA, fill: '#10b981' },
+          { name: 'ARLA REDUX', value: pData['ARLA REDUX'], fill: '#f59e0b' }
+        ].filter(item => item.value > 0);
+
+        return {
+          posto,
+          dataArr
+        };
+      }).filter(p => p.dataArr.length > 0);
   }, [saidas]);
 
   // Função para formatar moeda
@@ -326,14 +371,14 @@ const EstoqueCombustivel = () => {
           {payload.map((entry, index) => (
             entry.value > 0 && (
               <p key={index} style={{ margin: 0, color: entry.color, fontSize: '0.85rem' }}>
-                {entry.name}: {formatMoeda(entry.value)}
+                {entry.name}: {entry.value.toFixed(2)} L
               </p>
             )
           ))}
           <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '8px 0' }} />
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Total Gasto: <strong style={{ color: '#1e293b'}}>{formatMoeda(data.GastoTotal)}</strong></p>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Carros Abast.: <strong style={{ color: '#1e293b'}}>{data.VeiculosCount}</strong></p>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Média: <strong style={{ color: '#1e293b'}}>{formatMoeda(data.MediaPorVeiculo)}/carro</strong></p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Total Gasto: <strong style={{ color: '#1e293b' }}>{formatMoeda(data.GastoTotal)}</strong></p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Carros Abast.: <strong style={{ color: '#1e293b' }}>{data.VeiculosCount}</strong></p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Média: <strong style={{ color: '#1e293b' }}>{formatMoeda(data.MediaPorVeiculo)}/carro</strong></p>
         </div>
       );
     }
@@ -345,18 +390,20 @@ const EstoqueCombustivel = () => {
       <div className={styles.header}>
         <div className={styles.titleContainer}>
           <h2 className={styles.title}>
-            <Database size={24} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px', color: '#3b82f6' }} />
+            <Database size={24} className={styles.iconDatabase} />
             Controle de Estoque de Combustível
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            className={styles.btnPrimary} 
+        <div className={styles.gap10}>
+          <button
+            className={`${styles.btnPrimary} ${styles.btnExport}`}
             onClick={handleExportCSV}
-            style={{ backgroundColor: '#10b981' }}
           >
             <Download size={18} />
             Exportar Planilha
+          </button>
+          <button className={`${styles.btnPrimary} ${styles.btnTransfer}`} onClick={() => setShowTransferenciaModal(true)}>
+            Transferência
           </button>
           <button className={styles.btnPrimary} onClick={() => setShowModal(true)}>
             <Plus size={18} />
@@ -366,20 +413,36 @@ const EstoqueCombustivel = () => {
       </div>
 
       {isLoading ? (
-        <p style={{ textAlign: 'center', padding: '20px' }}>Carregando dados...</p>
+        <p className={styles.loadingText}>Carregando dados...</p>
       ) : (
         <>
+          {/* Resumo de Saldos Totais Gerais */}
+          <div className={styles.summaryGrid}>
+            <div className={`${styles.summaryCard} ${styles.summaryDiesel}`}>
+              <span className={`${styles.summaryLabel} ${styles.labelDiesel}`}>Total Diesel Geral</span>
+              <span className={`${styles.summaryValue} ${styles.valueDiesel}`}>{saldoTotalGeral.diesel.toFixed(2)} <span className={styles.unitText}>L</span></span>
+            </div>
+            <div className={`${styles.summaryCard} ${styles.summaryGasolina}`}>
+              <span className={`${styles.summaryLabel} ${styles.labelGasolina}`}>Total Gasolina Geral</span>
+              <span className={`${styles.summaryValue} ${styles.valueGasolina}`}>{saldoTotalGeral.gasolina.toFixed(2)} <span className={styles.unitText}>L</span></span>
+            </div>
+            <div className={`${styles.summaryCard} ${styles.summaryArla}`}>
+              <span className={`${styles.summaryLabel} ${styles.labelArla}`}>Total Arla Redux Geral</span>
+              <span className={`${styles.summaryValue} ${styles.valueArla}`}>{saldoTotalGeral.arla.toFixed(2)} <span className={styles.unitText}>L</span></span>
+            </div>
+          </div>
+
           <div className={styles.chartsGrid}>
-            {/* Gráfico 1: Estoque Físico */}
+            {/* Gráfico 1: Estoque Físico Base */}
             <div className={styles.chartCard}>
-              <h3 className={styles.chartTitle}>Saldo em Estoque (Litros)</h3>
-              <div style={{ height: 300, width: '100%' }}>
+              <h3 className={styles.chartTitle}>Saldo em Estoque Fixo (Litros)</h3>
+              <div className={styles.chartContainer}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dadosGraficoEstoque} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <BarChart data={dadosGraficoEstoqueFixos} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <RechartsTooltip cursor={{fill: 'transparent'}} />
+                    <RechartsTooltip cursor={{ fill: 'transparent' }} />
                     <Legend />
                     <Bar dataKey="DIESEL" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="GASOLINA" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -389,31 +452,50 @@ const EstoqueCombustivel = () => {
               </div>
             </div>
 
+            {/* Gráfico 1B: Estoque Físico Caminhões */}
+            {dadosGraficoEstoqueMoveis.length > 0 && (
+              <div className={styles.chartCard}>
+                <h3 className={styles.chartTitle}>Saldo nos Caminhões (Litros)</h3>
+                <div className={styles.chartContainer}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dadosGraficoEstoqueMoveis} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <RechartsTooltip cursor={{ fill: 'transparent' }} />
+                      <Legend />
+                      <Bar dataKey="DIESEL" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
             {/* Gráfico 2: Gastos Externos (Sem Estoque) */}
             <div className={styles.chartCard}>
-              <h3 className={styles.chartTitle}>Custos em Postos Externos (Mês Atual)</h3>
-              
+              <h3 className={styles.chartTitle}>Consumo e Custos em Postos Externos (Mês Atual)</h3>
+
               {/* Resumo Global Externo */}
-              <div style={{ display: 'flex', gap: '15px', marginBottom: '16px' }}>
-                <div style={{ flex: 1, backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #ef4444' }}>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>Gasto Total Externo</p>
-                  <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#1e293b' }}>{formatMoeda(dadosFinanceiros.gastoTotal)}</p>
+              <div className={styles.resumoExterno}>
+                <div className={`${styles.resumoExternoCard} ${styles.resumoCardGasto}`}>
+                  <p className={styles.resumoLabel}>Gasto Total Externo</p>
+                  <p className={styles.resumoValor}>{formatMoeda(dadosFinanceiros.gastoTotal)}</p>
                 </div>
-                <div style={{ flex: 1, backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #8b5cf6' }}>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>Média por Veículo</p>
-                  <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#1e293b' }}>{formatMoeda(dadosFinanceiros.mediaPorCarro)}</p>
-                  <p style={{ margin: 0, fontSize: '0.65rem', color: '#94a3b8' }}>{dadosFinanceiros.totalCarros} veículo(s) atendido(s)</p>
+                <div className={`${styles.resumoExternoCard} ${styles.resumoCardMedia}`}>
+                  <p className={styles.resumoLabel}>Média por Veículo</p>
+                  <p className={styles.resumoValor}>{formatMoeda(dadosFinanceiros.mediaPorCarro)}</p>
+                  <p className={styles.resumoSubValor}>{dadosFinanceiros.totalCarros} veículo(s) atendido(s)</p>
                 </div>
               </div>
 
               {/* Gráfico Moderno de Custos Externos Dividido por Produto */}
-              <div style={{ height: 220, width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <div className={styles.chartContainerExterno}>
                 {dadosGraficoExterno.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dadosGraficoExterno} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `R$ ${val}`} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} />
+                      <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val} L`} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} />
                       <RechartsTooltip content={<CustomTooltipExterno />} cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }} />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
                       <Bar dataKey="DIESEL" stackId="a" fill="#3b82f6" maxBarSize={60} />
@@ -422,7 +504,7 @@ const EstoqueCombustivel = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '40px', fontSize: '0.9rem' }}>Nenhum gasto externo registrado.</p>
+                  <p className={styles.emptyDataText}>Nenhum gasto externo registrado.</p>
                 )}
               </div>
             </div>
@@ -431,7 +513,7 @@ const EstoqueCombustivel = () => {
             {dadosGraficoSaidasPorPosto.map((grafico, idx) => (
               <div key={idx} className={styles.chartCard}>
                 <h3 className={styles.chartTitle}>Consumo Total {grafico.posto} (Litros)</h3>
-                <div style={{ height: 300, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <div className={styles.chartContainerFlex}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -448,7 +530,7 @@ const EstoqueCombustivel = () => {
                         ))}
                       </Pie>
                       <RechartsTooltip formatter={(value) => `${value.toFixed(2)} Litros`} />
-                      <Legend verticalAlign="bottom" height={36}/>
+                      <Legend verticalAlign="bottom" height={36} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -457,41 +539,55 @@ const EstoqueCombustivel = () => {
           </div>
 
           <div className={styles.tableSection}>
-            <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-              <h3 className={styles.chartTitle} style={{ margin: 0, color: '#0f172a' }}>Relatório (Planilha de Estoque)</h3>
-              
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative' }}>
-                  <Search size={16} color="#64748b" style={{ position: 'absolute', left: '10px', top: '10px' }} />
-                  <input 
-                    type="text" 
-                    placeholder="Buscar NF ou Fornecedor..." 
+            <div className={styles.filterSection}>
+              <div className={styles.flexCenterWrap}>
+                <h3 className={`${styles.chartTitle} ${styles.filterTitle}`}>Planilha de Estoque</h3>
+                <button
+                  onClick={() => setTipoRelatorio('entradas')}
+                  className={`${styles.btnFilter} ${tipoRelatorio === 'entradas' ? styles.btnFilterActive : styles.btnFilterInactive}`}
+                >
+                  Entradas
+                </button>
+                <button
+                  onClick={() => setTipoRelatorio('transferencias')}
+                  className={`${styles.btnFilter} ${tipoRelatorio === 'transferencias' ? styles.btnFilterTransferActive : styles.btnFilterInactive}`}
+                >
+                  Transferências
+                </button>
+              </div>
+
+              <div className={styles.flexCenterWrap}>
+                <div className={styles.relativeContainer}>
+                  <Search size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Buscar NF ou Fornecedor..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    style={{ padding: '8px 8px 8px 32px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem', width: '220px' }}
+                    className={styles.searchInput}
                   />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                <div className={styles.dateFilterContainer}>
                   <Calendar size={16} color="#64748b" />
-                  <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold' }}>De:</span>
-                  <input 
-                    type="date" 
+                  <span className={styles.dateLabel}>De:</span>
+                  <input
+                    type="date"
                     value={dataInicio}
                     onChange={e => setDataInicio(e.target.value)}
-                    style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', color: '#334155' }}
+                    className={styles.dateInput}
                   />
-                  <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', marginLeft: '4px' }}>Até:</span>
-                  <input 
-                    type="date" 
+                  <span className={`${styles.dateLabel} ${styles.dateLabelMargin}`}>Até:</span>
+                  <input
+                    type="date"
                     value={dataFim}
                     onChange={e => setDataFim(e.target.value)}
-                    style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', color: '#334155' }}
+                    className={styles.dateInput}
                   />
                   {(dataInicio || dataFim || searchTerm) && (
-                    <button 
+                    <button
                       onClick={() => { setDataInicio(''); setDataFim(''); setSearchTerm(''); }}
-                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', marginLeft: '8px', padding: '4px' }}
+                      className={styles.clearFilterBtn}
                       title="Limpar Filtros"
                     >
                       <X size={14} />
@@ -518,8 +614,8 @@ const EstoqueCombustivel = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {entradasFiltradas.length > 0 ? (
-                    entradasFiltradas.map((ent, idx) => (
+                  {listaParaExibicao.length > 0 ? (
+                    listaParaExibicao.map((ent, idx) => (
                       <tr key={ent.id || idx}>
                         <td>{new Date(ent.data).toLocaleDateString('pt-BR')}</td>
                         <td>{ent.fornecedor}</td>
@@ -532,8 +628,8 @@ const EstoqueCombustivel = () => {
                         <td>
                           <span className={
                             ent.situacaoAuto === 'INTEGRO' ? styles.statusIntegro :
-                            ent.situacaoAuto === 'EM CONSUMO' ? styles.statusEmConsumo :
-                            styles.statusEsgotado
+                              ent.situacaoAuto === 'EM CONSUMO' ? styles.statusEmConsumo :
+                                styles.statusEsgotado
                           }>
                             {ent.situacaoAuto}
                             {ent.situacaoForcada ? ' (Manual)' : ''}
@@ -541,11 +637,10 @@ const EstoqueCombustivel = () => {
                         </td>
                         <td style={{ fontWeight: 'bold' }}>{ent.saldoRestante.toFixed(2)} L</td>
                         <td>
-                          <button 
-                            className={styles.btnAction} 
+                          <button
+                            className={`${styles.btnAction} ${styles.actionBtn}`}
                             onClick={() => setEditandoSituacao(ent)}
                             title="Alterar Situação Manualmente"
-                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
                           >
                             <Edit size={18} />
                           </button>
@@ -554,7 +649,7 @@ const EstoqueCombustivel = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="11" style={{ textAlign: 'center', padding: '30px' }}>
+                      <td colSpan="11" className={styles.emptyTableText}>
                         Nenhuma entrada de combustível registrada.
                       </td>
                     </tr>
@@ -573,39 +668,46 @@ const EstoqueCombustivel = () => {
         />
       )}
 
+      {showTransferenciaModal && (
+        <FormularioTransferencia
+          onClose={() => setShowTransferenciaModal(false)}
+          onSuccess={fetchData} // Atualiza os dados após a transferência
+        />
+      )}
+
       {/* MODAL DE EDIÇÃO DE SITUAÇÃO */}
       {editandoSituacao && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '350px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: '#0f172a' }}>Forçar Situação</h3>
-              <button onClick={() => setEditandoSituacao(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
+        <div className={styles.modalEditOverlay}>
+          <div className={styles.modalEditContent}>
+            <div className={styles.modalEditHeader}>
+              <h3 className={styles.modalEditTitle}>Forçar Situação</h3>
+              <button onClick={() => setEditandoSituacao(null)} className={styles.modalEditClose}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px' }}>
+            <p className={styles.modalEditSubtitle}>
               Altere a situação da nota fiscal manualmente. Isso ignorará o cálculo automático.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button 
+            <div className={styles.modalEditActions}>
+              <button
                 onClick={() => handleUpdateSituacaoForcada(editandoSituacao.id, 'INTEGRO')}
-                style={{ padding: '10px', borderRadius: '8px', border: '1px solid #dcfce7', backgroundColor: '#f0fdf4', color: '#16a34a', fontWeight: 'bold', cursor: 'pointer' }}
+                className={`${styles.btnForceStatus} ${styles.btnForceIntegro}`}
               >
                 Marcar como ÍNTEGRO
               </button>
-              <button 
+              <button
                 onClick={() => handleUpdateSituacaoForcada(editandoSituacao.id, 'EM CONSUMO')}
-                style={{ padding: '10px', borderRadius: '8px', border: '1px solid #fef3c7', backgroundColor: '#fffbeb', color: '#d97706', fontWeight: 'bold', cursor: 'pointer' }}
+                className={`${styles.btnForceStatus} ${styles.btnForceConsumo}`}
               >
                 Marcar como EM CONSUMO
               </button>
-              <button 
+              <button
                 onClick={() => handleUpdateSituacaoForcada(editandoSituacao.id, 'ESGOTADO')}
-                style={{ padding: '10px', borderRadius: '8px', border: '1px solid #fee2e2', backgroundColor: '#fef2f2', color: '#dc2626', fontWeight: 'bold', cursor: 'pointer' }}
+                className={`${styles.btnForceStatus} ${styles.btnForceEsgotado}`}
               >
                 Marcar como ESGOTADO
               </button>
-              <button 
+              <button
                 onClick={() => handleUpdateSituacaoForcada(editandoSituacao.id, '')}
-                style={{ padding: '10px', marginTop: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 'bold', cursor: 'pointer' }}
+                className={`${styles.btnForceStatus} ${styles.btnForceAuto}`}
               >
                 Voltar para o Automático
               </button>

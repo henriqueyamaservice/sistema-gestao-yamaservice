@@ -13,6 +13,7 @@ import cotacaoRoutes from './routes/cotacaoRoutes.js';
 import requisicoesRoutes from './routes/requisicoesRoutes.js';
 import veiculosRoutes from './routes/veiculosRoutes.js';
 import combustivelRoutes from './routes/combustivelRoutes.js';
+import geradoresRoutes from './routes/geradoresRoutes.js';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/estoque', estoqueRoutes);
 app.use('/api/requisicoes', requisicoesRoutes);
 app.use('/api/veiculos', veiculosRoutes);
 app.use('/api/combustivel', combustivelRoutes);
+app.use('/api/geradores', geradoresRoutes);
 
 // Rotas mistas que estavam na raiz do server.js antigo (ex: fornecedores, departamentos)
 app.use('/api', cadastrosRoutes); // Cobre /api/fornecedores, /api/departamentos, etc
