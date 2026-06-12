@@ -1333,5 +1333,145 @@
     ],
     "departamento": "GRANJA",
     "solicitante": "CLEYDSON DA SILVA LIMA"
+  },
+  {
+    "id": "1781273882407",
+    "dataCriacao": "2026-06-12T14:18:02.407Z",
+    "status": "finalizado",
+    "cfop": "5.949",
+    "icms": "40",
+    "origem": "Padrao Empresa",
+    "tipo": "saida",
+    "localEstoque": "01 - Almoxarifado",
+    "centroCusto": "ELÉTRICA PREDIAL E COMANDOS",
+    "contatoCliente": "JOSE HENRIQUE SERRAO RAMOS",
+    "vendedor": "DIEVELLES MONTEIRO",
+    "numeroOS": "0231456987",
+    "itens": [
+      {
+        "codigo": "PRD00000",
+        "descricao": "Produto de teste1",
+        "valor_unitario": 0.01,
+        "quantidade": 10,
+        "status": "entregue",
+        "quantidade_entregue": 10,
+        "devolvido": 0
+      }
+    ],
+    "departamento": "ELÉTRICA PREDIAL E COMANDOS",
+    "solicitante": "JOSE HENRIQUE SERRAO RAMOS",
+    "entrega_parcial": false
+  },
+  {
+    "id": "1781274528625",
+    "dataCriacao": "2026-06-12T14:28:48.625Z",
+    "status": "finalizado",
+    "cfop": "5.949",
+    "icms": "40",
+    "origem": "Padrao Empresa",
+    "tipo": "saida",
+    "localEstoque": "01 - Almoxarifado",
+    "centroCusto": "GRANJA",
+    "contatoCliente": "JOSE HENRIQUE SERRAO RAMOS",
+    "vendedor": "DIEVELLES MONTEIRO",
+    "numeroOS": "123456987",
+    "itens": [
+      {
+        "codigo": "PRD00000",
+        "descricao": "Produto de teste1",
+        "valor_unitario": 0.01,
+        "quantidade": 5,
+        "status": "entregue",
+        "quantidade_entregue": 5,
+        "devolvido": 0
+      }
+    ],
+    "departamento": "GRANJA",
+    "solicitante": "JOSE HENRIQUE SERRAO RAMOS",
+    "entrega_parcial": false
+  },
+  {
+    "id": "1781280562454",
+    "dataCriacao": "2026-06-12T16:09:22.454Z",
+    "status": "finalizado",
+    "cfop": "5.949",
+    "icms": "40",
+    "origem": "Padrao Empresa",
+    "tipo": "saida",
+    "localEstoque": "01 - Almoxarifado",
+    "centroCusto": "ELÉTRICA PREDIAL E COMANDOS",
+    "contatoCliente": "JOSE HENRIQUE SERRAO RAMOS",
+    "vendedor": "DIEVELLES MONTEIRO",
+    "numeroOS": "999 OS DE TESTE NO ESTOQUE",
+    "itens": [
+      {
+        "codigo": "PRD00000",
+        "descricao": "Produto de teste1",
+        "valor_unitario": 0.01,
+        "quantidade": 5,
+        "status": "entregue",
+        "quantidade_entregue": 5,
+        "devolvido": 3
+      }
+    ],
+    "departamento": "ELÉTRICA PREDIAL E COMANDOS",
+    "solicitante": "JOSE HENRIQUE SERRAO RAMOS",
+    "entrega_parcial": false
+  },
+  {
+    "id": "1781284352037",
+    "dataCriacao": "2026-06-12T17:12:32.037Z",
+    "status": "finalizado",
+    "cfop": "5.949",
+    "icms": "40",
+    "origem": "Padrao Empresa",
+    "tipo": "saida",
+    "localEstoque": "01 - Almoxarifado",
+    "centroCusto": "ELÉTRICA PREDIAL E COMANDOS",
+    "contatoCliente": "JOSE NAZARENO DE SOUZA SANTOS",
+    "vendedor": "JESIMIEL RABELO GEMAQUE",
+    "numeroOS": "1000",
+    "itens": [
+      {
+        "codigo": "PRD00000",
+        "descricao": "Produto de teste1",
+        "valor_unitario": 0.01,
+        "quantidade": 20,
+        "status": "entregue",
+        "quantidade_entregue": 20,
+        "devolvido": 5
+      }
+    ],
+    "departamento": "ELÉTRICA PREDIAL E COMANDOS",
+    "solicitante": "JOSE NAZARENO DE SOUZA SANTOS",
+    "entrega_parcial": false
+  },
+  {
+    "id": "1781285759681",
+    "dataCriacao": "2026-06-12T17:35:59.681Z",
+    "status": "finalizado",
+    "cfop": "5.949",
+    "icms": "40",
+    "origem": "Padrao Empresa",
+    "tipo": "saida",
+    "localEstoque": "01 - Almoxarifado",
+    "centroCusto": "AREAL",
+    "contatoCliente": "FORNECEDOR SIMULADO S/A",
+    "vendedor": "DIEVELLES MONTEIRO",
+    "numeroOS": "123",
+    "itens": [
+      {
+        "codigo": "PRD00000",
+        "descricao": "Produto de teste1",
+        "valor_unitario": 0.01,
+        "quantidade": 10,
+        "status": "entregue",
+        "quantidade_entregue": 10,
+        "devolvido": 4
+      }
+    ],
+    "departamento": "AREAL",
+    "solicitante": "FORNECEDOR SIMULADO S/A",
+    "entrega_parcial": false
   }
 ]

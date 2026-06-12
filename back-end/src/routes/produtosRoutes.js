@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
       const requisicoesPath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
       const reqData = await fs.readFile(requisicoesPath, 'utf-8');
       requisicoes = JSON.parse(reqData);
-    } catch(e) {
+    } catch (e) {
       // Ignora se não existir
     }
 
@@ -49,36 +49,36 @@ router.get('/', async (req, res) => {
 router.get('/:codigo/sugestao-precos', async (req, res) => {
   try {
     const { codigo } = req.params;
-    
+
     // Ler produtos para pegar o preço base (valor_unitario)
     const produtosPath = path.resolve(process.cwd(), 'data', 'produtos.json');
     const dataProdutos = await fs.readFile(produtosPath, 'utf-8');
     const produtos = JSON.parse(dataProdutos);
-    
+
     const produto = produtos.find(p => p.codigo === codigo);
     if (!produto) {
       return res.status(404).json({ message: 'Produto não encontrado' });
     }
-    
+
     const precoBase = produto.valor_unitario || 100; // se não tiver, usa 100 como fallback
-    
+
     // Ler fornecedores para sortear 3
     const fornecedoresPath = path.resolve(process.cwd(), 'data', 'fornecedores.json');
     const dataFornecedores = await fs.readFile(fornecedoresPath, 'utf-8');
     const fornecedores = JSON.parse(dataFornecedores);
-    
+
     // Embaralha e pega 3
     const shuffledFornecedores = [...fornecedores].sort(() => 0.5 - Math.random());
     const selectedFornecedores = shuffledFornecedores.slice(0, 3);
-    
+
     // Gera as sugestões
     const sugestoes = selectedFornecedores.map(f => {
       // Variação de -5% a +10%
-      const variacao = (Math.random() * 0.15) - 0.05; 
+      const variacao = (Math.random() * 0.15) - 0.05;
       const valorSugerido = (precoBase * (1 + variacao)).toFixed(2);
       // Previsão de dias de 3 a 15
       const previsaoDias = Math.floor(Math.random() * 13) + 3;
-      
+
       return {
         id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
         fornecedorId: f.codigo_cliente_omie.toString(),
@@ -86,9 +86,9 @@ router.get('/:codigo/sugestao-precos', async (req, res) => {
         previsaoDias: previsaoDias.toString()
       };
     });
-    
+
     res.json(sugestoes);
-    
+
   } catch (error) {
     res.status(500).json({ message: 'Erro ao gerar sugestão de preços', error: error.message });
   }
@@ -99,7 +99,7 @@ router.post('/:codigo/barcode', async (req, res) => {
   try {
     const { codigo } = req.params;
     const { barcode } = req.body;
-    
+
     if (!barcode) {
       return res.status(400).json({ message: 'O código de barras (barcode) é obrigatório' });
     }
@@ -107,7 +107,7 @@ router.post('/:codigo/barcode', async (req, res) => {
     const filePath = path.resolve(process.cwd(), 'data', 'produtos.json');
     const data = await fs.readFile(filePath, 'utf-8');
     let produtos = JSON.parse(data);
-    
+
     const prodIndex = produtos.findIndex(p => p.codigo === codigo);
     if (prodIndex === -1) {
       return res.status(404).json({ message: 'Produto não encontrado' });
@@ -115,11 +115,11 @@ router.post('/:codigo/barcode', async (req, res) => {
 
     const produto = produtos[prodIndex];
     let eans = produto.ean ? produto.ean.split(',').map(e => e.trim()).filter(Boolean) : [];
-    
+
     if (!eans.includes(barcode.trim())) {
       eans.push(barcode.trim());
       produtos[prodIndex].ean = eans.join(', ');
-      
+
       await fs.writeFile(filePath, JSON.stringify(produtos, null, 2), 'utf-8');
       return res.json({ message: 'Código de barras vinculado com sucesso', produto: produtos[prodIndex] });
     } else {
@@ -137,11 +137,11 @@ router.put('/:codigo', async (req, res) => {
   try {
     const { codigo } = req.params;
     const updates = req.body;
-    
+
     const filePath = path.resolve(process.cwd(), 'data', 'produtos.json');
     const data = await fs.readFile(filePath, 'utf-8');
     let produtos = JSON.parse(data);
-    
+
     const prodIndex = produtos.findIndex(p => p.codigo === codigo);
     if (prodIndex === -1) {
       return res.status(404).json({ message: 'Produto não encontrado' });
@@ -151,7 +151,7 @@ router.put('/:codigo', async (req, res) => {
     Object.keys(updates).forEach(key => {
       produtos[prodIndex][key] = updates[key];
     });
-    
+
     await fs.writeFile(filePath, JSON.stringify(produtos, null, 2), 'utf-8');
     return res.json({ message: 'Produto atualizado com sucesso', produto: produtos[prodIndex] });
 
@@ -196,7 +196,7 @@ router.post('/:codigo/descarte', async (req, res) => {
       try {
         const descData = await fs.readFile(descartesPath, 'utf-8');
         descartes = JSON.parse(descData);
-      } catch (e) {}
+      } catch (e) { }
 
       descartes.push({
         id: Date.now(),

@@ -56,7 +56,7 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
       <header className={`${styles.header} ${styles.animateFadeIn}`}>
         <div className={`${styles.logoContainer} ${styles.logoContainerHeader}`}>
           {onOpenMenu && (
-            <button 
+            <button
               onClick={onOpenMenu}
               className={styles.menuBtn}
               title="Abrir Menu"

@@ -326,6 +326,19 @@ router.post('/:id/autorizar', async (req, res) => {
   }
 });
 
+// Mapa de Locais de Estoque Omie
+const OMIE_LOCAIS_ESTOQUE = {
+  "01 - Almoxarifado": 687827873,
+  "Almoxarifado": 687827873,
+  "Local de Estoque Padrão": 685531866,
+  "02 - Armazém de Matéria Prima": 688337027,
+  "03 - Armazém de Serragem": 741105704,
+  "04 - Armazém de Cama de Frango": 741105830,
+  "05 - Armazém de Insumos para Construção Civil": 741105884,
+  "06 - Armazém Fabrica de Ração": 741105962,
+  "Posto de Combustivel": 1649011537
+};
+
 // Rota para o Almoxarifado finalizar a entrega (Separação Concluída)
 router.post('/:id/finalizar', async (req, res) => {
   try {
@@ -333,10 +346,17 @@ router.post('/:id/finalizar', async (req, res) => {
     const { vendedor, localEstoque, itensEntregues } = req.body; 
 
     const filePath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
+    const produtosPath = path.resolve(process.cwd(), 'data', 'produtos.json');
+    
     let requisicoes = [];
+    let produtos = [];
+    
     try {
       const data = await fs.readFile(filePath, 'utf-8');
       requisicoes = JSON.parse(data);
+      
+      const pData = await fs.readFile(produtosPath, 'utf-8');
+      produtos = JSON.parse(pData);
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao ler banco de dados' });
     }
@@ -363,13 +383,61 @@ router.post('/:id/finalizar', async (req, res) => {
           isParcial = true;
         }
 
+        // --- BAIXA DE ESTOQUE LOCAL E OMIE ---
+        if (entregue > 0) {
+          const prodIdx = produtos.findIndex(p => p.codigo === i.codigo);
+          if (prodIdx !== -1) {
+            // 1. Baixa no estoque local
+            produtos[prodIdx].quantidade_estoque = (produtos[prodIdx].quantidade_estoque || 0) - entregue;
+            
+            // 2. Integração com Omie para dar a baixa
+            const appKey = process.env.OMIE_APP_KEY;
+            const appSecret = process.env.OMIE_APP_SECRET;
+
+            const idLocalEstoque = OMIE_LOCAIS_ESTOQUE[localEstoque] || OMIE_LOCAIS_ESTOQUE[requisicoes[reqIndex].localEstoque] || 687827873; // Default: Almoxarifado
+
+            if (appKey && appSecret && produtos[prodIdx].codigo_produto) {
+              const destinatario = requisicoes[reqIndex].vendedor || 'Não informado';
+              const payloadOmie = {
+                call: "IncluirAjusteEstoque",
+                app_key: appKey,
+                app_secret: appSecret,
+                param: [{
+                  codigo_local_estoque: idLocalEstoque,
+                  id_prod: produtos[prodIdx].codigo_produto,
+                  data: new Date().toLocaleDateString('pt-BR'),
+                  quan: entregue,
+                  obs: `Baixa Almox. Req ${requisicoes[reqIndex].id} | Destinatário: ${destinatario}`,
+                  origem: "AJU",
+                  tipo: "SAI",
+                  motivo: "INV"
+                }]
+              };
+
+              console.log(`[OMIE] Enviando tentativa de baixa para ${i.codigo}...`);
+              
+              // Faz a requisição em background para não travar a resposta pro usuário
+              fetch('https://app.omie.com.br/api/v1/estoque/ajuste/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadOmie)
+              })
+              .then(res => res.json())
+              .then(data => console.log(`[OMIE RESPOSTA - BAIXA ${i.codigo}]:`, data))
+              .catch(err => console.error(`[OMIE ERRO - BAIXA ${i.codigo}]:`, err.message));
+            }
+          }
+        }
+
         return { ...i, status: 'entregue', quantidade_entregue: entregue, devolvido: 0 };
       });
     }
 
     requisicoes[reqIndex].entrega_parcial = isParcial;
 
+    // Salva atualizações em ambos arquivos JSON
     await fs.writeFile(filePath, JSON.stringify(requisicoes, null, 2), 'utf-8');
+    await fs.writeFile(produtosPath, JSON.stringify(produtos, null, 2), 'utf-8');
     res.json({ message: 'Requisição finalizada com sucesso.', requisicao: requisicoes[reqIndex] });
 
   } catch (error) {
@@ -384,10 +452,14 @@ router.post('/:id/devolver', async (req, res) => {
     const { codigo_produto, quantidade_devolvida } = req.body; 
 
     const filePath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
+    const produtosPath = path.resolve(process.cwd(), 'data', 'produtos.json');
     let requisicoes = [];
+    let produtos = [];
     try {
       const data = await fs.readFile(filePath, 'utf-8');
       requisicoes = JSON.parse(data);
+      const pData = await fs.readFile(produtosPath, 'utf-8');
+      produtos = JSON.parse(pData);
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao ler banco de dados' });
     }
@@ -411,7 +483,58 @@ router.post('/:id/devolver', async (req, res) => {
       return res.status(400).json({ message: 'Produto não encontrado nesta requisição' });
     }
 
+    // --- ESTORNO DE ESTOQUE LOCAL E OMIE ---
+    const devolvido = Number(quantidade_devolvida);
+    if (devolvido > 0) {
+      const prodIdx = produtos.findIndex(p => p.codigo === codigo_produto);
+      if (prodIdx !== -1) {
+        // 1. Estorno no estoque local (aumenta a quantidade)
+        produtos[prodIdx].quantidade_estoque = (produtos[prodIdx].quantidade_estoque || 0) + devolvido;
+        
+        // 2. Integração com Omie para dar a entrada (devolução)
+        const appKey = process.env.OMIE_APP_KEY;
+        const appSecret = process.env.OMIE_APP_SECRET;
+
+        const idLocalEstoque = OMIE_LOCAIS_ESTOQUE[requisicoes[reqIndex].localEstoque] || 687827873; // Default: Almoxarifado
+
+        if (appKey && appSecret && produtos[prodIdx].codigo_produto) {
+          const valorUnitario = produtos[prodIdx].valor_unitario || 0.01;
+          const valorMovimento = devolvido * valorUnitario;
+          const destinatario = requisicoes[reqIndex].vendedor || 'Não informado';
+
+          const payloadOmie = {
+            call: "IncluirAjusteEstoque",
+            app_key: appKey,
+            app_secret: appSecret,
+            param: [{
+              codigo_local_estoque: idLocalEstoque,
+              id_prod: produtos[prodIdx].codigo_produto,
+              data: new Date().toLocaleDateString('pt-BR'),
+              quan: devolvido,
+              valor: valorMovimento > 0 ? valorMovimento : 0.01,
+              obs: `Devolução Almox. Req ${requisicoes[reqIndex].id} | Destinatário: ${destinatario}`,
+              origem: "AJU",
+              tipo: "ENT", // Entrada de estoque
+              motivo: "INV"
+            }]
+          };
+
+          console.log(`[OMIE] Enviando tentativa de entrada (devolução) para ${codigo_produto}...`);
+          
+          fetch('https://app.omie.com.br/api/v1/estoque/ajuste/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadOmie)
+          })
+          .then(res => res.json())
+          .then(data => console.log(`[OMIE RESPOSTA - DEVOLUÇÃO ${codigo_produto}]:`, data))
+          .catch(err => console.error(`[OMIE ERRO - DEVOLUÇÃO ${codigo_produto}]:`, err.message));
+        }
+      }
+    }
+
     await fs.writeFile(filePath, JSON.stringify(requisicoes, null, 2), 'utf-8');
+    await fs.writeFile(produtosPath, JSON.stringify(produtos, null, 2), 'utf-8');
     res.json({ message: 'Devolução registrada com sucesso!', requisicao: requisicoes[reqIndex] });
 
   } catch (error) {

@@ -182,7 +182,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/requisicao', {
+      const response = await fetch('http://localhost:3000/api/requisicoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

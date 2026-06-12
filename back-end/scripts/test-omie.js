@@ -8,26 +8,32 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const OMIE_APP_KEY = process.env.OMIE_APP_KEY?.trim();
 const OMIE_APP_SECRET = process.env.OMIE_APP_SECRET?.trim();
-const OMIE_API_URL = 'https://app.omie.com.br/api/v1/geral/produtos/';
+const OMIE_API_URL = 'https://app.omie.com.br/api/v1/estoque/ajuste/';
 
-async function testarProduto() {
-  const response = await fetch(OMIE_API_URL, {
-    method: 'POST',
-    headers: { 'Content-type': 'application/json' },
-    body: JSON.stringify({
-      call: "ConsultarProduto",
-      app_key: OMIE_APP_KEY,
-      app_secret: OMIE_APP_SECRET,
-      param: [{
-        codigo: "PRD11302"
-      }]
-    })
-  });
+async function testarAjuste() {
+  try {
+    const response = await fetch(OMIE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-type': 'application/json' },
+      body: JSON.stringify({
+        call: "IncluirAjusteEstoque",
+        app_key: OMIE_APP_KEY,
+        app_secret: OMIE_APP_SECRET,
+        param: [{
+          id_prod: 0,
+          qtde: 1,
+          data: "12/06/2026",
+          motivo: "teste"
+        }]
+      })
+    });
 
-  const data = await response.json();
-  console.log("PRODUTO:", data.codigo, "-", data.descricao);
-  console.log("MARCA ROOT:", data.marca);
-  console.log("CARACTERISTICAS:", JSON.stringify(data.caracteristicas, null, 2));
+    const text = await response.text();
+    console.log("RESPOSTA HTTP:", response.status);
+    console.log("RESPOSTA BODY:", text);
+  } catch (e) {
+    console.error("ERRO FETCH:", e.message, e);
+  }
 }
 
-testarProduto();
+testarAjuste();

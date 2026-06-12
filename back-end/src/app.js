@@ -1,6 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+import dns from 'dns';
+
+// Força o Node a priorizar IPv4 para evitar erro "fetch failed" em requisições de API na rede local/nativa
+dns.setDefaultResultOrder('ipv4first');
 
 // Importando Rotas
 import sefazRoutes from './routes/sefazRoutes.js';
