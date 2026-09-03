@@ -1,0 +1,160 @@
+.historicoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.histCard {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid transparent;
+}
+
+.histCard.aprovado { border-left-color: #10b981; }
+.histCard.rejeitado { border-left-color: #ef4444; }
+
+.histInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.histNome {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.histData {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.histValor {
+  font-weight: 800;
+  color: #334155;
+  text-align: right;
+  margin-bottom: 4px;
+}
+
+.statusPill {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusPill.aprovado { background: #ecfccb; color: #4d7c0f; }
+.statusPill.rejeitado { background: #fee2e2; color: #b91c1c; }
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 20px;
+  color: #94a3b8;
+  margin-top: 20px;
+}
+
+.emptyState h3 {
+  color: #334155;
+  margin-top: 16px;
+}
+
+/* Filtros do Histórico */
+.filtrosBox {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.buscaWrapper {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0 16px;
+  flex: 1;
+  transition: all 0.2s;
+}
+
+.buscaWrapper:focus-within {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.buscaIcon {
+  color: #94a3b8;
+  margin-right: 8px;
+}
+
+.buscaInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  color: #334155;
+  outline: none;
+}
+
+.filtrosSecundarios {
+  display: flex;
+  gap: 12px;
+}
+
+.filtroDate, .filtroSelect {
+  flex: 1;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  color: #334155;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.filtroDate:focus, .filtroSelect:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.histItensArea {
+  margin-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 16px;
+}
+
+.histItensTitle {
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .filtrosBox {
+    flex-direction: row;
+    align-items: center;
+  }
+  .filtrosSecundarios {
+    flex: 0 0 auto;
+    width: 350px;
+  }
+}

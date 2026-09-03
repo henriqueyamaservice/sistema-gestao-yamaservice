@@ -9,7 +9,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
   padding: 15px 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -23,7 +24,7 @@
 .title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--cor-texto-principal);
   margin: 0;
 }
 
@@ -37,7 +38,7 @@
   align-items: center;
   gap: 8px;
   background-color: var(--cor-destaque, #2563eb);
-  color: white;
+  color: var(--cor-texto-inverso, white);
   border: none;
   padding: 10px 16px;
   border-radius: 6px;
@@ -52,14 +53,36 @@
 
 .btnWarning {
   background-color: #f59e0b;
+  color: white;
 }
 
 .btnSecondary {
   background-color: #64748b;
+  color: white;
 }
 
 .btnSuccess {
   background-color: #10b981;
+  color: white;
+}
+
+.btnToggleGrafico {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnToggleGrafico:hover {
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 .chartsGrid {
@@ -68,7 +91,8 @@
 }
 
 .chartCard {
-  background-color: #fff;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -79,7 +103,7 @@
 .chartTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--cor-texto-principal);
   margin-bottom: 15px;
 }
 
@@ -95,20 +119,20 @@
 .statsLabel {
   margin: 0;
   font-size: 1rem;
-  color: #64748b;
+  color: var(--cor-texto-secundario);
 }
 
 .statsValue {
   margin: 10px 0;
   font-size: 3rem;
   font-weight: bold;
-  color: #1e293b;
+  color: var(--cor-texto-principal);
 }
 
 .statsSubLabel {
   margin: 0;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--cor-texto-secundario);
 }
 
 .chartWrapper {
@@ -117,7 +141,8 @@
 }
 
 .tableSection {
-  background-color: #fff;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   overflow: hidden;
@@ -125,13 +150,13 @@
 
 .tableHeader {
   padding: 20px;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #fff;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
 }
 
 .tableTitle {
   margin: 0;
-  color: #0f172a;
+  color: var(--cor-texto-principal);
 }
 
 .tableWrapper {
@@ -146,15 +171,15 @@
 .table th, .table td {
   padding: 14px 16px;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--cor-borda-cartao);
   font-size: 0.875rem;
-  color: #334155;
+  color: var(--cor-texto-principal);
 }
 
 .table th {
-  background-color: #0f172a;
+  background-color: var(--cor-fundo-secundario);
   font-weight: 600;
-  color: #ffffff;
+  color: var(--cor-texto-principal);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
@@ -170,11 +195,11 @@
 }
 
 .tableRow:nth-child(even) {
-  background-color: #f8fafc;
+  background-color: var(--cor-fundo-sutil);
 }
 
 .tableRow:hover {
-  background-color: #f1f5f9;
+  background-color: var(--cor-fundo-sutil-forte);
 }
 
 .statusBadge {
@@ -185,12 +210,12 @@
 }
 
 .statusWarning {
-  background-color: #fef9c3;
-  color: #a16207;
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
 }
 
 .statusSuccess {
-  background-color: #dcfce7;
+  background-color: rgba(22, 163, 74, 0.15);
   color: #16a34a;
 }
 
@@ -216,7 +241,7 @@
 
 .emptyState {
   text-align: center;
-  color: #94a3b8;
+  color: var(--cor-texto-secundario);
   margin-top: 100px;
 }
 
@@ -226,7 +251,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -235,13 +261,15 @@
 }
 
 .modalContent {
-  background-color: #fff;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
   border-radius: 8px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .modalContentWide {
@@ -253,19 +281,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--cor-borda-cartao);
 }
 
 .modalHeader h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--cor-texto-principal);
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--cor-texto-secundario);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -273,8 +301,8 @@
 }
 
 .closeBtn:hover {
-  background-color: #f1f5f9;
-  color: #ef4444;
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-erro, #ef4444);
 }
 
 .formGrid {
@@ -297,13 +325,15 @@
 .formGroup label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--cor-texto-secundario);
 }
 
 .formGroup input,
 .formGroup select {
   padding: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
   border-radius: 6px;
   font-size: 0.875rem;
   outline: none;
@@ -312,8 +342,8 @@
 
 .formGroup input:focus,
 .formGroup select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
 }
 
 .formActions {
@@ -321,15 +351,15 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 20px;
-  border-top: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border-top: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
 }
 
 .btnCancel {
   padding: 10px 16px;
-  border: 1px solid #cbd5e1;
-  background-color: #fff;
-  color: #475569;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
@@ -337,7 +367,7 @@
 }
 
 .btnCancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--cor-fundo-sutil);
 }
 
 .p20 {

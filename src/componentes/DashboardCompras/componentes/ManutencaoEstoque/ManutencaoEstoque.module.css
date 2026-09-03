@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.4s ease-out;
 }
@@ -10,6 +10,15 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .header {
@@ -53,4 +62,99 @@
   border: 1px solid var(--cor-fundo-sutil);
   border-radius: 12px;
   min-height: 400px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+}
+
+.table th {
+  color: var(--cor-texto-secundario);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.table td {
+  color: var(--cor-texto-principal);
+  font-size: 0.95rem;
+}
+
+.codigo {
+  background: var(--cor-fundo-sutil);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.inputMinimo {
+  width: 70px;
+  padding: 6px;
+  border: 1px solid var(--cor-destaque);
+  border-radius: 6px;
+  background: var(--cor-fundo-geral);
+  color: var(--cor-texto-principal);
+  text-align: center;
+  font-weight: bold;
+}
+
+.btnEdit {
+  background: none;
+  border: none;
+  color: var(--cor-destaque);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnEdit:hover {
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.btnSave {
+  background: var(--cor-sucesso);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnSave:hover {
+  filter: brightness(1.1);
+}
+
+.searchBar {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-fundo-geral);
+  color: var(--cor-texto-principal);
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.searchBar:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
 }

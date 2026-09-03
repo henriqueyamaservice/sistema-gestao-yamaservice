@@ -15,9 +15,11 @@
 }
 
 .modalCard {
-  background-color: white;
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   max-height: 90vh;
   margin: auto; /* Centraliza horizontal e verticalmente (se usar align-items: flex-start, não centraliza vertical, então mudamos overlay de volta) */
   border-radius: 20px;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Box, AlertCircle, RefreshCw, Package, Boxes } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Box, AlertCircle, RefreshCw, Package, Boxes, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import ProdutoModal from '../ProdutoModal';
 import styles from './Estoque.module.css';
 
@@ -17,6 +17,94 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
 
     return nome.includes(termo) || codigo.includes(termo) || ean.includes(termo) || bateLote;
   });
+
+  // PAGINAÇÃO
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const itensPorPagina = 100;
+
+  useEffect(() => {
+    setPaginaAtual(1); // Volta para a primeira página ao buscar
+  }, [busca]);
+
+  const indexUltimoItem = paginaAtual * itensPorPagina;
+  const indexPrimeiroItem = indexUltimoItem - itensPorPagina;
+  const produtosPaginados = produtosFiltrados.slice(indexPrimeiroItem, indexUltimoItem);
+  const totalPaginas = Math.max(1, Math.ceil(produtosFiltrados.length / itensPorPagina));
+
+  // Renderizador de badge corporativo para a Validade
+  const renderValidadeBadge = (produto) => {
+    let dataString = produto.data_validade || produto.validade;
+    let lotesCount = 0;
+
+    // Se houver lotes, pegar o lote ativo com a validade mais próxima (FEFO)
+    if (produto.lotes && produto.lotes.length > 0) {
+      const lotesAtivos = produto.lotes.filter(l => l.quantidade > 0);
+      lotesCount = lotesAtivos.length;
+      if (lotesAtivos.length > 0) {
+        lotesAtivos.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+        dataString = lotesAtivos[0].validade;
+      }
+    }
+
+    if (!dataString) return <span style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.8rem' }}>-</span>;
+    
+    const dataVal = new Date(dataString);
+    const utcDate = new Date(dataVal.getTime() + dataVal.getTimezoneOffset() * 60000);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const limiteProximo = new Date();
+    limiteProximo.setDate(limiteProximo.getDate() + 30);
+    
+    // Default: No Prazo (Verde/Neutro)
+    let corBase = '#10b981'; // success
+    let bgBase = 'rgba(16, 185, 129, 0.1)';
+    let borderBase = 'rgba(16, 185, 129, 0.2)';
+    let icon = <CheckCircle size={14} />;
+
+    if (utcDate < hoje) {
+      // Vencido (Vermelho)
+      corBase = '#ef4444'; 
+      bgBase = 'rgba(239, 68, 68, 0.1)';
+      borderBase = 'rgba(239, 68, 68, 0.2)';
+      icon = <AlertTriangle size={14} />;
+    } else if (utcDate <= limiteProximo) {
+      // Próximo de Vencer (Laranja)
+      corBase = '#f59e0b';
+      bgBase = 'rgba(245, 158, 11, 0.1)';
+      borderBase = 'rgba(245, 158, 11, 0.2)';
+      icon = <Clock size={14} />;
+    }
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+        <span style={{
+          fontSize: '0.75rem', fontWeight: '600',
+          color: corBase,
+          backgroundColor: bgBase,
+          padding: '4px 8px', borderRadius: '6px',
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          whiteSpace: 'nowrap', border: `1px solid ${borderBase}`,
+          boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+          letterSpacing: '0.01em'
+        }}>
+          {icon} 
+          <span>{utcDate.toLocaleDateString('pt-BR')}</span>
+          
+          {lotesCount > 1 && (
+            <span style={{ 
+              fontSize: '0.65rem', 
+              opacity: 0.8, 
+              marginLeft: '2px',
+              paddingLeft: '4px'
+            }}>
+              {lotesCount} lotes
+            </span>
+          )}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div className={styles['dashboard-container']}>
@@ -36,7 +124,7 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
             <Search size={20} className={styles['search-icon']} />
             <input
               type="text"
-              placeholder="Buscar por nome ou código..."
+              placeholder="Buscar por nome, código ou código de barras..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
             />
@@ -87,7 +175,7 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                 </tr>
               </thead>
               <tbody>
-                {produtosFiltrados.map((produto, index) => {
+                {produtosPaginados.map((produto, index) => {
                   return (
                     <tr
                       key={produto.codigo_produto || index}
@@ -122,24 +210,11 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                         </span>
                       </td>
                       <td className={styles['col-validade']}>
-                        {produto.produto_lote === 'S' && produto.data_validade ? (
-                          <span style={{
-                            fontSize: '0.75rem', fontWeight: 'bold',
-                            color: 'var(--cor-destaque)',
-                            backgroundColor: 'rgba(255, 107, 0, 0.1)',
-                            padding: '2px 8px', borderRadius: '12px',
-                            display: 'inline-flex', alignItems: 'center', gap: '4px',
-                            whiteSpace: 'nowrap', border: '1px solid rgba(255, 107, 0, 0.2)'
-                          }}>
-                            ⏳ {new Date(produto.data_validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.8rem' }}>-</span>
-                        )}
+                        {renderValidadeBadge(produto)}
                       </td>
                       <td className={styles['col-estoque']}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                          <span style={{ color: 'var(--cor-sucesso)', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: (produto.quantidade_estoque < 0 ? 'var(--cor-erro)' : 'var(--cor-sucesso)'), backgroundColor: (produto.quantidade_estoque < 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'), padding: '2px 6px', borderRadius: '4px' }}>
                             {produto.quantidade_estoque || 0}
                           </span>
                           <span style={{ color: 'var(--cor-texto-secundario)', fontWeight: 'normal' }}>/</span>
@@ -169,6 +244,30 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                 })}
               </tbody>
             </table>
+            
+            {/* Controles de Paginação */}
+            <div className={styles['pagination']}>
+              <button 
+                onClick={() => setPaginaAtual(p => Math.max(1, p - 1))} 
+                disabled={paginaAtual === 1}
+                className={styles['btn-page']}
+              >
+                Anterior
+              </button>
+              
+              <span className={styles['page-info']}>
+                Página <strong>{paginaAtual}</strong> de {totalPaginas} 
+                <span className={styles['page-count']}>({produtosFiltrados.length} itens)</span>
+              </span>
+              
+              <button 
+                onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))} 
+                disabled={paginaAtual === totalPaginas}
+                className={styles['btn-page']}
+              >
+                Próxima
+              </button>
+            </div>
           </div>
         )}
 

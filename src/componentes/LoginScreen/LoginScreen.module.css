@@ -1,0 +1,216 @@
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--cor-fundo-principal);
+  overflow: hidden;
+}
+
+/* Left side with the image */
+.imagePanel {
+  flex: 1.2;
+  position: relative;
+  display: none; /* hidden on very small screens */
+}
+
+@media (min-width: 900px) {
+  .imagePanel {
+    display: block;
+  }
+}
+
+.slideImage {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-size: cover;
+  background-position: center 25%;
+  transition: opacity 1.5s ease-in-out;
+  z-index: 0;
+}
+
+.overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 80px;
+  z-index: 1;
+}
+
+.brandInfo {
+  color: #ffffff;
+  animation: fadeIn 1s ease-out;
+}
+
+.brandInfo h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin: 0 0 16px 0;
+  letter-spacing: -1px;
+}
+
+.brandInfo p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 400px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Right side with the form */
+.loginPanel {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  background-color: var(--cor-fundo-principal);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+@media (min-width: 900px) {
+  .loginPanel {
+    max-width: 550px;
+    padding: 40px;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.loginBox {
+  width: 100%;
+  max-width: 380px;
+  animation: slideIn 0.5s ease-out;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  width: 95px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.header h2 {
+  font-size: 1.8rem;
+  color: var(--cor-texto-principal);
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.header p {
+  color: var(--cor-texto-secundario);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-size: 0.9rem;
+  color: var(--cor-texto-principal);
+  font-weight: 600;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--cor-texto-secundario);
+}
+
+.inputWrapper input {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  border: 2px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.inputWrapper input:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
+  background-color: var(--cor-fundo-principal);
+}
+
+.loginButton {
+  margin-top: 10px;
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loginButton:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+}
+
+.loginButton:active {
+  transform: translateY(0);
+}
+
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.errorMessage {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-left: 4px solid #ef4444;
+  text-align: center;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}

@@ -1,6 +1,6 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import { getJsonData, saveJsonData } from '../services/jsonDbService.js';
+import getDb from '../config/database.js';
 
 const router = express.Router();
 
@@ -11,15 +11,8 @@ router.post('/cotacao-link', async (req, res) => {
     if (!requisicaoId || !fornecedorId) return res.status(400).json({ message: 'requisicaoId e fornecedorId são obrigatórios' });
 
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const tokensPath = path.resolve(process.cwd(), 'data', 'tokens.json');
     
-    let tokens = [];
-    try {
-      const data = await fs.readFile(tokensPath, 'utf-8');
-      tokens = JSON.parse(data);
-    } catch (e) {
-      // Arquivo não existe ou vazio
-    }
+    let tokens = await getJsonData('cotacao_tokens') || [];
 
     const novoToken = {
       token,
@@ -30,7 +23,7 @@ router.post('/cotacao-link', async (req, res) => {
     };
 
     tokens.push(novoToken);
-    await fs.writeFile(tokensPath, JSON.stringify(tokens, null, 2), 'utf-8');
+    await saveJsonData('cotacao_tokens', tokens);
 
     res.json({ token, link: `/cotacao/${token}` });
   } catch (error) {
@@ -42,29 +35,27 @@ router.post('/cotacao-link', async (req, res) => {
 router.get('/cotacao-externa/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const tokensPath = path.resolve(process.cwd(), 'data', 'tokens.json');
-    const dataTokens = await fs.readFile(tokensPath, 'utf-8').catch(() => '[]');
-    const tokens = JSON.parse(dataTokens);
+    const tokens = await getJsonData('cotacao_tokens') || [];
 
     const tokenObj = tokens.find(t => t.token === token);
     if (!tokenObj) return res.status(404).json({ message: 'Link inválido ou não encontrado.' });
     if (tokenObj.status !== 'ativo') return res.status(403).json({ message: 'Este link já foi utilizado ou expirou.' });
 
-    // Pega a requisição
-    const reqPath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
-    const dataReq = await fs.readFile(reqPath, 'utf-8');
-    const requisicoes = JSON.parse(dataReq);
-    
+    const requisicoes = await getJsonData('requisicoes') || [];
     const requisicao = requisicoes.find(r => r.id === tokenObj.requisicaoId);
     if (!requisicao) return res.status(404).json({ message: 'Requisição não encontrada.' });
 
-    // Pega o fornecedor (para exibir na tela)
-    const fornPath = path.resolve(process.cwd(), 'data', 'vendedores.json');
-    const dataForn = await fs.readFile(fornPath, 'utf-8').catch(() => '[]');
-    const fornecedores = JSON.parse(dataForn);
-    const fornecedor = fornecedores.find(f => f.codigo_cliente_omie == tokenObj.fornecedorId) || { razao_social: 'Fornecedor' };
+    // Busca fornecedor na omie_collections
+    let fornecedor = { razao_social: 'Fornecedor' };
+    try {
+      const db = await getDb();
+      const rows = await db.all(`SELECT * FROM fornecedores_omie`);
+      const f = rows.find(f => f.codigo == tokenObj.fornecedorId);
+      if (f) {
+        fornecedor = { ...f, codigo_cliente_omie: f.codigo };
+      }
+    } catch (e) { console.error('Erro ao buscar fornecedor para cotação', e); }
 
-    // Retorna apenas os dados necessários para cotar (segurança)
     const dadosPublicos = {
       requisicaoId: requisicao.id,
       fornecedorNome: fornecedor.razao_social || fornecedor.nome_fantasia,
@@ -88,9 +79,7 @@ router.post('/cotacao-externa/:token', async (req, res) => {
     const { token } = req.params;
     const { cotacoes, descontoGeral } = req.body; 
 
-    const tokensPath = path.resolve(process.cwd(), 'data', 'tokens.json');
-    const dataTokens = await fs.readFile(tokensPath, 'utf-8').catch(() => '[]');
-    let tokens = JSON.parse(dataTokens);
+    let tokens = await getJsonData('cotacao_tokens') || [];
 
     const tokenIndex = tokens.findIndex(t => t.token === token);
     if (tokenIndex === -1) return res.status(404).json({ message: 'Link inválido.' });
@@ -99,10 +88,7 @@ router.post('/cotacao-externa/:token', async (req, res) => {
     const reqId = tokens[tokenIndex].requisicaoId;
     const fornId = tokens[tokenIndex].fornecedorId;
 
-    // Atualiza a requisição
-    const reqPath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
-    const dataReq = await fs.readFile(reqPath, 'utf-8');
-    let requisicoes = JSON.parse(dataReq);
+    let requisicoes = await getJsonData('requisicoes') || [];
     
     const reqIndex = requisicoes.findIndex(r => r.id === reqId);
     if (reqIndex !== -1) {
@@ -135,13 +121,13 @@ router.post('/cotacao-externa/:token', async (req, res) => {
         }
         return item;
       });
-      await fs.writeFile(reqPath, JSON.stringify(requisicoes, null, 2), 'utf-8');
+      await saveJsonData('requisicoes', requisicoes);
     }
 
     // "Queima" o token
     tokens[tokenIndex].status = 'usado';
     tokens[tokenIndex].dataUso = new Date().toISOString();
-    await fs.writeFile(tokensPath, JSON.stringify(tokens, null, 2), 'utf-8');
+    await saveJsonData('cotacao_tokens', tokens);
 
     res.json({ message: 'Cotação enviada com sucesso!' });
   } catch (error) {

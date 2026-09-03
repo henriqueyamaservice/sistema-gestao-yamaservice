@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PackageOpen, Check, AlertCircle, ScanLine, ArrowLeft, Save } from 'lucide-react';
+import { PackageOpen, Check, AlertCircle, ScanLine, ArrowLeft, Save, Plus, Minus, Sparkles } from 'lucide-react';
 import styles from './RecebimentoProdutos.module.css';
 
 const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
@@ -11,6 +11,8 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
   // Controle da bipagem
   const [bipInput, setBipInput] = useState('');
   const [itensConferidos, setItensConferidos] = useState({});
+  const [validadesDigitadas, setValidadesDigitadas] = useState({});
+  const [eansCapturados, setEansCapturados] = useState({});  // { 'PRD05907': '7890009' } - EAN real bipado por produto
   const [mensagemBip, setMensagemBip] = useState(null); // Para mostrar "Produto não está na nota"
   const [multiplicador, setMultiplicador] = useState(1);
   const [modalVincular, setModalVincular] = useState({ isOpen: false, barcode: '' });
@@ -32,7 +34,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
   const fetchPedidos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/pedidos');
+      const response = await fetch('/api/pedidos');
       if (!response.ok) throw new Error('Falha ao buscar pedidos');
       const data = await response.json();
       setPedidos(data);
@@ -51,6 +53,8 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
       contagemInicial[item.codigo] = item.quantidadeRecebida || 0;
     });
     setItensConferidos(contagemInicial);
+    setValidadesDigitadas({});
+    setEansCapturados({});
     setMensagemBip(null);
   };
 
@@ -58,6 +62,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
     setPedidoSelecionado(null);
     setBipInput('');
     setMultiplicador(1);
+    setValidadesDigitadas({});
   };
 
   const handleBipar = (e) => {
@@ -85,6 +90,13 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
         ...itensConferidos,
         [itemEncontrado.codigo]: quantidadeAtual + multiplicador
       });
+
+      // Captura o EAN bipado para este produto (o último bipe sempre sobrescreve)
+      setEansCapturados(prev => ({
+        ...prev,
+        [itemEncontrado.codigo]: codigoBipado
+      }));
+
       setMensagemBip({ tipo: 'sucesso', texto: `✅ ${multiplicador}x ${itemEncontrado.descricao} adicionado(s)!` });
       
       setBipInput(''); // Limpa o input para o próximo bip
@@ -108,7 +120,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
 
     setVinculando(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/produtos/${codigoItem}/barcode`, {
+      const res = await fetch(`/api/produtos/${codigoItem}/barcode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ barcode: modalVincular.barcode })
@@ -123,6 +135,13 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
         [codigoItem]: quantidadeAtual + 1 // sempre vincula adicionando 1 (o bip que causou o modal)
       });
       setMensagemBip({ tipo: 'sucesso', texto: `✅ Código Vinculado! 1x ${itemEncontrado.descricao} adicionado(s)!` });
+
+      // Captura o EAN novo para este produto (será atrelado ao Lote no backend)
+      setEansCapturados(prev => ({
+        ...prev,
+        [codigoItem]: modalVincular.barcode
+      }));
+
       setTimeout(() => setMensagemBip(null), 3000);
       
     } catch(err) {
@@ -133,7 +152,26 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
     }
   };
 
+  const handleContagemManual = (codigoItem, delta) => {
+    const quantidadeAtual = itensConferidos[codigoItem] || 0;
+    const novaQuantidade = Math.max(0, quantidadeAtual + delta);
+    setItensConferidos({
+      ...itensConferidos,
+      [codigoItem]: novaQuantidade
+    });
+  };
+
   const finalizarRecebimento = async () => {
+    // Validar validades obrigatórias
+    const itensComQuantidade = pedidoSelecionado.itens.filter(item => (itensConferidos[item.codigo] || 0) > 0);
+    for (const item of itensComQuantidade) {
+      const produto = produtos.find(p => p.codigo === item.codigo);
+      if (produto && produto.produto_lote === 'S' && !validadesDigitadas[item.codigo]) {
+        alert(`A data de validade é obrigatória para o produto que controla lote:\n\n${item.codigo} - ${item.descricao}`);
+        return;
+      }
+    }
+
     const isCompletos = pedidoSelecionado.itens.every(item => (itensConferidos[item.codigo] || 0) === item.quantidadeEsperada);
     
     let observacao = '';
@@ -150,13 +188,15 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
     }
     
     try {
-      const response = await fetch(`http://localhost:3000/api/pedidos/${pedidoSelecionado.id}/receber`, {
+      const response = await fetch(`/api/pedidos/${pedidoSelecionado.id}/receber`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           itensRecebidos: itensConferidos,
           isParcial: !isCompletos,
-          observacao: observacao
+          observacao: observacao,
+          validades: validadesDigitadas,
+          eansCapturados: eansCapturados
         })
       });
 
@@ -318,6 +358,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
               <th>Status</th>
               <th>Código</th>
               <th>Descrição do Produto</th>
+              <th className={styles['text-center']}>Validade (Lote)</th>
               <th className={styles['text-center']}>Esperado</th>
               <th className={styles['text-center']}>Contado (Bip)</th>
             </tr>
@@ -334,11 +375,63 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
                   <td className={styles['col-status']}>
                     {completo ? '✅' : excedente ? '⚠️' : '⏳'}
                   </td>
-                  <td><span className={styles['badge-codigo']}>{item.codigo}</span></td>
-                  <td style={{ fontWeight: completo ? 500 : 'normal' }}>{item.descricao}</td>
+                  <td>
+                    {item.codigo.startsWith('NEW-') ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ 
+                          background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', 
+                          color: '#fff', 
+                          padding: '4px 8px', 
+                          borderRadius: '6px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: 'bold', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '4px',
+                          width: 'fit-content'
+                        }}>
+                          <Sparkles size={12} /> PRÉ-CADASTRO
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={styles['badge-codigo']}>{item.codigo}</span>
+                    )}
+                  </td>
+                  <td style={{ fontWeight: completo ? 500 : 'normal' }}>
+                    {item.descricao}
+                    {item.codigo.startsWith('NEW-') && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--cor-texto-secundario)', marginTop: '4px' }}>
+                        Bipe a embalagem física para registrar o EAN oficial
+                      </div>
+                    )}
+                  </td>
+                  <td className={styles['text-center']}>
+                    <input 
+                      type="date"
+                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--cor-borda)' }}
+                      value={validadesDigitadas[item.codigo] || ''}
+                      onChange={(e) => setValidadesDigitadas({...validadesDigitadas, [item.codigo]: e.target.value})}
+                    />
+                  </td>
                   <td className={styles['text-center']}>{esperado}</td>
                   <td className={`${styles['text-center']} ${styles['col-contado']}`}>
-                    <span className={styles['numero-bipado']}>{contado}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <button 
+                        onClick={() => handleContagemManual(item.codigo, -1)}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cor-texto-secundario)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        title="Diminuir manualmente"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className={styles['numero-bipado']}>{contado}</span>
+                      <button 
+                        onClick={() => handleContagemManual(item.codigo, 1)}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cor-destaque)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        title="Adicionar manualmente (sem código de barras)"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

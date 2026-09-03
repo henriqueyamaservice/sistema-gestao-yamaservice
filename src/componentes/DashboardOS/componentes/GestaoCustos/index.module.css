@@ -1,0 +1,187 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-cartao, #1f2937);
+  border: 1px solid var(--cor-borda-cartao, #374151);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  color: var(--cor-texto-principal, #fff);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.iconCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: rgba(255, 107, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal, #fff);
+}
+
+.closeBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario, #9ca3af);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: var(--cor-texto-principal, #fff);
+}
+
+.modalDescription {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario, #9ca3af);
+  margin: 0 0 1.25rem 0;
+  line-height: 1.4;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--cor-texto-secundario, #9ca3af);
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 0.65rem 2.5rem 0.65rem 2.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao, #4a5568);
+  background-color: var(--cor-fundo-principal, #1a202c);
+  color: var(--cor-texto-principal, #fff);
+  outline: none;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.passwordInput:focus {
+  border-color: var(--cor-destaque, #FF6B00);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario, #9ca3af);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.togglePasswordBtn:hover {
+  color: var(--cor-texto-principal, #fff);
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 0.55rem 1.1rem;
+  background-color: var(--cor-fundo-secundario, #2d3748);
+  color: var(--cor-texto-principal, #fff);
+  border: 1px solid var(--cor-borda-cartao, #4a5568);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.cancelBtn:hover {
+  background-color: var(--cor-fundo-sutil-forte, #4a5568);
+}
+
+.confirmBtn {
+  padding: 0.55rem 1.2rem;
+  background-color: var(--cor-destaque, #FF6B00);
+  color: var(--cor-texto-inverso, #fff);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(255, 107, 0, 0.25);
+}
+
+.confirmBtn:hover {
+  background-color: var(--cor-destaque-hover, #e66000);
+  transform: translateY(-1px);
+}

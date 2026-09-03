@@ -2,21 +2,22 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .modalCard {
   background-color: var(--cor-fundo-cartao);
   width: 100%;
-  max-width: 900px;
+  max-width: 1150px;
   max-height: 90vh;
   border-radius: 20px;
   border: 1px solid var(--cor-borda-cartao);
@@ -27,11 +28,24 @@
   position: relative;
   overflow-y: auto;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-transform: uppercase;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  text-transform: uppercase;
 }
 
 @keyframes slideUp {
-  0% { transform: translateY(20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .closeButton {
@@ -82,10 +96,10 @@
 }
 
 .formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .formGroup {
@@ -164,8 +178,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .actions {
@@ -218,7 +239,7 @@
   z-index: 50;
   max-height: 220px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .servicoTag {
@@ -231,7 +252,7 @@
   font-size: 0.8rem;
   color: var(--cor-texto-principal);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
   width: 100%;
 }

@@ -1,0 +1,235 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-principal);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 950px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.modalHeader {
+  padding: 20px 24px;
+  background-color: var(--cor-fundo-secundario);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeTransferencia {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  margin-left: 12px;
+  font-weight: bold;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--cor-texto-principal);
+}
+
+.modalBody {
+  padding: 24px;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.sectionContainer {
+  margin-bottom: 28px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-destaque);
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 8px;
+  font-size: 1.05rem;
+  margin-top: 0;
+}
+
+.gridInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  background-color: var(--cor-fundo-sutil);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--cor-fundo-sutil-forte);
+}
+
+.infoLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cor-texto-secundario);
+  display: block;
+}
+
+.infoValue {
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.infoValueLarge {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-top: 4px;
+}
+
+.infoValueSuccess {
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: var(--cor-sucesso);
+  margin-top: 4px;
+}
+
+.quebraFinanceira {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: rgba(239, 68, 68, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid var(--cor-erro);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quebraFinanceiraLabel {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.quebraFinanceiraValue {
+  color: var(--cor-erro);
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.emptyState {
+  color: var(--cor-texto-secundario);
+  font-style: italic;
+  padding: 16px;
+  background-color: var(--cor-fundo-sutil);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.extratoContainer {
+  background-color: var(--cor-fundo-sutil);
+  border-radius: 12px;
+  border: 1px solid var(--cor-fundo-sutil-forte);
+  overflow: hidden;
+}
+
+.extratoTableContainer {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.extratoTable {
+  width: 100%;
+  font-size: 0.85rem;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.extratoThead {
+  position: sticky;
+  top: 0;
+  background-color: var(--cor-fundo-secundario);
+  z-index: 1;
+}
+
+.extratoTh {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+}
+
+.extratoThRight {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-weight: 600;
+  text-align: right;
+  color: var(--cor-texto-principal);
+}
+
+.extratoTr {
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  transition: background-color 0.2s;
+}
+
+.extratoTr:hover {
+  background-color: var(--cor-fundo-secundario);
+}
+
+.extratoTd {
+  padding: 10px 16px;
+  color: var(--cor-texto-secundario);
+}
+
+.extratoTdDesc {
+  padding: 10px 16px;
+  font-weight: 500;
+  color: var(--cor-texto-principal);
+}
+
+.extratoTdReq {
+  padding: 10px 16px;
+  color: var(--cor-texto-secundario);
+  font-family: monospace;
+}
+
+.extratoTdQtd {
+  padding: 10px 16px;
+  text-align: right;
+  color: var(--cor-erro);
+  font-weight: bold;
+}

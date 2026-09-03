@@ -11,10 +11,33 @@ const ValidacaoProduto = ({ produtos, fetchProdutosGlobal }) => {
   const [loadingDescarte, setLoadingDescarte] = useState(false);
 
   const produtosValidade = useMemo(() => {
-    const comValidade = produtos.filter(p => p.produto_lote === 'S' && p.data_validade);
+    let list = [];
+    
+    produtos.forEach(p => {
+      if (p.lotes && p.lotes.length > 0) {
+        // Para produtos que possuem lotes controlados
+        p.lotes.forEach(lote => {
+          if (lote.quantidade > 0) {
+            list.push({
+              ...p,
+              isLote: true,
+              loteNumero: lote.numero,
+              quantidade_estoque: lote.quantidade, // sobrescreve para mostrar o saldo do lote
+              data_validade: lote.validade,
+              validade: lote.validade
+            });
+          }
+        });
+      } else if (p.data_validade || p.validade) {
+        // Fallback para produtos sem estrutura de lote
+        if (p.quantidade_estoque > 0) {
+          list.push({ ...p, isLote: false });
+        }
+      }
+    });
 
     // Sort by expiration date ascending (FEFO - First Expired, First Out)
-    comValidade.sort((a, b) => new Date(a.data_validade) - new Date(b.data_validade));
+    list.sort((a, b) => new Date(a.data_validade || a.validade) - new Date(b.data_validade || b.validade));
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -22,8 +45,8 @@ const ValidacaoProduto = ({ produtos, fetchProdutosGlobal }) => {
     const limiteProximo = new Date();
     limiteProximo.setDate(limiteProximo.getDate() + 30); // 30 days threshold
 
-    return comValidade.map(p => {
-      const dataVal = new Date(p.data_validade);
+    return list.map(item => {
+      const dataVal = new Date(item.data_validade || item.validade);
       // Ajuste para evitar fuso horário mudando o dia
       const utcDate = new Date(dataVal.getTime() + dataVal.getTimezoneOffset() * 60000);
 
@@ -34,7 +57,7 @@ const ValidacaoProduto = ({ produtos, fetchProdutosGlobal }) => {
         status = 'proximos';
       }
 
-      return { ...p, statusValidade: status, utcDate };
+      return { ...item, statusValidade: status, utcDate };
     });
   }, [produtos]);
 
@@ -74,14 +97,15 @@ const ValidacaoProduto = ({ produtos, fetchProdutosGlobal }) => {
 
     setLoadingDescarte(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/produtos/${produtoDescarte.codigo}/descarte`, {
+      const response = await fetch(`/api/produtos/${produtoDescarte.codigo}/descarte`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quantidade,
           motivo: 'Vencimento da validade',
           observacao: formDescarte.observacao,
-          usuario: formDescarte.nome // Simulando envio de login
+          usuario: formDescarte.nome,
+          loteNumero: produtoDescarte.isLote ? produtoDescarte.loteNumero : null
         })
       });
 
@@ -159,6 +183,11 @@ const ValidacaoProduto = ({ produtos, fetchProdutosGlobal }) => {
                   <div className={styles['prod-title']}>
                     <span className={styles['badge-codigo']}>{prod.codigo}</span>
                     {prod.descricao}
+                    {prod.isLote && (
+                      <span style={{ fontSize: '0.75rem', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', color: '#64748b', border: '1px solid #cbd5e1' }}>
+                        {prod.loteNumero}
+                      </span>
+                    )}
                   </div>
                   <div className={styles['detalhes']}>
                     <span><Package size={14} /> Estoque: <strong>{prod.quantidade_estoque || 0}</strong> {prod.unidade}</span>

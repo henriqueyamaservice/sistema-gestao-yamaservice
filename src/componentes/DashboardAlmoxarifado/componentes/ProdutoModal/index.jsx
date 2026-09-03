@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Save, Plus, Copy, Ban, Paperclip, Clock, ListTodo, Trash2, Image as ImageIcon, Search, Edit2, Check } from 'lucide-react';
 import styles from './ProdutoModal.module.css';
 
@@ -6,7 +6,47 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
   const [activeTab, setActiveTab] = useState('caracteristicas');
   const [showSubModal, setShowSubModal] = useState(false);
   const [eanValue, setEanValue] = useState(produto.ean || '');
+  const [validadeValue, setValidadeValue] = useState(produto.data_validade || produto.validade || '');
+
+  const getInitialEndereco = () => {
+    const c = produto.caracteristicas || [];
+    const end = c.find(x => (x.cNomeCaract || x.nome)?.toUpperCase() === 'ENDEREÇO');
+    if (end) return end.cConteudo || end.conteudo;
+    return produto.endereco || '';
+  };
+  const [enderecoValue, setEnderecoValue] = useState(getInitialEndereco());
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
+      try {
+        const res = await fetch(`/api/produtos/${produto.codigo}/imagem`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagemBase64: base64String })
+        });
+        if (res.ok) {
+          alert('Imagem enviada com sucesso!');
+          if (fetchProdutosGlobal) fetchProdutosGlobal();
+        } else {
+          throw new Error('Falha no envio da imagem');
+        }
+      } catch (err) {
+        alert('Erro ao enviar imagem: ' + err.message);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Dados formatados para exibição
   const formatarMoeda = (valor) => {
@@ -26,10 +66,10 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/produtos/${produto.codigo}`, {
+      const res = await fetch(`/api/produtos/${produto.codigo}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ean: eanValue })
+        body: JSON.stringify({ ean: eanValue, endereco: enderecoValue, data_validade: validadeValue })
       });
       if (res.ok) {
         alert('Produto atualizado com sucesso!');
@@ -41,6 +81,27 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
       alert('Erro ao salvar as alterações: ' + err.message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleEditLoteDate = async (numeroLote, validadeAtual) => {
+    const novaData = window.prompt(`Digite a nova data de validade para o lote ${numeroLote} (Formato AAAA-MM-DD):`, validadeAtual.split('T')[0]);
+    if (!novaData) return;
+
+    try {
+      const res = await fetch(`/api/produtos/${produto.codigo}/lotes/${numeroLote}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ novaValidade: novaData })
+      });
+      if (res.ok) {
+        alert('Validade do lote atualizada!');
+        if (fetchProdutosGlobal) fetchProdutosGlobal();
+      } else {
+        throw new Error('Falha ao atualizar lote');
+      }
+    } catch (err) {
+      alert('Erro ao editar lote: ' + err.message);
     }
   };
 
@@ -67,10 +128,29 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
               {/* Imagem Placeholder */}
               <div className={styles.imageBox}>
                 <div className={styles.imagePlaceholder}>
-                  <ImageIcon size={40} className={styles.iconImage} />
-                  <span>{produto.codigo}</span>
+                  {produto.imagem_url ? (
+                    <img src={produto.imagem_url} alt="Produto" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+                  ) : (
+                    <>
+                      <ImageIcon size={40} className={styles.iconImage} />
+                      <span>{produto.codigo}</span>
+                    </>
+                  )}
                 </div>
-                <button className={styles.btnAlterarImagem}>Alterar Imagem</button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                />
+                <button 
+                  className={styles.btnAlterarImagem} 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                >
+                  {isUploadingImage ? 'Enviando...' : 'Alterar Imagem'}
+                </button>
               </div>
 
               {/* Campos do Produto */}
@@ -89,6 +169,20 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                 <div className={styles.formGroup}>
                   <label>Código EAN (GTIN)</label>
                   <input type="text" value={eanValue} onChange={(e) => setEanValue(e.target.value)} placeholder="Opcional - Digite ou bipe aqui" />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Data de Validade (Lote)</label>
+                  {produto.lotes && produto.lotes.length > 0 ? (
+                    <input type="text" value="Geren. na Aba Estoque" readOnly disabled style={{ color: 'var(--cor-texto-secundario)', fontStyle: 'italic' }} />
+                  ) : (
+                    <input type="date" value={validadeValue} onChange={(e) => setValidadeValue(e.target.value)} />
+                  )}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>Endereço (Localização)</label>
+                  <input type="text" value={enderecoValue} onChange={(e) => setEnderecoValue(e.target.value)} placeholder="Ex: 01090102" />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -113,22 +207,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
 
               </div>
 
-              {/* Toggles (Simples, Kit, Variacoes) */}
-              <div className={styles.togglesSection}>
-                <label className={styles.toggleLabel}>Definição do Produto</label>
-                <div className={styles.toggleRow}>
-                  <div className={`${styles.toggleSwitch} ${styles.active}`}></div>
-                  <span>Simples</span>
-                </div>
-                <div className={styles.toggleRow}>
-                  <div className={styles.toggleSwitch}></div>
-                  <span>Kit</span>
-                </div>
-                <div className={styles.toggleRow}>
-                  <div className={styles.toggleSwitch}></div>
-                  <span>Com Variações</span>
-                </div>
-              </div>
+
 
             </div>
 
@@ -136,10 +215,6 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
             <div className={styles.tabsContainer}>
               <div className={styles.tabsHeader}>
                 <button className={activeTab === 'estoque' ? styles.activeTab : ''} onClick={() => setActiveTab('estoque')}>Estoque</button>
-                <button className={activeTab === 'custo' ? styles.activeTab : ''} onClick={() => setActiveTab('custo')}>Custo do Estoque</button>
-                <button className={activeTab === 'fornecedores' ? styles.activeTab : ''} onClick={() => setActiveTab('fornecedores')}>Fornecedores</button>
-                <button className={activeTab === 'historico' ? styles.activeTab : ''} onClick={() => setActiveTab('historico')}>Histórico de Compras</button>
-                <button className={activeTab === 'adicionais' ? styles.activeTab : ''} onClick={() => setActiveTab('adicionais')}>Informações Adicionais</button>
                 <button className={activeTab === 'caracteristicas' ? styles.activeTab : ''} onClick={() => setActiveTab('caracteristicas')}>Características</button>
               </div>
 
@@ -182,6 +257,39 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                         </tr>
                       </tbody>
                     </table>
+
+                    {produto.lotes && produto.lotes.length > 0 && (
+                      <div style={{ marginTop: '24px' }}>
+                        <h4 style={{ marginBottom: '12px', color: 'var(--cor-destaque)' }}>Lotes Ativos no Almoxarifado (FEFO)</h4>
+                        <table className={styles.tabelaGenerica}>
+                          <thead>
+                            <tr>
+                              <th>Número do Lote</th>
+                              <th className={styles.textRight}>Estoque Restante</th>
+                              <th className={styles.textRight}>Data de Validade</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {produto.lotes.filter(l => l.quantidade > 0).map((lote, index) => (
+                              <tr key={lote.numero} className={index === 0 ? styles.rowHighlight : ''}>
+                                <td><strong>{lote.numero}</strong></td>
+                                <td className={styles.textRight}><strong>{lote.quantidade}</strong> {produto.unidade}</td>
+                                <td className={styles.textRight} style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                                  {new Date(lote.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                                  <button 
+                                    title="Editar data de validade deste lote"
+                                    onClick={() => handleEditLoteDate(lote.numero, lote.validade)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cor-destaque)', padding: '4px' }}
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -222,11 +330,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                   </div>
                 )}
 
-                {activeTab !== 'estoque' && activeTab !== 'caracteristicas' && (
-                  <div className={styles.tabEmpty}>
-                    <p>Informações não disponíveis na visualização local.</p>
-                  </div>
-                )}
+
               </div>
             </div>
 
@@ -237,12 +341,6 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
             <button className={styles.actionBtn} onClick={handleSave} disabled={isSaving}>
               <Save size={18} /> {isSaving ? 'Salvando...' : 'Salvar'}
             </button>
-            <button className={styles.actionBtn}><Plus size={18} /> Incluir</button>
-            <button className={styles.actionBtn}><Copy size={18} /> Duplicar</button>
-            <button className={styles.actionBtn}><Ban size={18} /> Inativar</button>
-            <button className={styles.actionBtn}><Paperclip size={18} /> Anexos</button>
-            <button className={styles.actionBtn}><Clock size={18} /> Histórico</button>
-            <button className={styles.actionBtn}><ListTodo size={18} /> Tarefas</button>
             <button className={`${styles.actionBtn} ${styles.btnExcluir}`}><Trash2 size={18} /> Excluir</button>
           </div>
 

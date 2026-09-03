@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Zap, Download } from 'lucide-react';
+import ReactDOM from 'react-dom';
+import { Zap, Download, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import styles from './index.module.css';
 import FormularioRequisicao from '../FormularioRequisicao';
 import FormularioAbastecimento from '../FormularioAbastecimento';
 import DetalhesAbastecimentoModal from '../DetalhesAbastecimentoModal';
 import ModalCadastroGerador from '../ModalCadastroGerador';
-import ModalRelatorioAnaliticoGeradores from '../ModalRelatorioAnaliticoGeradores';
+import RelatorioAnaliticoGeradores from '../RelatorioAnaliticoGeradores';
 
 const RelatorioGeradores = () => {
   const [requisicoes, setRequisicoes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showNovaRequisicao, setShowNovaRequisicao] = useState(false);
-  const [showNovoAbastecimento, setShowNovoAbastecimento] = useState(false);
-  const [showDetalhesAbastecimento, setShowDetalhesAbastecimento] = useState(false);
-  const [requisicaoParaAbastecer, setRequisicaoParaAbastecer] = useState(null);
   const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
-  const [modalRelatorioAnaliticoAberto, setModalRelatorioAnaliticoAberto] = useState(false);
+  const [mostrarGrafico, setMostrarGrafico] = useState(true);
 
   const fetchRequisicoes = () => {
     setIsLoading(true);
-    fetch('http://localhost:3000/api/combustivel')
+    fetch(`/api/combustivel`)
       .then(res => res.json())
       .then(data => {
         const filtradas = data.filter(req => 
@@ -40,63 +37,36 @@ const RelatorioGeradores = () => {
     fetchRequisicoes();
   }, []);
 
-  const handleRowClick = (req) => {
-    if (req.status === 'EM ANDAMENTO' || req.status === 'ABERTA') {
-      setRequisicaoParaAbastecer(req);
-      setShowNovoAbastecimento(true);
-    } else if (req.status === 'CONCLUÍDO' || req.status === 'ABASTECIDA') {
-      setRequisicaoParaAbastecer(req);
-      setShowDetalhesAbastecimento(true);
-    }
-  };
-
   const totalLitros = useMemo(() => {
     return requisicoes.reduce((acc, req) => acc + (parseFloat(req.qtde) || 0), 0);
   }, [requisicoes]);
 
   const dadosGrafico = useMemo(() => {
-    const consumoPorGerador = {};
+    const reqsPorGerador = {};
     
     requisicoes.forEach(req => {
       const gerador = req.veiculo;
-      if (!consumoPorGerador[gerador]) {
-        consumoPorGerador[gerador] = 0;
+      if (!reqsPorGerador[gerador]) {
+        reqsPorGerador[gerador] = [];
       }
-      consumoPorGerador[gerador] += parseFloat(req.qtde) || 0;
+      reqsPorGerador[gerador].push({
+        qtde: parseFloat(req.qtde) || 0,
+        data: new Date(req.data)
+      });
     });
 
-    return Object.keys(consumoPorGerador).map(gerador => ({
-      name: gerador,
-      Litros: consumoPorGerador[gerador]
-    }));
+    return Object.keys(reqsPorGerador).map(gerador => {
+      const reqs = reqsPorGerador[gerador].sort((a, b) => b.data - a.data);
+      
+      return {
+        name: gerador,
+        antepenultimo: reqs[2] ? reqs[2].qtde : 0,
+        penultimo: reqs[1] ? reqs[1].qtde : 0,
+        ultimo: reqs[0] ? reqs[0].qtde : 0
+      };
+    });
   }, [requisicoes]);
 
-  const handleExportCSV = () => {
-    if (requisicoes.length === 0) {
-      alert("Não há dados para exportar.");
-      return;
-    }
-
-    let csv = "Data;Gerador;Fornecedor;Produto;Qtd (L)\n";
-    requisicoes.forEach(req => {
-      const dataStr = new Date(req.data).toLocaleDateString('pt-BR');
-      const gerador = (req.veiculo || "").replace(/;/g, ",");
-      const fornecedor = (req.fornecedor || "").replace(/;/g, ",");
-      const produto = (req.combustivel || "").replace(/;/g, ",");
-      const qtd = String(req.qtde || 0).replace(".", ",");
-
-      csv += `${dataStr};${gerador};${fornecedor};${produto};${qtd}\n`;
-    });
-
-    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `relatorio_geradores_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <div className={styles.container}>
@@ -109,30 +79,17 @@ const RelatorioGeradores = () => {
         </div>
         <div className={styles.gap10}>
           <button 
-            className={`${styles.btnPrimary} ${styles.btnWarning}`} 
-            onClick={() => setModalRelatorioAnaliticoAberto(true)}
+            className={styles.btnToggleGrafico} 
+            onClick={() => setMostrarGrafico(!mostrarGrafico)}
           >
-            Relatório Analítico
+            <BarChart2 size={16} />
+            {mostrarGrafico ? "Ocultar Gráficos" : "Mostrar Gráficos"}
           </button>
           <button 
             className={`${styles.btnPrimary} ${styles.btnSecondary}`} 
             onClick={() => setModalCadastroAberto(true)}
           >
             + Cadastrar Gerador
-          </button>
-          <button 
-            className={`${styles.btnPrimary} ${styles.btnSuccess}`} 
-            onClick={handleExportCSV}
-          >
-            <Download size={18} />
-            Exportar Planilha
-          </button>
-          <button 
-            className={styles.btnPrimary} 
-            onClick={() => setShowNovaRequisicao(true)}
-          >
-            <Zap size={18} />
-            Nova Requisição
           </button>
         </div>
       </div>
@@ -141,137 +98,58 @@ const RelatorioGeradores = () => {
         <p className={styles.emptyState} style={{marginTop: '20px'}}>Carregando dados...</p>
       ) : (
         <>
-          <div className={styles.chartsGrid}>
-            <div className={styles.chartCard} style={{ flex: 1 }}>
-              <h3 className={styles.chartTitle}>Consumo Total de Geradores</h3>
-              <div className={styles.statsContainer}>
-                <p className={styles.statsLabel}>Total Abastecido</p>
-                <p className={styles.statsValue}>
-                  {totalLitros.toFixed(2)} L
-                </p>
-                <p className={styles.statsSubLabel}>Considerando todos os geradores filtrados</p>
+          {mostrarGrafico && (
+            <div className={styles.chartsGrid}>
+              <div className={styles.chartCard} style={{ flex: 1 }}>
+                <h3 className={styles.chartTitle}>Consumo Total de Geradores</h3>
+                <div className={styles.statsContainer}>
+                  <p className={styles.statsLabel}>Total Abastecido</p>
+                  <p className={styles.statsValue}>
+                    {totalLitros.toFixed(2)} L
+                  </p>
+                  <p className={styles.statsSubLabel}>Considerando todos os geradores filtrados no período</p>
+                </div>
               </div>
-            </div>
 
-            <div className={styles.chartCard} style={{ flex: 2 }}>
-              <h3 className={styles.chartTitle}>Consumo por Granja (Litros)</h3>
-              <div className={styles.chartWrapper}>
-                {dadosGrafico.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dadosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 25 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" />
-                      <YAxis />
-                      <RechartsTooltip cursor={{ fill: 'transparent' }} />
-                      <Bar dataKey="Litros" fill="#eab308" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className={styles.emptyState}>Sem dados de consumo.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.tableSection}>
-            <div className={styles.tableHeader}>
-              <h3 className={`${styles.chartTitle} ${styles.tableTitle}`}>Histórico de Abastecimentos</h3>
-            </div>
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Nº Req</th>
-                    <th>Data</th>
-                    <th>Gerador</th>
-                    <th>Status</th>
-                    <th>Qtd (L)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requisicoes.length > 0 ? (
-                    requisicoes.map((req, idx) => (
-                      <tr 
-                        key={req.id || idx} 
-                        onClick={() => handleRowClick(req)}
-                        style={{ cursor: 'pointer' }}
-                        className={styles.tableRow}
-                      >
-                        <td>{req.numeroRequisicao}</td>
-                        <td>{new Date(req.data).toLocaleDateString('pt-BR')}</td>
-                        <td className={styles.textBold}>{req.veiculo}</td>
-                        <td>
-                          <span className={`${styles.statusBadge} ${(req.status === 'EM ANDAMENTO' || req.status === 'ABERTA') ? styles.statusWarning : styles.statusSuccess}`}>
-                            {req.status}
-                          </span>
-                        </td>
-                        <td className={styles.textBold} style={{ color: (req.status === 'CONCLUÍDO' || req.status === 'ABASTECIDA') ? '#b45309' : '#94a3b8' }}>
-                          {req.qtde ? `${req.qtde} L` : '-'}
-                        </td>
-                      </tr>
-                    ))
+              <div className={styles.chartCard} style={{ flex: 2 }}>
+                <h3 className={styles.chartTitle}>Comparativo de Abastecimentos Recentes</h3>
+                <div className={styles.chartWrapper}>
+                  {dadosGrafico.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dadosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 25 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" />
+                        <YAxis />
+                        <RechartsTooltip cursor={{ fill: 'transparent' }} formatter={(value) => `${value.toFixed(2)} L`} />
+                        <Legend verticalAlign="top" height={36} />
+                        <Bar dataKey="antepenultimo" name="3º Último Abast." fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="penultimo" name="Penúltimo Abast." fill="#f97316" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="ultimo" name="Último Abast." fill="#22c55e" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   ) : (
-                    <tr>
-                      <td colSpan="5" className={styles.textCenter} style={{ padding: '30px' }}>
-                        Nenhum abastecimento de gerador registrado.
-                      </td>
-                    </tr>
+                    <p className={styles.emptyState}>Sem dados de consumo.</p>
                   )}
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          <RelatorioAnaliticoGeradores />
         </>
       )}
 
-      <ModalCadastroGerador 
-        isOpen={modalCadastroAberto}
-        onClose={() => setModalCadastroAberto(false)}
-        onSave={(geradorSalvo) => {
-          console.log('Gerador Salvo', geradorSalvo);
-        }}
-      />
-
-      <ModalRelatorioAnaliticoGeradores 
-        isOpen={modalRelatorioAnaliticoAberto}
-        onClose={() => setModalRelatorioAnaliticoAberto(false)}
-      />
-
-      {showNovaRequisicao && (
-        <FormularioRequisicao
-          tipo="granja"
-          onAdd={(novaReq) => {
-            fetchRequisicoes();
-            setShowNovaRequisicao(false);
+      {ReactDOM.createPortal(
+        <ModalCadastroGerador 
+          isOpen={modalCadastroAberto}
+          onClose={() => setModalCadastroAberto(false)}
+          onSave={(geradorSalvo) => {
+            console.log('Gerador Salvo', geradorSalvo);
           }}
-          onClose={() => setShowNovaRequisicao(false)}
-        />
+        />,
+        document.body
       )}
 
-      {showNovoAbastecimento && requisicaoParaAbastecer && (
-        <FormularioAbastecimento
-          requisicao={requisicaoParaAbastecer}
-          onAdd={(abast) => {
-            fetchRequisicoes();
-            setShowNovoAbastecimento(false);
-            setRequisicaoParaAbastecer(null);
-          }}
-          onClose={() => {
-            setShowNovoAbastecimento(false);
-            setRequisicaoParaAbastecer(null);
-          }}
-        />
-      )}
-
-      {showDetalhesAbastecimento && requisicaoParaAbastecer && (
-        <DetalhesAbastecimentoModal
-          requisicao={requisicaoParaAbastecer}
-          onClose={() => {
-            setShowDetalhesAbastecimento(false);
-            setRequisicaoParaAbastecer(null);
-          }}
-        />
-      )}
     </div>
   );
 };

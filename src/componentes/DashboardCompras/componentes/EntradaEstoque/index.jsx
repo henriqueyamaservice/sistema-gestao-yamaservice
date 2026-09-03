@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PackagePlus, Truck, FileText, ChevronDown, ChevronRight, Save, Search, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PackagePlus, Truck, FileText, ChevronDown, ChevronRight, Save, Search, AlertCircle, CheckCircle2, PlusCircle, Link, Ban, X, Building2, Hash, Calendar } from 'lucide-react';
 import styles from './EntradaEstoque.module.css';
 
 const EntradaEstoque = () => {
@@ -18,9 +18,9 @@ const EntradaEstoque = () => {
   const fetchDados = async () => {
     try {
       const [resReq, resForn, resProd] = await Promise.all([
-        fetch('http://localhost:3000/api/requisicoes'),
-        fetch('http://localhost:3000/api/fornecedores'),
-        fetch('http://localhost:3000/api/produtos')
+        fetch('/api/requisicoes'),
+        fetch('/api/fornecedores'),
+        fetch('/api/produtos')
       ]);
       const dataReq = await resReq.json();
       const dataForn = await resForn.json();
@@ -87,7 +87,7 @@ const EntradaEstoque = () => {
     try {
       const maps = mapeamentos[req.id] || {};
 
-      const res = await fetch(`http://localhost:3000/api/estoque/receber-nota/${req.id}`, {
+      const res = await fetch(`/api/estoque/receber-nota/${req.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mapeamentoItens: maps })
@@ -148,9 +148,9 @@ const EntradaEstoque = () => {
 
                 <div className={styles.cardHeader} onClick={() => setExpandido(isExpanded ? null : req.id)}>
                   <div className={styles.cardInfo}>
-                    <div className={styles.idBox} style={{ background: '#fef2f2', color: '#ef4444' }}>
+                    <div className={`${styles.idBox} ${styles.nfeHighlight}`}>
                       <span className={styles.label}>NF-e</span>
-                      <span className={styles.value} style={{ color: '#ef4444' }}>{nota.chaveAcesso.substring(25, 34)}</span>
+                      <span className={styles.value}>{nota.chaveAcesso.substring(25, 34)}</span>
                     </div>
                     <div className={styles.detalhe}>
                       <span className={styles.label}>Fornecedor</span>
@@ -165,57 +165,56 @@ const EntradaEstoque = () => {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     {req.mapeamento_concluido ? (
-                      <span style={{ 
-                        background: '#fef9c3', color: '#854d0e', padding: '6px 12px', 
-                        borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px'
-                      }}>
+                      <span className={`${styles.badgeStatus} ${styles.badgeWaiting}`}>
                         ⏳ Aguardando Almoxarifado
                       </span>
                     ) : (
-                      <span style={{ 
-                        background: '#fff7ed', color: '#ea580c', padding: '6px 12px', 
-                        borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px'
-                      }}>
-                        <Truck size={14} /> Mapeamento Pendente
+                      <span className={`${styles.badgeStatus} ${styles.badgePending}`}>
+                        <Truck size={16} strokeWidth={2.5} /> Mapeamento Pendente
                       </span>
                     )}
-                    {isExpanded ? <ChevronDown size={20} color="#64748b" /> : <ChevronRight size={20} color="#64748b" />}
+                    {isExpanded ? <ChevronDown size={24} color="var(--cor-texto-secundario)" /> : <ChevronRight size={24} color="var(--cor-texto-secundario)" />}
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div className={styles.cardBody} style={{ background: '#f8fafc', padding: '0' }}>
+                  <div className={styles.cardBody}>
 
-                    {/* Header estilo Omie */}
-                    <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '20px' }}>
-                      <h3 style={{ color: '#ea580c', margin: '0 0 16px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Header estilo Enterprise */}
+                    <div className={styles.expandedHeader}>
+                      <h3 className={styles.expandedTitle}>
+                        <FileText size={24} />
                         Recebimento NF-e Nº {nota.chaveAcesso.substring(25, 34)}
                       </h3>
 
-                      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: '250px' }}>
-                          <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Fornecedor (encontrado)</label>
-                          <div style={{ padding: '8px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.9rem', color: '#334155', fontWeight: 'bold' }}>
+                      <div className={styles.infoGrid}>
+                        <div className={styles.infoCol}>
+                          <label className={styles.infoLabel}>Fornecedor (encontrado)</label>
+                          <div className={styles.infoValue} style={{ fontWeight: '700' }}>
+                            <Building2 size={16} color="var(--cor-texto-secundario)" />
                             {nota.emitente.nome}
                           </div>
                         </div>
-                        <div>
-                          <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>CNPJ</label>
-                          <div style={{ padding: '8px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.9rem', color: '#334155' }}>
+                        <div className={styles.infoCol}>
+                          <label className={styles.infoLabel}>CNPJ</label>
+                          <div className={styles.infoValue}>
+                            <Hash size={16} color="var(--cor-texto-secundario)" />
                             {nota.emitente.cnpj_cpf}
                           </div>
                         </div>
-                        <div>
-                          <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data de Emissão</label>
-                          <div style={{ padding: '8px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.9rem', color: '#334155' }}>
+                        <div className={styles.infoCol}>
+                          <label className={styles.infoLabel}>Data de Emissão</label>
+                          <div className={styles.infoValue}>
+                            <Calendar size={16} color="var(--cor-texto-secundario)" />
                             {new Date(nota.dataEmissao).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div style={{ padding: '20px' }}>
-                      <div style={{ marginBottom: '16px', color: '#ea580c', fontSize: '0.9rem', fontWeight: '600' }}>
+                    <div style={{ padding: '24px' }}>
+                      <div className={styles.instructionText}>
+                        <PackagePlus size={20} color="var(--cor-destaque)" />
                         Selecione ou digite abaixo de que forma deseja importar cada um dos itens da NF-e
                       </div>
 
@@ -230,16 +229,16 @@ const EntradaEstoque = () => {
                         ))}
                       </datalist>
 
-                      <div style={{ width: '100%', overflowX: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <div className={styles.tableContainer}>
+                        <table className={styles.dataTable}>
                           <thead>
-                            <tr style={{ background: '#f8fafc' }}>
-                              <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem', width: '60px' }}>Item</th>
-                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem' }}>Código Fornecedor</th>
-                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem' }}>Descrição do Produto</th>
-                              <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem' }}>Qtd</th>
-                              <th style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem' }}>V. Unitário</th>
-                              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem', width: '350px' }}>Situação (Destino)</th>
+                            <tr>
+                              <th style={{ textAlign: 'center', width: '60px' }}>Item</th>
+                              <th style={{ textAlign: 'left' }}>Código Fornecedor</th>
+                              <th style={{ textAlign: 'left' }}>Descrição do Produto</th>
+                              <th style={{ textAlign: 'center' }}>Qtd</th>
+                              <th style={{ textAlign: 'right' }}>V. Unitário</th>
+                              <th style={{ textAlign: 'left', width: '350px' }}>Situação (Destino)</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -247,99 +246,97 @@ const EntradaEstoque = () => {
                               const selectedAction = mapeamentos[req.id]?.[item.codigo] || '';
 
                               return (
-                                <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fcfcfc' }}>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontSize: '0.9rem', color: '#ea580c', fontWeight: 'bold' }}>
+                                <tr key={idx} className={styles.dataTableRow}>
+                                  <td className={styles.itemNumber}>
                                     {idx + 1}
                                   </td>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem', color: '#334155' }}>
+                                  <td>
                                     {item.codigo}
                                   </td>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem', color: '#334155', fontWeight: '600' }}>
+                                  <td style={{ fontWeight: '600' }}>
                                     {item.descricao}
                                   </td>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontSize: '0.9rem', color: '#334155' }}>
+                                  <td style={{ textAlign: 'center' }}>
                                     {item.quantidade}
                                   </td>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', textAlign: 'right', fontSize: '0.9rem', color: '#334155' }}>
+                                  <td style={{ textAlign: 'right' }}>
                                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valorUnitario)}
                                   </td>
-                                  <td style={{ padding: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                                  <td>
                                     {!selectedAction ? (
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                                        <span 
+                                      <div className={styles.mappingActions}>
+                                        <button 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, `NOVO:${item.descricao}`)}
-                                          style={{ 
-                                            color: '#0369a1', background: '#e0f2fe', padding: '6px 12px', 
-                                            borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', 
-                                            fontWeight: '600', display: 'inline-block' 
-                                          }}>
-                                          + Cadastrar como novo produto
-                                        </span>
-                                        <span 
+                                          className={`${styles.mappingBtn} ${styles.mappingBtnNovo}`}
+                                        >
+                                          <PlusCircle size={18} />
+                                          Cadastrar como novo produto
+                                        </button>
+                                        <button 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, 'ASSOCIAR:')}
-                                          style={{ 
-                                            color: '#15803d', background: '#dcfce7', padding: '6px 12px', 
-                                            borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', 
-                                            fontWeight: '600', display: 'inline-block' 
-                                          }}>
-                                          ✓ Associar a produto existente
-                                        </span>
-                                        <span 
+                                          className={`${styles.mappingBtn} ${styles.mappingBtnAssociar}`}
+                                        >
+                                          <Link size={18} />
+                                          Associar a produto existente
+                                        </button>
+                                        <button 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, 'ignorar')}
-                                          style={{ 
-                                            color: '#b91c1c', background: '#fee2e2', padding: '6px 12px', 
-                                            borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', 
-                                            fontWeight: '600', display: 'inline-block' 
-                                          }}>
-                                          🚫 Ignorar a importação
-                                        </span>
+                                          className={`${styles.mappingBtn} ${styles.mappingBtnIgnorar}`}
+                                        >
+                                          <Ban size={18} />
+                                          Ignorar a importação
+                                        </button>
                                       </div>
                                     ) : selectedAction === 'ignorar' ? (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: '600' }}>🚫 Ignorado</span>
+                                      <div className={styles.mappingStateActive} style={{ borderColor: '#fca5a5', backgroundColor: '#fef2f2' }}>
+                                        <Ban size={18} color="#dc2626" />
+                                        <span className={styles.mappingStateLabel} style={{ color: '#dc2626' }}>Ignorado</span>
+                                        <div style={{ flex: 1 }}></div>
                                         <span 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, '')}
-                                          style={{ color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}>
-                                          Alterar
+                                          className={styles.mappingCancelBtn}
+                                          title="Alterar"
+                                        >
+                                          <X size={18} />
                                         </span>
                                       </div>
                                     ) : selectedAction.startsWith('NOVO:') ? (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
-                                        <span style={{ color: '#ea580c', fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Novo:</span>
+                                      <div className={styles.mappingStateActive} style={{ borderColor: '#bae6fd', backgroundColor: '#f0f9ff' }}>
+                                        <PlusCircle size={18} color="#0284c7" />
+                                        <span className={styles.mappingStateLabel} style={{ color: '#0284c7' }}>Novo:</span>
                                         <input 
                                           value={selectedAction.substring(5)}
                                           onChange={(e) => handleMapeamentoChange(req.id, item.codigo, `NOVO:${e.target.value}`)}
                                           autoFocus
                                           placeholder="Nome do novo produto..."
-                                          style={{
-                                            flex: 1, minWidth: '150px', padding: '8px 12px', borderRadius: '4px', border: '1px solid #cbd5e1',
-                                            fontSize: '0.85rem', color: '#334155', outline: 'none'
-                                          }}
+                                          className={styles.mappingInput}
                                         />
                                         <span 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, '')}
-                                          style={{ color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                                          Cancelar
+                                          className={styles.mappingCancelBtn}
+                                          title="Cancelar"
+                                        >
+                                          <X size={18} />
                                         </span>
                                       </div>
                                     ) : (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
-                                        <span style={{ color: '#166534', fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>✓ Associar:</span>
+                                      <div className={styles.mappingStateActive} style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4' }}>
+                                        <Link size={18} color="#16a34a" />
+                                        <span className={styles.mappingStateLabel} style={{ color: '#16a34a' }}>Associar:</span>
                                         <input 
                                           list="opcoes-destino"
                                           value={selectedAction === 'ASSOCIAR:' ? '' : selectedAction}
                                           onChange={(e) => handleMapeamentoChange(req.id, item.codigo, e.target.value)}
                                           autoFocus={selectedAction === 'ASSOCIAR:'}
                                           placeholder="Pesquise o produto..."
-                                          style={{
-                                            flex: 1, minWidth: '150px', padding: '8px 12px', borderRadius: '4px', border: '1px solid #bbf7d0',
-                                            fontSize: '0.85rem', color: '#166534', outline: 'none', background: '#f0fdf4'
-                                          }}
+                                          className={styles.mappingInput}
                                         />
                                         <span 
                                           onClick={() => handleMapeamentoChange(req.id, item.codigo, '')}
-                                          style={{ color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                                          Cancelar
+                                          className={styles.mappingCancelBtn}
+                                          title="Cancelar"
+                                        >
+                                          <X size={18} />
                                         </span>
                                       </div>
                                     )}

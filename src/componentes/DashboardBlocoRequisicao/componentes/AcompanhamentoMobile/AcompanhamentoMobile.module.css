@@ -7,25 +7,26 @@
 .titulo {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--cor-texto-principal);
   margin: 0 0 8px 0;
 }
 
 .emptyState {
   text-align: center;
   padding: 40px 20px;
-  background: white;
+  background: var(--cor-fundo-cartao);
   border-radius: 12px;
-  color: #64748b;
+  color: var(--cor-texto-secundario);
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid var(--cor-borda-cartao);
 }
 
 .cardPedido {
-  background: white;
+  background: var(--cor-fundo-cartao);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cor-borda-cartao);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -35,19 +36,19 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--cor-borda-cartao);
   padding-bottom: 12px;
 }
 
 .protocolo {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #0f172a;
+  color: var(--cor-texto-principal);
 }
 
 .data {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--cor-texto-secundario);
   margin-top: 4px;
 }
 
@@ -62,30 +63,37 @@
 }
 
 .status_aguardando_diretoria {
-  background: #fef3c7;
+  background: rgba(217, 119, 6, 0.1);
   color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .status_pendente, .status_aguardando_separacao {
-  background: #ecfccb;
+  background: rgba(101, 163, 13, 0.1);
   color: #65a30d;
+  border: 1px solid rgba(101, 163, 13, 0.2);
 }
 
 .status_rejeitado_diretoria {
-  background: #fef2f2;
+  background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .infoLinha {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--cor-texto-secundario);
+}
+
+.infoLinha strong {
+  color: var(--cor-texto-principal);
 }
 
 .motivoRejeicao {
-  background: #fef2f2;
+  background: rgba(239, 68, 68, 0.05);
   padding: 12px;
   border-radius: 8px;
   font-size: 0.85rem;
-  color: #b91c1c;
+  color: #ef4444;
   border-left: 3px solid #ef4444;
 }

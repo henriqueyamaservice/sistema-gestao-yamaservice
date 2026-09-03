@@ -1,0 +1,173 @@
+.listRow { 
+  background: white; 
+  border-radius: 16px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+  overflow: hidden; 
+}
+.rowMain { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+  padding: 16px; 
+}
+.rowInfo { flex: 1; }
+.solicitante {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 1.2rem;
+}
+.departamento {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.badgeNormal { 
+  background: #f1f5f9; 
+  color: #475569; 
+  padding: 2px 6px; 
+  border-radius: 6px; 
+  font-size: 0.7rem; 
+  font-weight: bold; 
+  margin-left: 8px; 
+}
+.badgeUrgente { 
+  background: #fef2f2; 
+  color: #ef4444; 
+  border: 1px solid #f87171; 
+  padding: 2px 6px; 
+  border-radius: 6px; 
+  font-size: 0.7rem; 
+  font-weight: bold; 
+  margin-left: 8px; 
+  display: inline-flex; 
+  align-items: center; 
+  animation: pulse 2s infinite; 
+}
+.rowValorBlock { 
+  background: #f8fafc; 
+  padding: 12px; 
+  border-radius: 12px; 
+  text-align: center; 
+}
+.valorLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.valorTotalList { 
+  font-size: 1.4rem; 
+  font-weight: 800; 
+  color: #0f172a; 
+}
+.rowActions { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  justify-content: space-between; 
+}
+.btnVerItensList { 
+  background: white; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 10px; 
+  padding: 8px 12px; 
+  color: #475569; 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  cursor: pointer; 
+}
+.actionButtonsList { display: flex; gap: 8px; }
+.btnRejeitarList, .btnAprovarList { 
+  border: none; 
+  border-radius: 10px; 
+  width: 44px; 
+  height: 44px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer; 
+  transition: transform 0.1s; 
+  color: white; 
+}
+.btnRejeitarList { background: #ef4444; }
+.btnAprovarList { background: #10b981; }
+.btnAprovarList:active, .btnRejeitarList:active {
+  transform: scale(0.96);
+}
+.rowExpanded { 
+  border-top: 1px solid #e2e8f0; 
+  background: #f8fafc; 
+}
+
+.itensList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemCodigo {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.itemDescricao {
+  font-size: 0.8rem;
+  color: #64748b;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemQtd {
+  font-weight: 800;
+  color: #f97316;
+  font-size: 1.1rem;
+}
+
+.parecerChefe {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@media (min-width: 768px) { 
+  .rowMain { flex-direction: row; align-items: center; justify-content: space-between; } 
+  .rowValorBlock { flex: 0 0 150px; text-align: right; background: transparent; padding: 0; } 
+  .rowActions { flex: 0 0 auto; } 
+}

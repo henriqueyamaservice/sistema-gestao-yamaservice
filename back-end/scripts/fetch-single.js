@@ -21,7 +21,7 @@ async function testarProduto() {
         app_key: OMIE_APP_KEY,
         app_secret: OMIE_APP_SECRET,
         param: [{
-          codigo: "PRD11302"
+          codigo: process.argv[2] || "PRD10936"
         }]
       })
     });

@@ -1,0 +1,221 @@
+.headerContainer {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logoImg {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 2px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.titleGroup h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnNovoChamado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.2);
+}
+
+.btnNovoChamado:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--cor-borda-cartao);
+}
+
+.searchBox {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cor-texto-secundario);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 14px 10px 42px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-principal);
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  border-color: var(--cor-destaque);
+  background-color: var(--cor-fundo-cartao);
+  box-shadow: 0 0 0 3px var(--cor-fundo-sutil-forte);
+}
+
+.tabsNav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cor-fundo-secundario);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabBtn:hover:not(.tabAtiva) {
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-sutil);
+}
+
+.badge {
+  background-color: var(--cor-fundo-sutil-forte);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tabAtiva {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.25);
+}
+
+.tabAtiva .badge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: var(--cor-texto-inverso);
+}
+
+/* --- RESPONSIVIDADE MOBILE (MENOR QUE 768px) --- */
+@media (max-width: 768px) {
+  .headerContainer {
+    padding: 14px;
+    border-radius: 12px;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .topRow {
+    gap: 10px;
+  }
+
+  .logoImg {
+    height: 36px;
+  }
+
+  .titleGroup h2 {
+    font-size: 1.1rem;
+  }
+
+  .subtitle {
+    display: none; /* Oculta subtítulo no celular para economizar espaço */
+  }
+
+  .btnNovoChamado {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  .bottomRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .searchBox {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .tabsNav {
+    width: 100%;
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .tabBtn {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 8px;
+    font-size: 0.8rem;
+  }
+}

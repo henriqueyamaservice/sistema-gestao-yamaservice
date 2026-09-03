@@ -1,0 +1,6367 @@
+[
+  {
+    "id": "1787653709730",
+    "dataCriacao": "2026-08-25T10:28:29.730Z",
+    "codigo": "156-0826",
+    "data": "2026-08-25",
+    "hora": "07:28",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "CAMPINA",
+    "prazo": "2026-08-28",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA DEBONA DO AVIARIO 04",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787653410202",
+    "dataCriacao": "2026-08-25T10:23:30.202Z",
+    "codigo": "155-0826",
+    "data": "2026-08-25",
+    "hora": "07:23",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "AREAL",
+    "prazo": "2026-08-25",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO CONTROLADOR DIMMER",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787653376816",
+    "dataCriacao": "2026-08-25T10:22:56.816Z",
+    "codigo": "154-0826",
+    "data": "2026-08-25",
+    "hora": "07:21",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "MER00043",
+    "prazo": "2026-08-25",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA MAQUINA DE SOLDA MIG",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787578110394",
+    "dataCriacao": "2026-08-24T13:28:30.394Z",
+    "codigo": "153-0826",
+    "data": "2026-08-24",
+    "hora": "10:26",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "MEQ0043",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA MAQUINA DE SOLDA TIGER TRIFASICA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787577625331",
+    "dataCriacao": "2026-08-24T13:20:25.331Z",
+    "codigo": "152-0826",
+    "data": "2026-08-24",
+    "hora": "10:20",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "SÃO CAETANO",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO CARRINHO DE 03 RODAS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787576576538",
+    "dataCriacao": "2026-08-24T13:02:56.538Z",
+    "codigo": "151-0826",
+    "data": "2026-08-24",
+    "hora": "10:02",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "RDY6G99",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR SUPORTE",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787575845913",
+    "dataCriacao": "2026-08-24T12:50:45.913Z",
+    "codigo": "150-0826",
+    "data": "2026-08-24",
+    "hora": "09:50",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DOS TRILHO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787573206282",
+    "dataCriacao": "2026-08-24T12:06:46.282Z",
+    "codigo": "149-0826",
+    "data": "2026-08-24",
+    "hora": "09:05",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "TRA0008",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO AR CONDICIONADO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787569058968",
+    "dataCriacao": "2026-08-24T10:57:38.968Z",
+    "codigo": "148-0826",
+    "data": "2026-08-24",
+    "hora": "07:57",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JONE",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO AR CONDICIONADO DA CASA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787567725011",
+    "dataCriacao": "2026-08-24T10:35:25.011Z",
+    "codigo": "147-0826",
+    "data": "2026-08-24",
+    "hora": "07:34",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO 02 MANCAIS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787567647586",
+    "dataCriacao": "2026-08-24T10:34:07.586Z",
+    "codigo": "146-0826",
+    "data": "2026-08-24",
+    "hora": "07:33",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GENIPAÚBA",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SUBSTITUIR BOMBA DE COOLER",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787566783611",
+    "dataCriacao": "2026-08-24T10:19:43.611Z",
+    "codigo": "145-0826",
+    "data": "2026-08-24",
+    "hora": "07:18",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "CASA DO SR KAZUNORI",
+    "prazo": "2026-08-24",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DE AR CONDICIONADO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787400561617",
+    "dataCriacao": "2026-08-22T12:09:21.617Z",
+    "codigo": "144-0826",
+    "data": "2026-08-22",
+    "hora": "09:08",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "TRA0001",
+    "prazo": "2026-08-22",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "FAZER REFORÇO NA SOLDA DA DESCARGA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787395984502",
+    "dataCriacao": "2026-08-22T10:53:04.502Z",
+    "codigo": "143-0826",
+    "data": "2026-08-22",
+    "hora": "07:52",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "CONSTRUCAO CIVIL",
+    "centroCusto": "CAMPINA",
+    "prazo": "2026-08-22",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "COLOCAR TELA NOS PORTÕES DA COMPOSTEIRA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787395103170",
+    "dataCriacao": "2026-08-22T10:38:23.170Z",
+    "codigo": "142-0826",
+    "data": "2026-08-22",
+    "hora": "07:37",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "EMPRESA",
+    "prazo": "2026-08-22",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DOP MOTOR 3/4 DE LINHA DE COMEDORURO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787336143396",
+    "dataCriacao": "2026-08-21T18:15:43.396Z",
+    "codigo": "141-0826",
+    "data": "2026-08-21",
+    "hora": "15:14",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "CAMPINA",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "COINSERTO DO PNEU DO CARRINHO DE 03 RODAS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787335920032",
+    "dataCriacao": "2026-08-21T18:12:00.032Z",
+    "codigo": "140-0826",
+    "data": "2026-08-21",
+    "hora": "15:09",
+    "requisitante": "ARILSON MOURAS",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "METALURGICA",
+    "centroCusto": "AR-1101 E AR-1101",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "FAZER VEDAÇÃO DO SILO C E D",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787335281483",
+    "dataCriacao": "2026-08-21T18:01:21.484Z",
+    "codigo": "139-0826",
+    "data": "2026-08-21",
+    "hora": "15:01",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "CAMPINA",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA DEBONA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787334308852",
+    "dataCriacao": "2026-08-21T17:45:08.852Z",
+    "codigo": "138-0826",
+    "data": "2026-08-21",
+    "hora": "14:42",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "QUEBRADOR DE CAMA",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE ROLAMENTO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787334073270",
+    "dataCriacao": "2026-08-21T17:41:13.270Z",
+    "codigo": "137-0826",
+    "data": "2026-08-21",
+    "hora": "14:40",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "JUW6C34",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR PARTE DE TRAS SILO GRANELEIRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787334028082",
+    "dataCriacao": "2026-08-21T17:40:28.082Z",
+    "codigo": "136-0826",
+    "data": "2026-08-21",
+    "hora": "14:38",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUW6C34",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR CRUZETA E DESMONTAR GRANELEIRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787333096708",
+    "dataCriacao": "2026-08-21T17:24:56.708Z",
+    "codigo": "135-0826",
+    "data": "2026-08-21",
+    "hora": "14:20",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "OFK6111",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA PARTE ELETRICA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787331807748",
+    "dataCriacao": "2026-08-21T17:03:27.748Z",
+    "codigo": "134-0826",
+    "data": "2026-08-21",
+    "hora": "14:03",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUW6C34",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "APERTO DA CORRENTE DA CAIXA DE RAÇÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787329538315",
+    "dataCriacao": "2026-08-21T16:25:38.315Z",
+    "codigo": "133-0826",
+    "data": "2026-08-21",
+    "hora": "13:25",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "OFJ9E33",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE PNEU",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787319186866",
+    "dataCriacao": "2026-08-21T13:33:06.866Z",
+    "codigo": "132-0826",
+    "data": "2026-08-21",
+    "hora": "10:32",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QEL5310",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR SUSPENSÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787318970145",
+    "dataCriacao": "2026-08-21T13:29:30.145Z",
+    "codigo": "131-0826",
+    "data": "2026-08-21",
+    "hora": "10:28",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "AVICEMA - PA-242",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "INSTALAÇÃO DE BOIAS PRA AUTOMÁTICO CAIXA D'ÁGUA GERAL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787318905701",
+    "dataCriacao": "2026-08-21T13:28:25.701Z",
+    "codigo": "130-0826",
+    "data": "2026-08-21",
+    "hora": "10:27",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE CLORADOR DO AV3",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787318332684",
+    "dataCriacao": "2026-08-21T13:18:52.684Z",
+    "codigo": "129-0826",
+    "data": "2026-08-21",
+    "hora": "10:18",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REPARO DA GAIOLA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787315783946",
+    "dataCriacao": "2026-08-21T12:36:23.946Z",
+    "codigo": "128-0826",
+    "data": "2026-08-21",
+    "hora": "09:36",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUQ3E45",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR SENSOR DA CAIXA DE MACHA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787315728400",
+    "dataCriacao": "2026-08-21T12:35:28.400Z",
+    "codigo": "127-0826",
+    "data": "2026-08-21",
+    "hora": "09:35",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVU6A64",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787315710018",
+    "dataCriacao": "2026-08-21T12:35:10.018Z",
+    "codigo": "126-0826",
+    "data": "2026-08-21",
+    "hora": "09:34",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVU6A54",
+    "prazo": "2026-08-21",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787310578452",
+    "dataCriacao": "2026-08-21T11:09:38.452Z",
+    "codigo": "125-0826",
+    "data": "2026-08-21",
+    "hora": "08:08",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR CAMERA DO PNEU DO CARRINHO MÃO DE PREMIX",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787310414127",
+    "dataCriacao": "2026-08-21T11:06:54.127Z",
+    "codigo": "124-0826",
+    "data": "2026-08-21",
+    "hora": "08:06",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA INSTALAÇÃO DE QUADRO DE REVERSÃO DE FASE",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787309201955",
+    "dataCriacao": "2026-08-21T10:46:41.955Z",
+    "codigo": "123-0826",
+    "data": "2026-08-21",
+    "hora": "07:45",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "MEQ0087",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA REGULA VIBRATORIA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787308287327",
+    "dataCriacao": "2026-08-21T10:31:27.327Z",
+    "codigo": "122-0826",
+    "data": "2026-08-21",
+    "hora": "07:30",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "ADMINSTRATIVO",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR AR CONDICIONADO VAZANDO (ESCRITORIO)",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787307848582",
+    "dataCriacao": "2026-08-21T10:24:08.582Z",
+    "codigo": "121-0826",
+    "data": "2026-08-21",
+    "hora": "07:23",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "OFICINA ELETRONICA E TI",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO UM CONTROLADOR (RESERVA)",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787307819539",
+    "dataCriacao": "2026-08-21T10:23:39.539Z",
+    "codigo": "120-0826",
+    "data": "2026-08-21",
+    "hora": "07:22",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "OFICINA ELETRONICA E TI",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO DIMER PRO (RESERVA)",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787307734237",
+    "dataCriacao": "2026-08-21T10:22:14.237Z",
+    "codigo": "119-0826",
+    "data": "2026-08-21",
+    "hora": "07:21",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "ADMINSTRATIVO",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA CAMERA LADO DO ERSCRITORIO (FABRICA)",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787253076069",
+    "dataCriacao": "2026-08-20T19:11:16.069Z",
+    "codigo": "118-0826",
+    "data": "2026-08-20",
+    "hora": "16:10",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "SZY1H93",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE OLEO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787245842224",
+    "dataCriacao": "2026-08-20T17:10:42.224Z",
+    "codigo": "117-0826",
+    "data": "2026-08-20",
+    "hora": "14:10",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "QVU6A54",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "CONSERTO DA GAIOLA QUEBRADA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787245813185",
+    "dataCriacao": "2026-08-20T17:10:13.185Z",
+    "codigo": "116-0826",
+    "data": "2026-08-20",
+    "hora": "14:09",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVU6A54",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787242491540",
+    "dataCriacao": "2026-08-20T16:14:51.540Z",
+    "codigo": "115-0826",
+    "data": "2026-08-20",
+    "hora": "13:13",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVK0D47",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DO PAINEL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787242433340",
+    "dataCriacao": "2026-08-20T16:13:53.340Z",
+    "codigo": "114-0826",
+    "data": "2026-08-20",
+    "hora": "13:13",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QET0644",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA PORTA DA CAPOTA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787242319567",
+    "dataCriacao": "2026-08-20T16:11:59.567Z",
+    "codigo": "113-0826",
+    "data": "2026-08-20",
+    "hora": "13:11",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUQ3E45",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA SENSOR DE RE",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787242290102",
+    "dataCriacao": "2026-08-20T16:11:30.102Z",
+    "codigo": "112-0826",
+    "data": "2026-08-20",
+    "hora": "13:10",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QDJ8G20",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA CHAVE DE SETA E RELE",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787235729988",
+    "dataCriacao": "2026-08-20T14:22:09.988Z",
+    "codigo": "111-0826",
+    "data": "2026-08-20",
+    "hora": "11:21",
+    "requisitante": "ARILSON MOURAS",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "METALURGICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO GERAL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787232595484",
+    "dataCriacao": "2026-08-20T13:29:55.484Z",
+    "codigo": "110-0826",
+    "data": "2026-08-20",
+    "hora": "10:29",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVK1H65",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787230632079",
+    "dataCriacao": "2026-08-20T12:57:12.079Z",
+    "codigo": "109-0826",
+    "data": "2026-08-20",
+    "hora": "09:56",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "ITÁ",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA REFLETOR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787222132198",
+    "dataCriacao": "2026-08-20T10:35:32.198Z",
+    "codigo": "108-0826",
+    "data": "2026-08-20",
+    "hora": "07:34",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GALPÃO PREMOLDADO",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DE UM VIBRADOR DE CONCRETO VR1000 MAKITA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787166088987",
+    "dataCriacao": "2026-08-19T19:01:28.987Z",
+    "codigo": "105-0826",
+    "data": "2026-08-19",
+    "hora": "15:59",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "JONE",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA AIR FLAYR MONDIAL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787164070661",
+    "dataCriacao": "2026-08-19T18:27:50.661Z",
+    "codigo": "107-0826",
+    "data": "2026-08-19",
+    "hora": "15:27",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QDY4C84",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE PNEUS DIANTEIRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787164017780",
+    "dataCriacao": "2026-08-19T18:26:57.781Z",
+    "codigo": "106-0826",
+    "data": "2026-08-19",
+    "hora": "15:26",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RDY6G99",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE PNEUS DIANTEIRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787157615383",
+    "dataCriacao": "2026-08-19T16:40:15.383Z",
+    "codigo": "105-0826",
+    "data": "2026-08-19",
+    "hora": "13:39",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "CONSTRUCAO CIVIL",
+    "prazo": "2026-08-22",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "FAZER MANUTENÇÃO DE 05 JIRICA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787149070947",
+    "dataCriacao": "2026-08-19T14:17:50.947Z",
+    "codigo": "104-0826",
+    "data": "2026-08-19",
+    "hora": "11:17",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "QDO9558",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR AR CONDICIONADO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787145669776",
+    "dataCriacao": "2026-08-19T13:21:09.776Z",
+    "codigo": "103-0826",
+    "data": "2026-08-19",
+    "hora": "10:19",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "PLATAFORMA (COMPACTADOR DE SOLO)",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787142326606",
+    "dataCriacao": "2026-08-19T12:25:26.606Z",
+    "codigo": "102-0826",
+    "data": "2026-08-19",
+    "hora": "09:23",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO NOS MANCAIS",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "2.3"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:10",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "09:30",
+        "descricao": "consertou os 02 mancais",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "2.3"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD08115",
+            "descricao": "P205 - MANCAL - FRM",
+            "quantidade": "4"
+          },
+          {
+            "codigo": "PRD06269",
+            "descricao": "ROLAMENTO SKF IND (I) YAR 205-100-2F -PRD06269",
+            "quantidade": "4"
+          },
+          {
+            "codigo": "PRD04846",
+            "descricao": "MOTOR AR WEG 3CV 4P 220380 W22 TRIFASICO-PRD04846",
+            "quantidade": "2"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:10",
+    "dataFim": "2026-08-20",
+    "horaFim": "09:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "consertou os 02 mancais",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08115",
+        "descricao": "P205 - MANCAL - FRM",
+        "quantidade": 4
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06269",
+        "descricao": "ROLAMENTO SKF IND (I) YAR 205-100-2F -PRD06269",
+        "quantidade": 4
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD04846",
+        "descricao": "MOTOR AR WEG 3CV 4P 220380 W22 TRIFASICO-PRD04846",
+        "quantidade": 2
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787142177676",
+    "dataCriacao": "2026-08-19T12:22:57.676Z",
+    "codigo": "101-0826",
+    "data": "2026-08-19",
+    "hora": "09:21",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "INSTALAÇÃO DE LAMPADAS",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "6.5"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "902.458.812-04",
+        "nome": "ALCI DOS REIS CARDOSO",
+        "funcao": "Ajudante",
+        "horas": "6.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "09:30",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "17:30",
+        "descricao": "lampadas queimadas e painel avariado",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "6.5"
+          },
+          {
+            "matricula": "902.458.812-04",
+            "nome": "ALCI DOS REIS CARDOSO",
+            "funcao": "Ajudante",
+            "horas": "6.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07983",
+            "descricao": "LAMPADA OUROLUX TUBELED 18W T8 LED 6500K 1850LM  BIV  - 20245",
+            "quantidade": "10"
+          },
+          {
+            "codigo": "PRD09320",
+            "descricao": "SOQUETE T8 PARA LAMPADA TUBULAR - CERGE",
+            "quantidade": "6"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "09:30",
+    "dataFim": "2026-08-20",
+    "horaFim": "17:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "lampadas queimadas e painel avariado",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07983",
+        "descricao": "LAMPADA OUROLUX TUBELED 18W T8 LED 6500K 1850LM  BIV  - 20245",
+        "quantidade": 10
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09320",
+        "descricao": "SOQUETE T8 PARA LAMPADA TUBULAR - CERGE",
+        "quantidade": 6
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787140983178",
+    "dataCriacao": "2026-08-19T12:03:03.179Z",
+    "codigo": "100-0826",
+    "data": "2026-08-19",
+    "hora": "09:02",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVH9B56",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE PNEU",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787138884537",
+    "dataCriacao": "2026-08-19T11:28:04.537Z",
+    "codigo": "99-0826",
+    "data": "2026-08-19",
+    "hora": "08:18",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "CONSTRUCAO CIVIL",
+    "centroCusto": "KIMURA",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REPARO NO TELHADO DO AVIARIO 01",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787080437501",
+    "dataCriacao": "2026-08-18T19:13:57.501Z",
+    "codigo": "98-0826",
+    "data": "2026-08-18",
+    "hora": "16:13",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "ITÁ",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "- MANUTENÇÃO DE 03 BOIAS",
+    "motivo": "SUBSTITUIDO DIAFRAGMAS, EMBOLOS E REGULADOR DE PRESSAO E LIMPEZA",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "1.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:10",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "08:40",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "1.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11419",
+            "descricao": "ENTRADA DE AGUA REGULADOR DE PRESSAO CUMBERLAND CW-3024-I",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD04770",
+            "descricao": "EMBOLO REGULADO DE PRESSAO CW30281-PRD04770",
+            "quantidade": "3"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:10",
+    "dataFim": "2026-08-20",
+    "horaFim": "08:40",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11419",
+        "descricao": "ENTRADA DE AGUA REGULADOR DE PRESSAO CUMBERLAND CW-3024-I",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD04770",
+        "descricao": "EMBOLO REGULADO DE PRESSAO CW30281-PRD04770",
+        "quantidade": 3
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787073496533",
+    "dataCriacao": "2026-08-18T17:18:16.533Z",
+    "codigo": "97-0826",
+    "data": "2026-08-18",
+    "hora": "14:17",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "TRA0006",
+    "prazo": "2026-08-18",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DO FILTRO DE COMBUSTIVEL ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787073392499",
+    "dataCriacao": "2026-08-18T17:16:32.499Z",
+    "codigo": "96-0826",
+    "data": "2026-08-18",
+    "hora": "14:15",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RDY6G99",
+    "prazo": "2026-08-18",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE BATERIA ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787060345769",
+    "dataCriacao": "2026-08-18T13:39:05.769Z",
+    "codigo": "95-0826",
+    "data": "2026-08-18",
+    "hora": "10:38",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "ESMERILHADEIRA (GWS 17-155)",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-19",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "0.9"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-19",
+        "horaInicio": "10:40",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:35",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "0.9"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-19",
+    "horaInicio": "10:40",
+    "dataFim": "2026-08-19",
+    "horaFim": "11:35",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787056814387",
+    "dataCriacao": "2026-08-18T12:40:14.387Z",
+    "codigo": "94-0826",
+    "data": "2026-08-18",
+    "hora": "09:39",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "CONFECCIONAR TAMPA DA MOEGA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "014.882.202-98",
+        "nome": "JOSIVAN ANDRADE SILVA",
+        "funcao": "Executor",
+        "horas": "4.5"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "4.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "13:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "17:30",
+        "descricao": "TROCA DA CRUZETA, ENGRAXADO E TROCADO 02 PNEU USADOS E OUTRO REPARADO",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.882.202-98",
+            "nome": "JOSIVAN ANDRADE SILVA",
+            "funcao": "Executor",
+            "horas": "4.5"
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": "4.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD08158",
+            "descricao": "CRUZETA 024X61 20MM CC04 PL2613 CZ101 061267 ZM3500131 CR1601AG",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06863",
+            "descricao": "TERMINAL MACHO PEQ TC11-PRD06863",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06904",
+            "descricao": "TERMINAL DE FURO 25MM CHAVETA 1/4 APERTO CENTRAL-PRD06904",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD00150",
+            "descricao": "PO SEXT CL6 MA ZN DIN934 8X1,25-PRD00150",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD09280",
+            "descricao": "PNEU 275/80R22.5 149/146L GOODYEAR KMAX S DIRECIONAL RECAPADO",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD11288",
+            "descricao": "ESMALTE SINTETICO CINZA GRAFITE MAZA 400ML",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "13:00",
+    "dataFim": "2026-08-20",
+    "horaFim": "17:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "TROCA DA CRUZETA, ENGRAXADO E TROCADO 02 PNEU USADOS E OUTRO REPARADO",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08158",
+        "descricao": "CRUZETA 024X61 20MM CC04 PL2613 CZ101 061267 ZM3500131 CR1601AG",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06863",
+        "descricao": "TERMINAL MACHO PEQ TC11-PRD06863",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06904",
+        "descricao": "TERMINAL DE FURO 25MM CHAVETA 1/4 APERTO CENTRAL-PRD06904",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD00150",
+        "descricao": "PO SEXT CL6 MA ZN DIN934 8X1,25-PRD00150",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09280",
+        "descricao": "PNEU 275/80R22.5 149/146L GOODYEAR KMAX S DIRECIONAL RECAPADO",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11288",
+        "descricao": "ESMALTE SINTETICO CINZA GRAFITE MAZA 400ML",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787056737624",
+    "dataCriacao": "2026-08-18T12:38:57.625Z",
+    "codigo": "93-0826",
+    "data": "2026-08-18",
+    "hora": "09:38",
+    "requisitante": "ARILSON MOURAS",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-20",
+    "tipo": "CORRETIVA",
+    "situacao": "CANCELADO",
+    "descricao": "CONFECCIONAR TAMPA DA MOEGA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "",
+            "nome": "",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "09:39",
+    "dataFim": "2026-08-18",
+    "horaFim": "09:39",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "CANCELADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787056190783",
+    "dataCriacao": "2026-08-18T12:29:50.783Z",
+    "codigo": "92-0826",
+    "data": "2026-08-18",
+    "hora": "09:29",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "CONSTRUCAO CIVIL",
+    "centroCusto": "ITÁ",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA PIA INOX CASA DE APOIO",
+    "motivo": "A PIA ESTAVA SEM CONDIÇÕES DE USO",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "487.602.502-91",
+        "nome": "CLAUDOMIRO GONCALVES SILVA",
+        "funcao": "Executor",
+        "horas": "1.7"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "061.777.982-17",
+        "nome": "JOAO MACIEL MONTEIRO DA SILVA JUNIOR",
+        "funcao": "Ajudante",
+        "horas": "1.7"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "14:20",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:00",
+        "descricao": "tirado a pia velha\ncolocado a pia nova\ntrocado a torneira\ncolocado cifão novo\ndado acabamento com massa de cimento",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "487.602.502-91",
+            "nome": "CLAUDOMIRO GONCALVES SILVA",
+            "funcao": "Executor",
+            "horas": "1.7"
+          },
+          {
+            "matricula": "061.777.982-17",
+            "nome": "JOAO MACIEL MONTEIRO DA SILVA JUNIOR",
+            "funcao": "Ajudante",
+            "horas": "1.7"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07382",
+            "descricao": "PIA INOX 1.20 22763 TECNOCUBA - AMA.ORTE",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03033",
+            "descricao": "TORNEIRA P TANQUE 12&apos;&apos; LONGA 15CM HERC-PRD03033",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03168",
+            "descricao": "SIFAO COPO SANFONADO 1 (7/8) 1.1/4 1.1/2 ASTRA",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD08083",
+            "descricao": "JOELHO ESGOTO 90 GRAUS DN 40MM - PLASTILIT",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD11376",
+            "descricao": "ADESIVO PVC BISNAGA 75G PLASTILIT",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03044",
+            "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD11345",
+            "descricao": "SERRA MANUAL STARRETT RS1218 300MM-18D 12&quot;-18T",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD02943",
+            "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+            "quantidade": "1.5"
+          },
+          {
+            "codigo": "PRD06932",
+            "descricao": "AREIA",
+            "quantidade": "0.3"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "14:20",
+    "dataFim": "2026-08-20",
+    "horaFim": "16:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "tirado a pia velha\ncolocado a pia nova\ntrocado a torneira\ncolocado cifão novo\ndado acabamento com massa de cimento",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07382",
+        "descricao": "PIA INOX 1.20 22763 TECNOCUBA - AMA.ORTE",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03033",
+        "descricao": "TORNEIRA P TANQUE 12&apos;&apos; LONGA 15CM HERC-PRD03033",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03168",
+        "descricao": "SIFAO COPO SANFONADO 1 (7/8) 1.1/4 1.1/2 ASTRA",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08083",
+        "descricao": "JOELHO ESGOTO 90 GRAUS DN 40MM - PLASTILIT",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11376",
+        "descricao": "ADESIVO PVC BISNAGA 75G PLASTILIT",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03044",
+        "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11345",
+        "descricao": "SERRA MANUAL STARRETT RS1218 300MM-18D 12&quot;-18T",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD02943",
+        "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+        "quantidade": 1.5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06932",
+        "descricao": "AREIA",
+        "quantidade": 0.3
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1787051019589",
+    "dataCriacao": "2026-08-18T11:03:39.589Z",
+    "codigo": "91-0826",
+    "data": "2026-08-18",
+    "hora": "08:01",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-19",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "QVERIFICAR IMPRESSORA DA SALA DE CONTROLE DE QUALIDADE QUE ESTA FALHANDO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787049123298",
+    "dataCriacao": "2026-08-18T10:32:03.298Z",
+    "codigo": "90-0826",
+    "data": "2026-08-18",
+    "hora": "07:31",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "AVICEMA - PA-242",
+    "prazo": "2026-08-25",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "CONFECCIONAR SUPORTE DA VENESIANA AVIARIO 01",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1787048416785",
+    "dataCriacao": "2026-08-18T10:20:16.785Z",
+    "codigo": "89-0826",
+    "data": "2026-08-18",
+    "hora": "07:19",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "CASTANHEIRA",
+    "prazo": "2026-08-31",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO ENTRE LOTES",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786985861738",
+    "dataCriacao": "2026-08-17T16:57:41.738Z",
+    "codigo": "88-0826",
+    "data": "2026-08-17",
+    "hora": "13:56",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVH9B56",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "CONSERTO DA PORTA (VIDRO NAO LEVANTA)",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786983699235",
+    "dataCriacao": "2026-08-17T16:21:39.235Z",
+    "codigo": "87-0826",
+    "data": "2026-08-17",
+    "hora": "13:15",
+    "requisitante": "CLEYDSON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-09-26",
+    "tipo": "CORRETIVA",
+    "situacao": "CANCELADO",
+    "descricao": "PROGRAMAÇÃO DE RAÇÃO DA PALMEIRA LOTE: 04/2026 \nINICIAL: 41,000 KG; PLN-177\nINICIAL II: 43.000 KG; PLN-177\nENGORDA: 166.000 KG; PLN-177\nABATE: 79.000 KG; PLN-177",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-17",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "",
+            "nome": "",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-17",
+    "horaInicio": "13:37",
+    "dataFim": "2026-08-17",
+    "horaFim": "13:37",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "CANCELADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786983220642",
+    "dataCriacao": "2026-08-17T16:13:40.642Z",
+    "codigo": "86-0826",
+    "data": "2026-08-17",
+    "hora": "13:12",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "QDJ8G20",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR MUELA NO PINO DO BASCULANTE",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786968595655",
+    "dataCriacao": "2026-08-17T12:09:55.655Z",
+    "codigo": "85-0826",
+    "data": "2026-08-17",
+    "hora": "09:08",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "JVH9B56",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "CONFECCIONAR PEÇA DO VIDRO DA PORTA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786967965341",
+    "dataCriacao": "2026-08-17T11:59:25.341Z",
+    "codigo": "84-0826",
+    "data": "2026-08-17",
+    "hora": "08:59",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "NSL9224",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE OLEO E FILTRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786967929153",
+    "dataCriacao": "2026-08-17T11:58:49.153Z",
+    "codigo": "83-0826",
+    "data": "2026-08-17",
+    "hora": "08:58",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QES7699",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE OLEO E FILTRO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786965870847",
+    "dataCriacao": "2026-08-17T11:24:30.847Z",
+    "codigo": "82-0826",
+    "data": "2026-08-17",
+    "hora": "08:23",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "CONSTRUCAO CIVIL",
+    "centroCusto": "AREAL",
+    "prazo": "2026-08-21",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCAR TANQUE DE LAVAR ROUPAS DO GRANJEIRO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "487.602.502-91",
+        "nome": "CLAUDOMIRO GONCALVES SILVA",
+        "funcao": "Executor",
+        "horas": "1.6"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "706.187.882-71",
+        "nome": "ITALO PATRICK TRINDADE DE BRITO",
+        "funcao": "Ajudante",
+        "horas": "1.6"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "09:35",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:10",
+        "descricao": "trocado o tanque de lavar roupa da casa do gerente da granja\ntrocado as duas torneiras\ndado o acabamento do pe do tanque com massa de cimento",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "487.602.502-91",
+            "nome": "CLAUDOMIRO GONCALVES SILVA",
+            "funcao": "Executor",
+            "horas": "1.6"
+          },
+          {
+            "matricula": "706.187.882-71",
+            "nome": "ITALO PATRICK TRINDADE DE BRITO",
+            "funcao": "Ajudante",
+            "horas": "1.6"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD03033",
+            "descricao": "TORNEIRA P TANQUE 12&apos;&apos; LONGA 15CM HERC-PRD03033",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD03044",
+            "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03043",
+            "descricao": "VALVULA LAVATORIO BRA-PRD03043",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD08083",
+            "descricao": "JOELHO ESGOTO 90 GRAUS DN 40MM - PLASTILIT",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03421",
+            "descricao": "TANQUE DUPLO LINHA MARMORE SINTETICO 1,20M CINZA-PRD03421",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06932",
+            "descricao": "AREIA",
+            "quantidade": "1.5"
+          },
+          {
+            "codigo": "PRD02943",
+            "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+            "quantidade": "5"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "09:35",
+    "dataFim": "2026-08-20",
+    "horaFim": "11:10",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "trocado o tanque de lavar roupa da casa do gerente da granja\ntrocado as duas torneiras\ndado o acabamento do pe do tanque com massa de cimento",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03033",
+        "descricao": "TORNEIRA P TANQUE 12&apos;&apos; LONGA 15CM HERC-PRD03033",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03044",
+        "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03043",
+        "descricao": "VALVULA LAVATORIO BRA-PRD03043",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08083",
+        "descricao": "JOELHO ESGOTO 90 GRAUS DN 40MM - PLASTILIT",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03421",
+        "descricao": "TANQUE DUPLO LINHA MARMORE SINTETICO 1,20M CINZA-PRD03421",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06932",
+        "descricao": "AREIA",
+        "quantidade": 1.5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD02943",
+        "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+        "quantidade": 5
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786965720279",
+    "dataCriacao": "2026-08-17T11:22:00.279Z",
+    "codigo": "81-0826",
+    "data": "2026-08-17",
+    "hora": "08:20",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR ROLAMENTOS DAS RODAS DIANTEIRA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786965419899",
+    "dataCriacao": "2026-08-17T11:16:59.899Z",
+    "codigo": "80-0826",
+    "data": "2026-08-17",
+    "hora": "08:16",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "KAWAMURA",
+    "prazo": "2026-08-18",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR INVERSOR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786965265660",
+    "dataCriacao": "2026-08-17T11:14:25.660Z",
+    "codigo": "79-0826",
+    "data": "2026-08-17",
+    "hora": "08:13",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA ESTEIRA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786961642954",
+    "dataCriacao": "2026-08-17T10:14:02.955Z",
+    "codigo": "78-0826",
+    "data": "2026-08-17",
+    "hora": "07:13",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SLD",
+    "centroCusto": "CASTANHEIRA",
+    "prazo": "2026-08-31",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "LIMPEZA ENTRE LOTES",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786711007208",
+    "dataCriacao": "2026-08-14T12:36:47.208Z",
+    "codigo": "77-0826",
+    "data": "2026-08-14",
+    "hora": "09:35",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QET0734",
+    "prazo": "2026-08-17",
+    "tipo": "PREVENTIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "\n- TROCA FILTRO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "2"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "13:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "15:00",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "2"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07057",
+            "descricao": "IPIRANGA F1 MASTER SINTETICO 0W20 SP 1LT",
+            "quantidade": "3"
+          },
+          {
+            "codigo": "PRD09724",
+            "descricao": "FILTRO DE OLEO MANN W6100",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD01620",
+            "descricao": "FILTRO DE COMBUSTIVEL MANN WK58",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD09343",
+            "descricao": "IPIRANGA ADITIVO RADIADOR CARRO CONCENTRADO 1LT",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06049",
+            "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+            "quantidade": "5"
+          },
+          {
+            "codigo": "PRD09776",
+            "descricao": "AGUA DESMINERALIZADA 1LT MARCA: OX AUTO",
+            "quantidade": "5"
+          },
+          {
+            "codigo": "PRD01775",
+            "descricao": "FILTRO DE AR MANN C29003/1",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "13:00",
+    "dataFim": "2026-08-20",
+    "horaFim": "15:00",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QET0734",
+        "kmInicial": 373585,
+        "kmFinal": "30100",
+        "km": "",
+        "trocouOleo": true,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07057",
+        "descricao": "IPIRANGA F1 MASTER SINTETICO 0W20 SP 1LT",
+        "quantidade": 3
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09724",
+        "descricao": "FILTRO DE OLEO MANN W6100",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD01620",
+        "descricao": "FILTRO DE COMBUSTIVEL MANN WK58",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09343",
+        "descricao": "IPIRANGA ADITIVO RADIADOR CARRO CONCENTRADO 1LT",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06049",
+        "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+        "quantidade": 5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09776",
+        "descricao": "AGUA DESMINERALIZADA 1LT MARCA: OX AUTO",
+        "quantidade": 5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD01775",
+        "descricao": "FILTRO DE AR MANN C29003/1",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786710937861",
+    "dataCriacao": "2026-08-14T12:35:37.861Z",
+    "codigo": "76-0826",
+    "data": "2026-08-14",
+    "hora": "09:34",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QEH5G90",
+    "prazo": "2026-08-17",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DO FILTRO E LIMPEZA DE TANQUE ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786708091153",
+    "dataCriacao": "2026-08-14T11:48:11.153Z",
+    "codigo": "75-0826",
+    "data": "2026-08-14",
+    "hora": "08:46",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUW6C34",
+    "prazo": "2026-08-17",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR ALTERNADOR QUE NÃO ESTÁ GERANDO + REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786706452102",
+    "dataCriacao": "2026-08-14T11:20:52.102Z",
+    "codigo": "74-0826",
+    "data": "2026-08-14",
+    "hora": "08:19",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO NO PAINEL DO INVERSOR ",
+    "motivo": "CABOS ROMPIDO, SEM PROTEÇÃO PERIGO DE CHOQUE",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "2.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "08:30",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:00",
+        "descricao": "limpeza do painel, troca do cabo de controle e troca do plug",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "2.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD10627",
+            "descricao": "CABO PP 3X01.50MM 1KV",
+            "quantidade": "8"
+          },
+          {
+            "codigo": "PRD03743",
+            "descricao": "PLUGUE FEMEA 3P 20A BR TRAMONTINA",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "08:30",
+    "dataFim": "2026-08-18",
+    "horaFim": "11:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "limpeza do painel, troca do cabo de controle e troca do plug",
+    "dataJustificativa": "2026-08-18",
+    "observacao": "NAO CONSEGUIMOS PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD10627",
+        "descricao": "CABO PP 3X01.50MM 1KV",
+        "quantidade": 8
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD03743",
+        "descricao": "PLUGUE FEMEA 3P 20A BR TRAMONTINA",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786704459815",
+    "dataCriacao": "2026-08-14T10:47:39.815Z",
+    "codigo": "73-0826",
+    "data": "2026-08-14",
+    "hora": "07:47",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "CAMPINA",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "SUBSTITUIR BOMBA DE NEBULIZAR",
+    "motivo": "TROCA DA BOMBA E REFEITO A PARTE HIDRAULICA DE ENTRADA E SAIDA DE AGUS E FEITO TODOS OS TESTES DE FUNCIONAMENTOS",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "018.330.832-88",
+        "nome": "RICARDO FARIAS DE MORAIS JUNIOR",
+        "funcao": "Executor",
+        "horas": "2"
+      },
+      {
+        "data": "2026-08-18",
+        "matricula": "054.083.352-59",
+        "nome": "JACKSON WELLINGTON CARNEIRO MENDONÇA",
+        "funcao": "Ajudante",
+        "horas": "2"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "07:28",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "09:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "018.330.832-88",
+            "nome": "RICARDO FARIAS DE MORAIS JUNIOR",
+            "funcao": "Executor",
+            "horas": "2"
+          },
+          {
+            "matricula": "054.083.352-59",
+            "nome": "JACKSON WELLINGTON CARNEIRO MENDONÇA",
+            "funcao": "Ajudante",
+            "horas": "2"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "",
+            "descricao": "",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": [
+          {
+            "placa": "QEX0G49",
+            "kmInicial": 2100,
+            "kmFinal": "242458",
+            "km": 240358
+          }
+        ]
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "07:28",
+    "dataFim": "2026-08-18",
+    "horaFim": "09:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-18",
+    "observacao": "NAO CONSEGUIMOS PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786703303396",
+    "dataCriacao": "2026-08-14T10:28:23.396Z",
+    "codigo": "72-0826",
+    "data": "2026-08-14",
+    "hora": "07:27",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVH9B56",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR PNEU ESTOURADO DO TRUCK",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786646083609",
+    "dataCriacao": "2026-08-13T18:34:43.609Z",
+    "codigo": "71-0826",
+    "data": "2026-08-13",
+    "hora": "15:32",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVA0F21",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NO RADIADOR E TROCA DO INTERCOOLER",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786644840925",
+    "dataCriacao": "2026-08-13T18:14:00.925Z",
+    "codigo": "70-0826",
+    "data": "2026-08-13",
+    "hora": "15:13",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FEP0009",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "VERIFICAR PARAFUSADEIRA",
+    "motivo": "FERRAMENTA INOPERANTE",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "1.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "15:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:30",
+        "descricao": "substituição das escovas, limpeza e ajustes",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "1.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11184",
+            "descricao": "JOGO DE ESCOVA DE CARVAO CB-411",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03493",
+            "descricao": "CABO FLEXIVEL PP COBRECOM 2X1MM 2 500V-PRD03493",
+            "quantidade": "2.5"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "15:00",
+    "dataFim": "2026-08-18",
+    "horaFim": "16:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "substituição das escovas, limpeza e ajustes",
+    "dataJustificativa": "2026-08-18",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA ",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD11184",
+        "descricao": "JOGO DE ESCOVA DE CARVAO CB-411",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD03493",
+        "descricao": "CABO FLEXIVEL PP COBRECOM 2X1MM 2 500V-PRD03493",
+        "quantidade": 2.5
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786644776227",
+    "dataCriacao": "2026-08-13T18:12:56.227Z",
+    "codigo": "69-0826",
+    "data": "2026-08-13",
+    "hora": "15:12",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FEP0134",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "VERIFCAR PARAFUSADEIRA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "0.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "16:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:30",
+        "descricao": "troca das escovas",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "0.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11184",
+            "descricao": "JOGO DE ESCOVA DE CARVAO CB-411",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "16:00",
+    "dataFim": "2026-08-18",
+    "horaFim": "16:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "troca das escovas",
+    "dataJustificativa": "2026-08-18",
+    "observacao": "NAO CONSEGUIMOS PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD11184",
+        "descricao": "JOGO DE ESCOVA DE CARVAO CB-411",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786639489259",
+    "dataCriacao": "2026-08-13T16:44:49.259Z",
+    "codigo": "68-0826",
+    "data": "2026-08-13",
+    "hora": "13:43",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FURADEIRA",
+    "prazo": "2026-08-15",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO DE UMA FURADEIRA GBS20-2RE",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-13",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "1.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-13",
+        "horaInicio": "13:10",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "14:40",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "1.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "",
+            "descricao": "",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-13",
+    "horaInicio": "13:10",
+    "dataFim": "2026-08-13",
+    "horaFim": "14:40",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-13",
+    "observacao": "NAO CONSEGUIMOS PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786630976856",
+    "dataCriacao": "2026-08-13T14:22:56.856Z",
+    "codigo": "67-0826",
+    "data": "2026-08-13",
+    "hora": "11:22",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR BALANÇA 01",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786630801699",
+    "dataCriacao": "2026-08-13T14:20:01.699Z",
+    "codigo": "66-0826",
+    "data": "2026-08-13",
+    "hora": "11:19",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "ADMINSTRATIVO",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR SERVIDOR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786619144913",
+    "dataCriacao": "2026-08-13T11:05:44.913Z",
+    "codigo": "65-0826",
+    "data": "2026-08-13",
+    "hora": "08:04",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "MWV1H79",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DA JUNTA MOCINETCA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786618702177",
+    "dataCriacao": "2026-08-13T10:58:22.177Z",
+    "codigo": "64-0826",
+    "data": "2026-08-13",
+    "hora": "07:57",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "TRA0001",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "REVISAR CAIXA DE MACHA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786559662797",
+    "dataCriacao": "2026-08-12T18:34:22.797Z",
+    "codigo": "63-0826",
+    "data": "2026-08-12",
+    "hora": "15:32",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "INSTAÇÃO DE UMA TOMADA E UM PONTO DE ILUMINAÇÃO NA SALA DE MISTURA",
+    "motivo": "REINSTALAÇÃO DE TOMADAS E PONTO DE ILUMINAÇÃO POIS A ATUAL ESTA TOTALMENTE AVARIADA",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "3"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "13:16",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:16",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "3"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07203",
+            "descricao": "CABO PARALELO COBRECOM 2X2,5MM2 300V",
+            "quantidade": "12"
+          },
+          {
+            "codigo": "PRD05175",
+            "descricao": "PARAFUSO PARA MADEIRA ZINCADO FENDA 3,5X45-PRD05175",
+            "quantidade": "12"
+          },
+          {
+            "codigo": "PRD05163",
+            "descricao": "BUCHA DE FIXACAO USAF 7M",
+            "quantidade": "12"
+          },
+          {
+            "codigo": "PRD04012",
+            "descricao": "CONTATOR CWB12 -11 - 30D23 12220435 12A WEG",
+            "quantidade": "1"
+          },
+          {
+            "codigo": "PRD11066",
+            "descricao": "INTERRUPTOR MAR-GIRIUS 1P 6A LIGA/DESLIGA 110/220V ACO-CS301DMB1P1",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD00624",
+            "descricao": "ABRACADEIRA AÇO 3/4 CUNHA-PRD00624",
+            "quantidade": "12"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "13:16",
+    "dataFim": "2026-08-20",
+    "horaFim": "16:16",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07203",
+        "descricao": "CABO PARALELO COBRECOM 2X2,5MM2 300V",
+        "quantidade": 12
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD05175",
+        "descricao": "PARAFUSO PARA MADEIRA ZINCADO FENDA 3,5X45-PRD05175",
+        "quantidade": 12
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD05163",
+        "descricao": "BUCHA DE FIXACAO USAF 7M",
+        "quantidade": 12
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD04012",
+        "descricao": "CONTATOR CWB12 -11 - 30D23 12220435 12A WEG",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11066",
+        "descricao": "INTERRUPTOR MAR-GIRIUS 1P 6A LIGA/DESLIGA 110/220V ACO-CS301DMB1P1",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD00624",
+        "descricao": "ABRACADEIRA AÇO 3/4 CUNHA-PRD00624",
+        "quantidade": 12
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786552581182",
+    "dataCriacao": "2026-08-12T16:36:21.182Z",
+    "codigo": "59-0826",
+    "data": "2026-08-12",
+    "hora": "13:35",
+    "requisitante": "ARILSON MOURAS",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "METALURGICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-10-15",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO GERAL NO SILO SG 1102(SILO D MILHO)\t\t\t\t\t\t\t",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "014.318.302-83",
+        "nome": "DAVID NASCIMENTO FRANCA",
+        "funcao": "Executor",
+        "horas": "9"
+      },
+      {
+        "data": "2026-08-18",
+        "matricula": "028.819.862-00",
+        "nome": "KASSIO LUAN FRANCA DE SOUZA",
+        "funcao": "Ajudante",
+        "horas": "9"
+      },
+      {
+        "data": "2026-08-18",
+        "matricula": "039.045.992-59",
+        "nome": "RENAN NASCIMENTO FARIAS",
+        "funcao": "Ajudante",
+        "horas": "9"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "07:00",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "17:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.318.302-83",
+            "nome": "DAVID NASCIMENTO FRANCA",
+            "funcao": "Executor",
+            "horas": "9"
+          },
+          {
+            "matricula": "028.819.862-00",
+            "nome": "KASSIO LUAN FRANCA DE SOUZA",
+            "funcao": "Ajudante",
+            "horas": "9"
+          },
+          {
+            "matricula": "039.045.992-59",
+            "nome": "RENAN NASCIMENTO FARIAS",
+            "funcao": "Ajudante",
+            "horas": "9"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11397",
+            "descricao": "PARAFUSO AUTOBROCANTE P/TELHA 1/4X3/4 CISER",
+            "quantidade": "100"
+          },
+          {
+            "codigo": "PRD09927",
+            "descricao": "SIKAFLEX 221 CINZA 300 ML",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD08044",
+            "descricao": "TECBRIL DESENGRIPANTE BRIL LUB FIT NOVO 300ML",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD08181",
+            "descricao": "SOQUETE MAGNETICO 1/4X5/16&quot; - WORKER",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06049",
+            "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+            "quantidade": "03"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-18",
+    "horaFim": "17:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD11397",
+        "descricao": "PARAFUSO AUTOBROCANTE P/TELHA 1/4X3/4 CISER",
+        "quantidade": 100
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD09927",
+        "descricao": "SIKAFLEX 221 CINZA 300 ML",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD08044",
+        "descricao": "TECBRIL DESENGRIPANTE BRIL LUB FIT NOVO 300ML",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD08181",
+        "descricao": "SOQUETE MAGNETICO 1/4X5/16&quot; - WORKER",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-18",
+        "codigo": "PRD06049",
+        "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+        "quantidade": 3
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786545024701",
+    "dataCriacao": "2026-08-12T14:30:24.701Z",
+    "codigo": "58-0826",
+    "data": "2026-08-12",
+    "hora": "11:28",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RXB9F93",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DE OLEO E FILTRO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-19",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-19",
+        "horaInicio": "13:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "14:00",
+        "descricao": "feita a troca de oleo e filtro",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "1"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07057",
+            "descricao": "IPIRANGA F1 MASTER SINTETICO 0W20 SP 1LT",
+            "quantidade": "5"
+          },
+          {
+            "codigo": "PRD09998",
+            "descricao": "FILTRO BLINDADO DO OLEO LUBRIFICANTE W6880",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD01620",
+            "descricao": "FILTRO DE COMBUSTIVEL MANN WK58",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD06049",
+            "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+            "quantidade": "5"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-19",
+    "horaInicio": "13:00",
+    "dataFim": "2026-08-19",
+    "horaFim": "14:00",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "RXB9F93",
+        "kmInicial": "",
+        "kmFinal": "70869",
+        "km": "",
+        "trocouOleo": true,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "feita a troca de oleo e filtro",
+    "dataJustificativa": "2026-08-19",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD07057",
+        "descricao": "IPIRANGA F1 MASTER SINTETICO 0W20 SP 1LT",
+        "quantidade": 5
+      },
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD09998",
+        "descricao": "FILTRO BLINDADO DO OLEO LUBRIFICANTE W6880",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD01620",
+        "descricao": "FILTRO DE COMBUSTIVEL MANN WK58",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD06049",
+        "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+        "quantidade": 5
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786541896636",
+    "dataCriacao": "2026-08-12T13:38:16.636Z",
+    "codigo": "62-0826",
+    "data": "2026-08-12",
+    "hora": "10:37",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA LAMPADA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786541839592",
+    "dataCriacao": "2026-08-12T13:37:19.592Z",
+    "codigo": "61-0826",
+    "data": "2026-08-12",
+    "hora": "10:09",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUM7067",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "APERTO DO CAMBIO E LIMPEZA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786539450882",
+    "dataCriacao": "2026-08-12T12:57:30.882Z",
+    "codigo": "60-0826",
+    "data": "2026-08-12",
+    "hora": "09:56",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "TRA0012",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "- TROCA DE OLEO E FILTROS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786538272130",
+    "dataCriacao": "2026-08-12T12:37:52.130Z",
+    "codigo": "59-0826",
+    "data": "2026-08-12",
+    "hora": "09:36",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUQ3E45",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "CANCELADO",
+    "descricao": "APERTO DO CAMBIO E LIMPEZA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-12",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "",
+            "nome": "",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-12",
+    "horaInicio": "10:37",
+    "dataFim": "2026-08-12",
+    "horaFim": "10:37",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "JUQ3E45",
+        "kmInicial": 42039.2,
+        "kmFinal": 42039.2,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "CANCELADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786536573343",
+    "dataCriacao": "2026-08-12T12:09:33.343Z",
+    "codigo": "58-0826",
+    "data": "2026-08-12",
+    "hora": "09:08",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "AREAL",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NOS 03 MANCAIS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786536467829",
+    "dataCriacao": "2026-08-12T12:07:47.829Z",
+    "codigo": "57-0826",
+    "data": "2026-08-12",
+    "hora": "09:07",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FEP0096",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO",
+    "motivo": "FERRAMENTA FALHANDO E ESQUENTANDO",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-19",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "1.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-19",
+        "horaInicio": "07:20",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "08:50",
+        "descricao": "DESMONTE, LIMPEZA, LUBRIFICAÇÃO E TROCA DE ESCOVA DE CARVAO.",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "1.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD09988",
+            "descricao": "ESCOVA CARVAO 220V PARA FURADEIRA VONDER FSV1050/FSD1050 9301032105",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-19",
+    "horaInicio": "07:20",
+    "dataFim": "2026-08-19",
+    "horaFim": "08:50",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "DESMONTE, LIMPEZA, LUBRIFICAÇÃO E TROCA DE ESCOVA DE CARVAO.",
+    "dataJustificativa": "2026-08-19",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD09988",
+        "descricao": "ESCOVA CARVAO 220V PARA FURADEIRA VONDER FSV1050/FSD1050 9301032105",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786536430295",
+    "dataCriacao": "2026-08-12T12:07:10.295Z",
+    "codigo": "56-0826",
+    "data": "2026-08-12",
+    "hora": "09:06",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FEP0016",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "024.768.022-20",
+        "nome": "EDILEI DE SOUSA SILVA",
+        "funcao": "Executor",
+        "horas": "4"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:00",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "024.768.022-20",
+            "nome": "EDILEI DE SOUSA SILVA",
+            "funcao": "Executor",
+            "horas": "4"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07000",
+            "descricao": "PARAFUSO SEXTAVADO FLANGEADO 8.8 C/ARRUELA VED MA RI 10X40 BICROMATIZADO-PRD07000",
+            "quantidade": "7"
+          },
+          {
+            "codigo": "PRD07002",
+            "descricao": "PORCA SEXTAVADA MA C.8 10 CHV 17 BICROMATIZADA-PRD07002",
+            "quantidade": "7"
+          },
+          {
+            "codigo": "PRD00160",
+            "descricao": "ARRUELA LISA BC 10,0 X 25,0 X 1,5 MM-PRD00160",
+            "quantidade": "7"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-20",
+    "horaFim": "11:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07000",
+        "descricao": "PARAFUSO SEXTAVADO FLANGEADO 8.8 C/ARRUELA VED MA RI 10X40 BICROMATIZADO-PRD07000",
+        "quantidade": 7
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD07002",
+        "descricao": "PORCA SEXTAVADA MA C.8 10 CHV 17 BICROMATIZADA-PRD07002",
+        "quantidade": 7
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD00160",
+        "descricao": "ARRUELA LISA BC 10,0 X 25,0 X 1,5 MM-PRD00160",
+        "quantidade": 7
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786535794752",
+    "dataCriacao": "2026-08-12T11:56:34.752Z",
+    "codigo": "55-0826",
+    "data": "2026-08-12",
+    "hora": "08:55",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "ITÁ",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO DO CARRINHO DE 03 RODAS",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-18",
+        "matricula": "054.083.352-59",
+        "nome": "JACKSON WELLINGTON CARNEIRO MENDONÇA",
+        "funcao": "Executor",
+        "horas": "8.5"
+      },
+      {
+        "data": "2026-08-18",
+        "matricula": "018.330.832-88",
+        "nome": "RICARDO FARIAS DE MORAIS JUNIOR",
+        "funcao": "Ajudante",
+        "horas": "8.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-18",
+        "horaInicio": "07:00",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:30",
+        "horaFim": "17:31",
+        "descricao": "percorridos as linhas de ração em busca da perfuração.\nverificado  os rolamentos das linhas, moegas, cordas de elevação e cabos de aço.\nfeito uma grade batida nas linhas da ldr\nmarreta de borracha para cair na ração molhada.\nfeito emburramento das linhas.\ntrocado cabo de alimentação do painel geral do av2\nconcluido a montagem de curva 100m do silo do av2",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "054.083.352-59",
+            "nome": "JACKSON WELLINGTON CARNEIRO MENDONÇA",
+            "funcao": "Executor",
+            "horas": "8.5"
+          },
+          {
+            "matricula": "018.330.832-88",
+            "nome": "RICARDO FARIAS DE MORAIS JUNIOR",
+            "funcao": "Ajudante",
+            "horas": "8.5"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": [
+          {
+            "placa": "QEX0G49",
+            "kmInicial": 2100,
+            "kmFinal": "242691",
+            "km": 240591
+          }
+        ]
+      }
+    ],
+    "dataInicio": "2026-08-18",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-18",
+    "horaFim": "17:31",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "percorridos as linhas de ração em busca da perfuração.\nverificado  os rolamentos das linhas, moegas, cordas de elevação e cabos de aço.\nfeito uma grade batida nas linhas da ldr\nmarreta de borracha para cair na ração molhada.\nfeito emburramento das linhas.\ntrocado cabo de alimentação do painel geral do av2\nconcluido a montagem de curva 100m do silo do av2",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786532697014",
+    "dataCriacao": "2026-08-12T11:04:57.014Z",
+    "codigo": "54-0826",
+    "data": "2026-08-12",
+    "hora": "07:38",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "VERIFICAR BUZINA DO EQUIPAMENTO 02",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-13",
+        "matricula": "024.768.022-20",
+        "nome": "EDILEI DE SOUSA SILVA",
+        "funcao": "Executor",
+        "horas": "3.4"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-13",
+        "horaInicio": "10:08",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "15:00",
+        "descricao": "FEITO A TROCA  E SOLDADO OUTRA NO LUGAR",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "024.768.022-20",
+            "nome": "EDILEI DE SOUSA SILVA",
+            "funcao": "Executor",
+            "horas": "3.4"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD07664",
+            "descricao": "BARRA CHATA 2.1/2 X 1/4 6 MTS",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-13",
+    "horaInicio": "10:08",
+    "dataFim": "2026-08-13",
+    "horaFim": "15:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "FEITO A TROCA  E SOLDADO OUTRA NO LUGAR",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-13",
+        "codigo": "PRD07664",
+        "descricao": "BARRA CHATA 2.1/2 X 1/4 6 MTS",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786530789335",
+    "dataCriacao": "2026-08-12T10:33:09.335Z",
+    "codigo": "57-0826",
+    "data": "2026-08-12",
+    "hora": "07:32",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "AVICEMA - PA-242",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR PONTA DO PILAR DO TELHADO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786530231999",
+    "dataCriacao": "2026-08-12T10:23:51.999Z",
+    "codigo": "56-0826",
+    "data": "2026-08-12",
+    "hora": "07:23",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DA DEBONA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786530178095",
+    "dataCriacao": "2026-08-12T10:22:58.095Z",
+    "codigo": "55-0826",
+    "data": "2026-08-12",
+    "hora": "07:21",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-29",
+    "tipo": "PERIODICO",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO ENTRE LOTES ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786529844845",
+    "dataCriacao": "2026-08-12T10:17:24.845Z",
+    "codigo": "54-0826",
+    "data": "2026-08-12",
+    "hora": "07:16",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "TRA0012",
+    "prazo": "2026-08-15",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DA LAMINA DA CONCHA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786468584143",
+    "dataCriacao": "2026-08-11T17:16:24.143Z",
+    "codigo": "53-0826",
+    "data": "2026-08-11",
+    "hora": "14:15",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "SZE3I52",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR PNEU DO STEP",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786456851899",
+    "dataCriacao": "2026-08-11T14:00:51.899Z",
+    "codigo": "52-0826",
+    "data": "2026-08-11",
+    "hora": "11:00",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVK1H65",
+    "prazo": "2026-08-14",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "REPARO DA GAIOLA ",
+    "motivo": "TIVEMOS QUE FAZER OS REPAROS PORQUE A GRADE SUPERIOR DA GAIOLA ESTAVA QUEBRADA",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-19",
+        "matricula": "045.802.342-60",
+        "nome": "RODRIGO DA CONCEICAO LEAL",
+        "funcao": "Executor",
+        "horas": "0.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-19",
+        "horaInicio": "13:30",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "14:00",
+        "descricao": "FIZEMOS REPARO NA GRADE SUP-ERIOR DA GAIOLA ONDE APRESENTAVA TRINCAS.",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "045.802.342-60",
+            "nome": "RODRIGO DA CONCEICAO LEAL",
+            "funcao": "Executor",
+            "horas": "0.5"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-19",
+    "horaInicio": "13:30",
+    "dataFim": "2026-08-19",
+    "horaFim": "14:00",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QVK1H65",
+        "kmInicial": 408327.7,
+        "kmFinal": 408327.7,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "FIZEMOS REPARO NA GRADE SUP-ERIOR DA GAIOLA ONDE APRESENTAVA TRINCAS.",
+    "dataJustificativa": "2026-08-19",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786455966115",
+    "dataCriacao": "2026-08-11T13:46:06.115Z",
+    "codigo": "51-0826",
+    "data": "2026-08-11",
+    "hora": "10:45",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QDR3437",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DA LANTERNA TRASEIRA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786447813320",
+    "dataCriacao": "2026-08-11T11:30:13.320Z",
+    "codigo": "50-0826",
+    "data": "2026-08-11",
+    "hora": "08:28",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FURADEIRA VONDER",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO DE UMA FURADEIRA DE USO DAS GRANJAS",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-19",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "2.1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-19",
+        "horaInicio": "13:10",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "15:15",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "2.1"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD09988",
+            "descricao": "ESCOVA CARVAO 220V PARA FURADEIRA VONDER FSV1050/FSD1050 9301032105",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-19",
+    "horaInicio": "13:10",
+    "dataFim": "2026-08-19",
+    "horaFim": "15:15",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-19",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-19",
+        "codigo": "PRD09988",
+        "descricao": "ESCOVA CARVAO 220V PARA FURADEIRA VONDER FSV1050/FSD1050 9301032105",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786447677624",
+    "dataCriacao": "2026-08-11T11:27:57.624Z",
+    "codigo": "49-0826",
+    "data": "2026-08-11",
+    "hora": "08:27",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GENIPAÚBA",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DE 05 BOIAS DE NIVESIS",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786447457492",
+    "dataCriacao": "2026-08-11T11:24:17.492Z",
+    "codigo": "48-0826",
+    "data": "2026-08-11",
+    "hora": "08:23",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "TRA0010",
+    "prazo": "2026-08-13",
+    "tipo": "PREVENTIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "SOLDAR CONCHA DO TRATOR ",
+    "motivo": "PRECISANDO DE DOIS BATEDORES",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-11",
+        "matricula": "024.768.022-20",
+        "nome": "EDILEI DE SOUSA SILVA ",
+        "funcao": "Executor",
+        "horas": "2"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-11",
+        "horaInicio": "10:00",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "13:30",
+        "descricao": "soldado a concha",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "024.768.022-20",
+            "nome": "EDILEI DE SOUSA SILVA ",
+            "funcao": "Executor",
+            "horas": "2"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-11",
+    "horaInicio": "10:00",
+    "dataFim": "2026-08-11",
+    "horaFim": "13:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "soldado a concha",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786447379522",
+    "dataCriacao": "2026-08-11T11:22:59.522Z",
+    "codigo": "47-0826",
+    "data": "2026-08-11",
+    "hora": "08:21",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "TRA0010",
+    "prazo": "2026-08-13",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR REFORCO NA BASE DA CONCHA DO TRATOR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786445035425",
+    "dataCriacao": "2026-08-11T10:43:55.425Z",
+    "codigo": "46-0826",
+    "data": "2026-08-11",
+    "hora": "07:43",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-12",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR INTERNET ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786444954205",
+    "dataCriacao": "2026-08-11T10:42:34.205Z",
+    "codigo": "45-0826",
+    "data": "2026-08-11",
+    "hora": "07:40",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "SÃO CAETANO",
+    "prazo": "2026-08-12",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR INTERNET DA CASA DE APOIO ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786384086979",
+    "dataCriacao": "2026-08-10T17:48:06.979Z",
+    "codigo": "44-0826",
+    "data": "2026-08-10",
+    "hora": "14:47",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "NSL9224",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DO INTERRUPTOR DE OLEO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-11",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-11",
+        "horaInicio": "13:30",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "14:30",
+        "descricao": "troca do interruptor do oleo",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "1"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-11",
+    "horaInicio": "13:30",
+    "dataFim": "2026-08-11",
+    "horaFim": "14:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "troca do interruptor do oleo",
+    "dataJustificativa": "2026-08-10",
+    "observacao": "NAO CONSEGUIMOS PREENCHER A OS NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786370943367",
+    "dataCriacao": "2026-08-10T14:09:03.367Z",
+    "codigo": "43-0826",
+    "data": "2026-08-10",
+    "hora": "11:08",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVU6A64",
+    "prazo": "2026-08-10",
+    "tipo": "PREVENTIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "REVISÃO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-13",
+        "matricula": "014.882.202-98",
+        "nome": "JOSIVAN ANDRADE SILVA",
+        "funcao": "Executor",
+        "horas": "4"
+      },
+      {
+        "data": "2026-08-13",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "4"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-13",
+        "horaInicio": "07:02",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:00",
+        "descricao": "engraxado, calibrado e verificado lampadas",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.882.202-98",
+            "nome": "JOSIVAN ANDRADE SILVA",
+            "funcao": "Executor",
+            "horas": "4"
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": "4"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-13",
+    "horaInicio": "07:02",
+    "dataFim": "2026-08-13",
+    "horaFim": "11:00",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QVU6A64",
+        "kmInicial": 327316.2,
+        "kmFinal": 327316.2,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": true
+      }
+    ],
+    "descricaoServico": "engraxado, calibrado e verificado lampadas",
+    "dataJustificativa": "2026-08-13",
+    "observacao": "NAO CONSEGUIMOS PREENCHER OS NA DATA DO SERVIÇO",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786370892735",
+    "dataCriacao": "2026-08-10T14:08:12.735Z",
+    "codigo": "42-0826",
+    "data": "2026-08-10",
+    "hora": "11:07",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVK1H65",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "VERIFICAR GARRAFA DA GAIOLA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-13",
+        "matricula": "014.882.202-98",
+        "nome": "JOSIVAN ANDRADE SILVA",
+        "funcao": "Executor",
+        "horas": "4.5"
+      },
+      {
+        "data": "2026-08-13",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "4.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-13",
+        "horaInicio": "07:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.882.202-98",
+            "nome": "JOSIVAN ANDRADE SILVA",
+            "funcao": "Executor",
+            "horas": "4.5"
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": "4.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11382",
+            "descricao": "KIT REPARO P/CILINDRO DUPLA ACAO 50X250MM",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD09751",
+            "descricao": "FILTRO DE COMBUSTIVEL MANN WK1145",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-13",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-13",
+    "horaFim": "11:30",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QVK1H65",
+        "kmInicial": 407781.5,
+        "kmFinal": 407781.5,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-13",
+    "observacao": "NAO CONSEGUIMOS PREENCHER OS NA DATA DO SERVIÇO",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-13",
+        "codigo": "PRD11382",
+        "descricao": "KIT REPARO P/CILINDRO DUPLA ACAO 50X250MM",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-13",
+        "codigo": "PRD09751",
+        "descricao": "FILTRO DE COMBUSTIVEL MANN WK1145",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786367464042",
+    "dataCriacao": "2026-08-10T13:11:04.042Z",
+    "codigo": "41-0826",
+    "data": "2026-08-10",
+    "hora": "10:10",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "MWV1H79",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DA BOMBA DE FREIO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-10",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "3.8"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-10",
+        "horaInicio": "11:00",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "16:20",
+        "descricao": "troca da bomba e burrinho",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "3.8"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "",
+            "descricao": "",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-10",
+    "horaInicio": "11:00",
+    "dataFim": "2026-08-10",
+    "horaFim": "16:20",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "MWV1H79",
+        "kmInicial": 220339,
+        "kmFinal": 220339,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "troca da bomba e burrinho",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786364480277",
+    "dataCriacao": "2026-08-10T12:21:20.277Z",
+    "codigo": "40-0826",
+    "data": "2026-08-10",
+    "hora": "09:20",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-11",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO DA GAIOLA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-11",
+        "matricula": "020.023.872-81",
+        "nome": "RODRIGO DOS SANTOS E SANTOS",
+        "funcao": "Executor",
+        "horas": "0.5"
+      },
+      {
+        "data": "2026-08-11",
+        "matricula": "046.439.322-10",
+        "nome": "RAFAEL DOS SANTOS PINTO",
+        "funcao": "Ajudante",
+        "horas": "0.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-11",
+        "horaInicio": "11:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "020.023.872-81",
+            "nome": "RODRIGO DOS SANTOS E SANTOS",
+            "funcao": "Executor",
+            "horas": "0.5"
+          },
+          {
+            "matricula": "046.439.322-10",
+            "nome": "RAFAEL DOS SANTOS PINTO",
+            "funcao": "Ajudante",
+            "horas": "0.5"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-11",
+    "horaInicio": "11:00",
+    "dataFim": "2026-08-11",
+    "horaFim": "11:30",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "RWQ4B55",
+        "kmInicial": 231169.6,
+        "kmFinal": 231169.6,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786362129444",
+    "dataCriacao": "2026-08-10T11:42:09.444Z",
+    "codigo": "39-0826",
+    "data": "2026-08-10",
+    "hora": "08:41",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-10",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO NA ESTEIRA\n- MANUTENÇÃO DO PNEU",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-10",
+        "matricula": "045.802.342-60",
+        "nome": "RODRIGO DA CONCEICAO LEAL",
+        "funcao": "Executor",
+        "horas": "2"
+      },
+      {
+        "data": "2026-08-10",
+        "matricula": "046.439.322-10",
+        "nome": "RAFAEL DOS SANTOS PINTO",
+        "funcao": "Ajudante",
+        "horas": "2"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-10",
+        "horaInicio": "09:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:00",
+        "descricao": "fizemos a retirada de um dente da corrente das esteiras, colocamos tubo perto do motor.",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "045.802.342-60",
+            "nome": "RODRIGO DA CONCEICAO LEAL",
+            "funcao": "Executor",
+            "horas": "2"
+          },
+          {
+            "matricula": "046.439.322-10",
+            "nome": "RAFAEL DOS SANTOS PINTO",
+            "funcao": "Ajudante",
+            "horas": "2"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-10",
+    "horaInicio": "09:00",
+    "dataFim": "2026-08-10",
+    "horaFim": "11:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "fizemos a retirada de um dente da corrente das esteiras, colocamos tubo perto do motor.",
+    "dataJustificativa": "2026-08-10",
+    "observacao": "NAO CONSEGUIMOS PREENCHER A OS NO DIA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786358985706",
+    "dataCriacao": "2026-08-10T10:49:45.706Z",
+    "codigo": "38-0826",
+    "data": "2026-08-10",
+    "hora": "07:48",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "USINA SOLAR",
+    "prazo": "2026-08-15",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA USINA SOLAR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786357146202",
+    "dataCriacao": "2026-08-10T10:19:06.202Z",
+    "codigo": "37-0826",
+    "data": "2026-08-10",
+    "hora": "07:18",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "AREAL",
+    "prazo": "2026-08-29",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO ENTRE LOTES",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786187360828",
+    "dataCriacao": "2026-08-08T11:09:20.828Z",
+    "codigo": "36-0826",
+    "data": "2026-08-08",
+    "hora": "08:08",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUQ3E45",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": " VERIFICAR FECHADURA",
+    "motivo": "TROCA DE DUAS MAÇANETAS",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-08",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Executor",
+        "horas": "4"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-08",
+        "horaInicio": "07:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "11:00",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Executor",
+            "horas": "4"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-08",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-08",
+    "horaFim": "11:00",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "JUQ3E45",
+        "kmInicial": 42039.2,
+        "kmFinal": 42039.2,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-13",
+    "observacao": "NAO CONSEGUIMOS PREENCHER OS NA DATA DO SERVIÇO",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786185938672",
+    "dataCriacao": "2026-08-08T10:45:38.672Z",
+    "codigo": "35-0826",
+    "data": "2026-08-08",
+    "hora": "07:45",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "APANHA DE FRANGOS",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR ESTEIRA ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786128272305",
+    "dataCriacao": "2026-08-07T18:44:32.305Z",
+    "codigo": "34-0826",
+    "data": "2026-08-07",
+    "hora": "15:43",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QEH5G90",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "VERIFICAR LAMPADA E ENGRAXAR",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786105527804",
+    "dataCriacao": "2026-08-07T12:25:27.804Z",
+    "codigo": "33-0826",
+    "data": "2026-08-07",
+    "hora": "09:23",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "MOTOR DA ESTEIRA DA APANHA DE FRANGOS",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO NA INSTALAÇÃO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-08",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "2"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-08",
+        "horaInicio": "09:00",
+        "horaFim1": "11:00",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "troca de cabo de força",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "2"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD10627",
+            "descricao": "CABO PP 3X01.50MM 1KV",
+            "quantidade": "7"
+          },
+          {
+            "codigo": "PRD10638",
+            "descricao": "PLUG MACHO 2P+T 20A 250V BRANCO TRAMONTINA",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "",
+            "descricao": "11138",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-08",
+    "horaInicio": "09:00",
+    "dataFim": "2026-08-08",
+    "horaFim": "08:05",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "troca de cabo de força",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-08",
+        "codigo": "PRD10627",
+        "descricao": "CABO PP 3X01.50MM 1KV",
+        "quantidade": 7
+      },
+      {
+        "data": "2026-08-08",
+        "codigo": "PRD10638",
+        "descricao": "PLUG MACHO 2P+T 20A 250V BRANCO TRAMONTINA",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-08",
+        "codigo": "",
+        "descricao": "11138",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786105063670",
+    "dataCriacao": "2026-08-07T12:17:43.670Z",
+    "codigo": "32-0826",
+    "data": "2026-08-07",
+    "hora": "09:15",
+    "requisitante": "OSEIAS NASCIMENTO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SLD",
+    "centroCusto": "GUARIMÃ",
+    "prazo": "2026-08-16",
+    "tipo": "PERIODICO",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "LIMPEZA ENTRE LOTES ",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786102962960",
+    "dataCriacao": "2026-08-07T11:42:42.960Z",
+    "codigo": "31-0826",
+    "data": "2026-08-07",
+    "hora": "08:41",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QVK1H65",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DE REPARO DA GARRAFA DA GAIOLA",
+    "motivo": "CAMINHAO ESTAVA FALHANDO E VAZANDO UMA GARRAFA DA GAIOLA",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-08",
+        "matricula": "014.882.202-98",
+        "nome": "JOSIVAN ANDRADE SILVA",
+        "funcao": "Executor",
+        "horas": "3"
+      },
+      {
+        "data": "2026-08-08",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "3"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-08",
+        "horaInicio": "10:00",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "14:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.882.202-98",
+            "nome": "JOSIVAN ANDRADE SILVA",
+            "funcao": "Executor",
+            "horas": "3"
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": "3"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD11382",
+            "descricao": "KIT REPARO P/CILINDRO DUPLA ACAO 50X250MM",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD09751",
+            "descricao": "FILTRO DE COMBUSTIVEL MANN WK1145",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-08",
+    "horaInicio": "10:00",
+    "dataFim": "2026-08-08",
+    "horaFim": "14:30",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QVK1H65",
+        "kmInicial": 407217.6,
+        "kmFinal": 407217.6,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-07",
+    "observacao": "GARRAFA VAZANDO",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-08",
+        "codigo": "PRD11382",
+        "descricao": "KIT REPARO P/CILINDRO DUPLA ACAO 50X250MM",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-08",
+        "codigo": "PRD09751",
+        "descricao": "FILTRO DE COMBUSTIVEL MANN WK1145",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786100042456",
+    "dataCriacao": "2026-08-07T10:54:02.456Z",
+    "codigo": "30-0826",
+    "data": "2026-08-07",
+    "hora": "07:53",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QDJ8G20",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DE SEMI BARRA",
+    "motivo": "TAVA ESTOURADO",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-08",
+        "matricula": "014.882.202-98",
+        "nome": "JOSIVAN ANDRADE SILVA",
+        "funcao": "Executor",
+        "horas": "0"
+      },
+      {
+        "data": "2026-08-08",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "0"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-08",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "014.882.202-98",
+            "nome": "JOSIVAN ANDRADE SILVA",
+            "funcao": "Executor",
+            "horas": ""
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "",
+            "descricao": "",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-08",
+    "horaInicio": "08:03",
+    "dataFim": "2026-08-08",
+    "horaFim": "08:03",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QDJ8G20",
+        "kmInicial": 182845,
+        "kmFinal": 182845,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786099996206",
+    "dataCriacao": "2026-08-07T10:53:16.206Z",
+    "codigo": "29-0826",
+    "data": "2026-08-07",
+    "hora": "07:50",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JUW6C34",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE FILTRO E OLEO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786098969817",
+    "dataCriacao": "2026-08-07T10:36:09.817Z",
+    "codigo": "28-0826",
+    "data": "2026-08-07",
+    "hora": "07:34",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "MEQ0085",
+    "prazo": "2026-08-08",
+    "tipo": "PERIODICO",
+    "situacao": "CONCLUIDO",
+    "descricao": "REVISÃO DO MOTOSERRA",
+    "motivo": "FOI LIMPADO O FILTRO DE AR, TESTADO A CALIBRAÇÃO, COLOCADO A PROTEÇÃO DA CORRENTE",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-07",
+        "matricula": "040.831.742-69",
+        "nome": "RAFAELS AMINTAS DA SILVA",
+        "funcao": "Executor",
+        "horas": "1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-07",
+        "horaInicio": "07:00",
+        "horaFim1": "08:00",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "040.831.742-69",
+            "nome": "RAFAELS AMINTAS DA SILVA",
+            "funcao": "Executor",
+            "horas": "1"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-07",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-07",
+    "horaFim": "14:25",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786097936632",
+    "dataCriacao": "2026-08-07T10:18:56.632Z",
+    "codigo": "27-0826",
+    "data": "2026-08-07",
+    "hora": "07:17",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "SÃO CAETANO",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃPO DE 03 BOIAS DE NIVEIS",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-07",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "7.1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-07",
+        "horaInicio": "07:25",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "16:00",
+        "descricao": "trocado embolos e regulador da entrada de agua",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "7.1"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-07",
+    "horaInicio": "07:25",
+    "dataFim": "2026-08-07",
+    "horaFim": "16:00",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "trocado embolos e regulador da entrada de agua",
+    "dataJustificativa": "2026-08-07",
+    "observacao": "NAO CONSEGUI FAZER A BAIXA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786097686274",
+    "dataCriacao": "2026-08-07T10:14:46.274Z",
+    "codigo": "26-0826",
+    "data": "2026-08-07",
+    "hora": "07:14",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "AVICEMA - PA-242",
+    "prazo": "2026-08-15",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "IMPLATAÇÃO DE BICOS DOS NIPO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786097620614",
+    "dataCriacao": "2026-08-07T10:13:40.614Z",
+    "codigo": "25-0826",
+    "data": "2026-08-07",
+    "hora": "07:11",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "AVICEMA - PA-242",
+    "prazo": "2026-08-15",
+    "tipo": "IMPLANTAÇÃO",
+    "situacao": "CANCELADO",
+    "descricao": "IMPLATAÇÃO DE BICOS NO NIPO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-07",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "",
+            "nome": "",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-07",
+    "horaInicio": "08:03",
+    "dataFim": "2026-08-07",
+    "horaFim": "08:03",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "CANCELADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786039918081",
+    "dataCriacao": "2026-08-06T18:11:58.081Z",
+    "codigo": "24-0826",
+    "data": "2026-08-06",
+    "hora": "15:11",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "SZY1H03",
+    "prazo": "2026-08-06",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "TROCA DE OLEO E FILTRO",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-06",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "1.3"
+      },
+      {
+        "data": "2026-08-06",
+        "matricula": "010.348.962-29",
+        "nome": "CLAUDINEI SANTOS DAMASCENA",
+        "funcao": "Ajudante",
+        "horas": "1.3"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-06",
+        "horaInicio": "15:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:20",
+        "descricao": "TROCA DE OLEO E FILTRO",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "1.3"
+          },
+          {
+            "matricula": "010.348.962-29",
+            "nome": "CLAUDINEI SANTOS DAMASCENA",
+            "funcao": "Ajudante",
+            "horas": "1.3"
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-06",
+    "horaInicio": "15:00",
+    "dataFim": "2026-08-06",
+    "horaFim": "16:20",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "SZY1H03",
+        "kmInicial": 43800,
+        "kmFinal": "82613",
+        "km": 38813,
+        "trocouOleo": true,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "TROCA DE OLEO E FILTRO",
+    "dataJustificativa": "2026-08-07",
+    "observacao": "NAO CONSEGUIM PREENCHER NO DIA.",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786024126956",
+    "dataCriacao": "2026-08-06T13:48:46.956Z",
+    "codigo": "23-0826",
+    "data": "2026-08-06",
+    "hora": "10:47",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "TRA0013",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "SOLDAR POLIA",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1786023938458",
+    "dataCriacao": "2026-08-06T13:45:38.458Z",
+    "codigo": "22-0826",
+    "data": "2026-08-06",
+    "hora": "10:44",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "TRA0013",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "CANCELADO",
+    "descricao": "SOLDAR POLIA",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-07",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "",
+            "nome": "",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-07",
+    "horaInicio": "10:13",
+    "dataFim": "2026-08-07",
+    "horaFim": "10:13",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "CANCELADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1786015120841",
+    "dataCriacao": "2026-08-06T11:18:40.841Z",
+    "codigo": "21-0826",
+    "data": "2026-08-06",
+    "hora": "08:18",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-06",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA DE PNEU",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785950160680",
+    "dataCriacao": "2026-08-05T17:16:00.680Z",
+    "codigo": "20-0826",
+    "data": "2026-08-05",
+    "hora": "14:15",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "MOTOR RESERVA",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "REBOBINADOR MOTOR DE 1,5CV",
+    "motivo": "MOTOR QUEIMADO",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "0"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD03570",
+            "descricao": "ESPAGUETE TERMO RETRATION 9,5MM X 3/8-PRD03570",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03505",
+            "descricao": "TUBO TERMO-RETRATIL DE POLIOLEFINA H2 1MM 6,4MM OU 1/4",
+            "quantidade": "3"
+          },
+          {
+            "codigo": "PRD03648",
+            "descricao": "FIO CONDUTOR ESMALTADO 22 AWG-PRD03648",
+            "quantidade": "0.700"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "15:48",
+    "dataFim": "2026-08-20",
+    "horaFim": "15:48",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03570",
+        "descricao": "ESPAGUETE TERMO RETRATION 9,5MM X 3/8-PRD03570",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03505",
+        "descricao": "TUBO TERMO-RETRATIL DE POLIOLEFINA H2 1MM 6,4MM OU 1/4",
+        "quantidade": 3
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03648",
+        "descricao": "FIO CONDUTOR ESMALTADO 22 AWG-PRD03648",
+        "quantidade": 0.7
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785950098786",
+    "dataCriacao": "2026-08-05T17:14:58.786Z",
+    "codigo": "19-0826",
+    "data": "2026-08-05",
+    "hora": "14:14",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "SERRALHERIA",
+    "prazo": "2026-08-06",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "REPARO DE UMA TOMADA 220V",
+    "motivo": "",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-06",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-06",
+        "horaInicio": "13:30",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "14:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "1"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD03747",
+            "descricao": "TOMADA SIMPLES 20A 250V COM PLACA APOIO-PRD03747",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-06",
+    "horaInicio": "13:30",
+    "dataFim": "2026-08-06",
+    "horaFim": "14:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-07",
+    "observacao": "MUITA DEMANDA NAO CONSEGUIU CONCLUIR A OS",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-06",
+        "codigo": "PRD03747",
+        "descricao": "TOMADA SIMPLES 20A 250V COM PLACA APOIO-PRD03747",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785948051407",
+    "dataCriacao": "2026-08-05T16:40:51.407Z",
+    "codigo": "18-0826",
+    "data": "2026-08-05",
+    "hora": "13:40",
+    "requisitante": "ARILSON MOURAS",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "METALURGICA",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO GERAL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785947732909",
+    "dataCriacao": "2026-08-05T16:35:32.909Z",
+    "codigo": "17-0826",
+    "data": "2026-08-05",
+    "hora": "13:33",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "FABRICA DE RAÇAO",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO GERAL",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785946640784",
+    "dataCriacao": "2026-08-05T16:17:20.784Z",
+    "codigo": "16-0826",
+    "data": "2026-08-05",
+    "hora": "13:16",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "AREAL",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "- MANUTENÇÃO NA DEBONA DO AVIARIO 04",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785946593811",
+    "dataCriacao": "2026-08-05T16:16:33.811Z",
+    "codigo": "15-0826",
+    "data": "2026-08-05",
+    "hora": "13:15",
+    "requisitante": "ARINALDO BORGES",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "SERRALHEIRO",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO NA DEBONA DO AVIARIO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785930637523",
+    "dataCriacao": "2026-08-05T11:50:37.523Z",
+    "codigo": "14-0826",
+    "data": "2026-08-05",
+    "hora": "08:49",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRONICA",
+    "centroCusto": "JVK0D47",
+    "prazo": "2026-08-07",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO DO PAINEL DE INSTRUMENTOS APAGADO",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785929491040",
+    "dataCriacao": "2026-08-05T11:31:31.040Z",
+    "codigo": "13-0826",
+    "data": "2026-08-05",
+    "hora": "08:29",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "TRA0010",
+    "prazo": "2026-08-08",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCA KIT DE EMBREAGEM + OLEO E FILTRO \n",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785927148181",
+    "dataCriacao": "2026-08-05T10:52:28.181Z",
+    "codigo": "12-0826",
+    "data": "2026-08-05",
+    "hora": "07:51",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "RWW2B08",
+    "prazo": "2026-08-05",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "TROCAR CRUZETA E TROCAR PNEU",
+    "motivo": "",
+    "valorEstimado": 0
+  },
+  {
+    "id": "1785865765084",
+    "dataCriacao": "2026-08-04T17:49:25.084Z",
+    "codigo": "11-0826",
+    "data": "2026-08-04",
+    "hora": "14:48",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "FURADEIRA",
+    "prazo": "2026-08-05",
+    "tipo": "CORRETIVA",
+    "situacao": "EM_ANDAMENTO",
+    "descricao": "MANUTENÇÃO",
+    "motivo": "LIGA E DESLIGA EM SEGUIDA",
+    "valorEstimado": 0,
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-04",
+        "matricula": "298.252.022-20",
+        "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+        "funcao": "Executor",
+        "horas": "2.1"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-04",
+        "horaInicio": "14:25",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "16:30",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "298.252.022-20",
+            "nome": "ZILDOMAR NAZARENO MENDES DE MORAES",
+            "funcao": "Executor",
+            "horas": "2.1"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD10638",
+            "descricao": "PLUG MACHO 2P+T 20A 250V BRANCO TRAMONTINA",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-04",
+    "horaInicio": "14:25",
+    "dataFim": "2026-08-04",
+    "horaFim": "16:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-04",
+    "observacao": "NAO CONSEGUIMOS PREENCHER A OS NO DIA",
+    "resultado": "EM ANDAMENTO",
+    "consumiveis": [
+      {
+        "data": "2026-08-04",
+        "codigo": "PRD10638",
+        "descricao": "PLUG MACHO 2P+T 20A 250V BRANCO TRAMONTINA",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785847591755",
+    "dataCriacao": "2026-08-04T12:46:31.755Z",
+    "codigo": "09-0826",
+    "data": "2026-08-04",
+    "hora": "09:45",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "JUQ3E45",
+    "prazo": "2026-08-06",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO0 DO BANCO E VERIFICAR RODA",
+    "motivo": "",
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "2.5"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "902.458.812-04",
+        "nome": "ALCI DOS REIS CARDOSO",
+        "funcao": "Ajudante",
+        "horas": "2.5"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:00",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "09:30",
+        "descricao": "retirado o tanque, o combustivel e feito lavagem.\nretirado a bomba de combustivel e feito lavagem e logo apos reposicionada no lugar.",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "2.5"
+          },
+          {
+            "matricula": "902.458.812-04",
+            "nome": "ALCI DOS REIS CARDOSO",
+            "funcao": "Ajudante",
+            "horas": "2.5"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "",
+            "descricao": "",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:00",
+    "dataFim": "2026-08-20",
+    "horaFim": "09:30",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "retirado o tanque, o combustivel e feito lavagem.\nretirado a bomba de combustivel e feito lavagem e logo apos reposicionada no lugar.",
+    "dataJustificativa": null,
+    "observacao": "",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785841050083",
+    "dataCriacao": "2026-08-04T10:57:30.083Z",
+    "codigo": "10-0826",
+    "data": "2026-08-04",
+    "hora": "07:54",
+    "requisitante": "CLAUDOMIRO SILVA",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "CONSTRUCAO CIVIL",
+    "centroCusto": "CASA DO SEU ROBERTO",
+    "prazo": "2026-08-05",
+    "tipo": "PREVENTIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO NO BANHEIRO QUE ESTA COM VAZAMENTO ",
+    "motivo": "",
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "487.602.502-91",
+        "nome": "CLAUDOMIRO GONCALVES SILVA",
+        "funcao": "Executor",
+        "horas": "7.7"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "028.378.772-47",
+        "nome": "DOUGLAS RICARDO ALVES DO ROSARIO",
+        "funcao": "Ajudante",
+        "horas": "7.7"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:10",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "16:20",
+        "descricao": "quebrado a parede, tirado a encanação velha, colocado uma nova encanação. trocado o reparo da chave geral do banheiro. foi fechado e rebnocado a parte que foi quebrado.\ntrocado 02 lajotas\nrejuntado o piso do banheiro\ne parte de duas paredes do banheiro",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "487.602.502-91",
+            "nome": "CLAUDOMIRO GONCALVES SILVA",
+            "funcao": "Executor",
+            "horas": "7.7"
+          },
+          {
+            "matricula": "028.378.772-47",
+            "nome": "DOUGLAS RICARDO ALVES DO ROSARIO",
+            "funcao": "Ajudante",
+            "horas": "7.7"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD03025",
+            "descricao": "REGISTRO PRESSAO SOLDAVEL 20MM HERC",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD03166",
+            "descricao": "JOELHO SOLDAVEL DE 20MM PLASTILIT - PRD03166",
+            "quantidade": "8"
+          },
+          {
+            "codigo": "PRD11345",
+            "descricao": "SERRA MANUAL STARRETT RS1218 300MM-18D 12&quot;-18T",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD03044",
+            "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD08889",
+            "descricao": "LUVA SOLDAVEL BCH LATAO 25X3/4 FORTLEV",
+            "quantidade": "4"
+          },
+          {
+            "codigo": "PRD02943",
+            "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+            "quantidade": "1.5"
+          },
+          {
+            "codigo": "PRD06932",
+            "descricao": "AREIA",
+            "quantidade": "0.3"
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:10",
+    "dataFim": "2026-08-20",
+    "horaFim": "16:20",
+    "usouVeiculo": "Não",
+    "veiculos": [],
+    "descricaoServico": "quebrado a parede, tirado a encanação velha, colocado uma nova encanação. trocado o reparo da chave geral do banheiro. foi fechado e rebnocado a parte que foi quebrado.\ntrocado 02 lajotas\nrejuntado o piso do banheiro\ne parte de duas paredes do banheiro",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03025",
+        "descricao": "REGISTRO PRESSAO SOLDAVEL 20MM HERC",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03166",
+        "descricao": "JOELHO SOLDAVEL DE 20MM PLASTILIT - PRD03166",
+        "quantidade": 8
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD11345",
+        "descricao": "SERRA MANUAL STARRETT RS1218 300MM-18D 12&quot;-18T",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD03044",
+        "descricao": "VEDACAO PROSCA POLYFITA PTFE 100% PURO ROLO DE 12MMx5M POLYFITA-PRD03044",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08889",
+        "descricao": "LUVA SOLDAVEL BCH LATAO 25X3/4 FORTLEV",
+        "quantidade": 4
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD02943",
+        "descricao": "CIMENTO POTY 50KG VOTORANTIM-PRD02943",
+        "quantidade": 1.5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06932",
+        "descricao": "AREIA",
+        "quantidade": 0.3
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785840288579",
+    "dataCriacao": "2026-08-04T10:44:48.579Z",
+    "codigo": "09-0826",
+    "data": "2026-08-04",
+    "hora": "07:43",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "JVK0D47",
+    "prazo": "2026-09-01",
+    "tipo": "CORRETIVA",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "LIMPEZA DE TANQUE E MANUTENÇÃO NO PAINEL",
+    "motivo": ""
+  },
+  {
+    "id": "1785775483545",
+    "dataCriacao": "2026-08-03T16:44:43.545Z",
+    "codigo": "08-0826",
+    "data": "2026-08-03",
+    "hora": "13:42",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "QDO9558",
+    "prazo": "2026-08-08",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "MANUTENÇÃO DA JUNTA DO CABEÇOTE ",
+    "motivo": "",
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-20",
+        "matricula": "004.741.252-62",
+        "nome": "ADRIANO DIAS DA COSTA",
+        "funcao": "Executor",
+        "horas": "7.8"
+      },
+      {
+        "data": "2026-08-20",
+        "matricula": "902.458.812-04",
+        "nome": "ALCI DOS REIS CARDOSO",
+        "funcao": "Ajudante",
+        "horas": "7.8"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-20",
+        "horaInicio": "07:02",
+        "horaFim1": "11:30",
+        "horaInicio2": "13:00",
+        "horaFim": "16:20",
+        "descricao": "retirado cabeçote e verificado a fechadura da tampa da capota do veiculo que esta com defeito e foi trocado o retrovisor e trocaqdo chave de seta",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "004.741.252-62",
+            "nome": "ADRIANO DIAS DA COSTA",
+            "funcao": "Executor",
+            "horas": "7.8"
+          },
+          {
+            "matricula": "902.458.812-04",
+            "nome": "ALCI DOS REIS CARDOSO",
+            "funcao": "Ajudante",
+            "horas": "7.8"
+          }
+        ],
+        "pecasUtilizadas": [
+          {
+            "codigo": "PRD00287",
+            "descricao": "LIXA DAGUA GRAO 80 3M",
+            "quantidade": "2"
+          },
+          {
+            "codigo": "PRD06049",
+            "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+            "quantidade": "5"
+          },
+          {
+            "codigo": "PRD09776",
+            "descricao": "AGUA DESMINERALIZADA 1LT MARCA: OX AUTO",
+            "quantidade": "5"
+          },
+          {
+            "codigo": "PRD08340",
+            "descricao": "LIXA D AGUA 600 3M",
+            "quantidade": 1
+          },
+          {
+            "codigo": "PRD02339",
+            "descricao": "DESCARBONIZANTE PRO 300ML/230G-PRD02339",
+            "quantidade": 1
+          }
+        ],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-20",
+    "horaInicio": "07:02",
+    "dataFim": "2026-08-20",
+    "horaFim": "16:20",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "QDO9558",
+        "kmInicial": 199413,
+        "kmFinal": 199413,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "retirado cabeçote e verificado a fechadura da tampa da capota do veiculo que esta com defeito e foi trocado o retrovisor e trocaqdo chave de seta",
+    "dataJustificativa": "2026-08-20",
+    "observacao": "NAO CONSEGUI PREENCHER NO DIA DA ENTREGA",
+    "resultado": "EXECUTADA",
+    "consumiveis": [
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD00287",
+        "descricao": "LIXA DAGUA GRAO 80 3M",
+        "quantidade": 2
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD06049",
+        "descricao": "PANO COSTURADO PARA USO GERAL-PRD06049",
+        "quantidade": 5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD09776",
+        "descricao": "AGUA DESMINERALIZADA 1LT MARCA: OX AUTO",
+        "quantidade": 5
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD08340",
+        "descricao": "LIXA D AGUA 600 3M",
+        "quantidade": 1
+      },
+      {
+        "data": "2026-08-20",
+        "codigo": "PRD02339",
+        "descricao": "DESCARBONIZANTE PRO 300ML/230G-PRD02339",
+        "quantidade": 1
+      }
+    ],
+    "pecasDevolvidas": []
+  },
+  {
+    "id": "1785773368174",
+    "dataCriacao": "2026-08-03T16:09:28.174Z",
+    "codigo": "07-0826",
+    "data": "2026-08-03",
+    "hora": "13:08",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "RDY6G99",
+    "prazo": "2026-08-04",
+    "tipo": "IMPLANTAÇÃO",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "REPARO NO IMPLEMENTO DO EIXO TRASEIRO",
+    "motivo": ""
+  },
+  {
+    "id": "1785757194329",
+    "dataCriacao": "2026-08-03T11:39:54.329Z",
+    "codigo": "06-0826",
+    "data": "2026-08-03",
+    "hora": "08:38",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "ÁGUA BRANCA",
+    "prazo": "2026-08-04",
+    "tipo": "CORRETIVA",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "VERIFICAR SIRENE DA CAIDA D'GUA GERAL",
+    "motivo": ""
+  },
+  {
+    "id": "1785755805003",
+    "dataCriacao": "2026-08-03T11:16:45.003Z",
+    "codigo": "05-0826",
+    "data": "2026-08-03",
+    "hora": "08:14",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "RWQ4B55",
+    "prazo": "2026-08-31",
+    "tipo": "CORRETIVA",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "- REVISÃO",
+    "motivo": ""
+  },
+  {
+    "id": "1785755672177",
+    "dataCriacao": "2026-08-03T11:14:32.177Z",
+    "codigo": "04-0826",
+    "data": "2026-08-03",
+    "hora": "08:12",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "QVK1H65",
+    "prazo": "2026-08-31",
+    "tipo": "PREVENTIVA",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "- REVISÃO",
+    "motivo": ""
+  },
+  {
+    "id": "1785752575883",
+    "dataCriacao": "2026-08-03T10:22:55.883Z",
+    "codigo": "03-0826",
+    "data": "2026-08-03",
+    "hora": "07:21",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "MECANICA",
+    "centroCusto": "OTU1771",
+    "prazo": "2026-08-04",
+    "tipo": "CORRETIVA",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "- MANUTENÇÃO DO PNEU",
+    "motivo": ""
+  },
+  {
+    "id": "1785752085907",
+    "dataCriacao": "2026-08-03T10:14:45.907Z",
+    "codigo": "02-0826",
+    "data": "2026-08-03",
+    "hora": "07:13",
+    "requisitante": "MONTEIRO",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "ELETRICA",
+    "centroCusto": "PALMEIRA",
+    "prazo": "2026-08-31",
+    "tipo": "PERIODICO",
+    "situacao": "EM ANDAMENTO",
+    "descricao": "- MANUTENÇÃO ENTRE LOTES",
+    "motivo": ""
+  },
+  {
+    "id": "1785751798940",
+    "dataCriacao": "2026-08-03T10:09:58.940Z",
+    "codigo": "01-0826",
+    "data": "2026-08-03",
+    "hora": "07:08",
+    "requisitante": "ADEMILTON",
+    "complexidade": "NORMAL",
+    "prioridade": "1-NORMAL",
+    "setor": "LOGISTICA",
+    "centroCusto": "SZE3I52",
+    "prazo": "2026-08-04",
+    "tipo": "CORRETIVA",
+    "situacao": "CONCLUIDO",
+    "descricao": "FAZER REPARO NO PARALAMA",
+    "motivo": "REPARO NO PARALAMA DO CARONA FEITO COM MATERIAL USADO.",
+    "executor": "",
+    "maoDeObra": [
+      {
+        "data": "2026-08-10",
+        "matricula": "46.709.353/0001-66",
+        "nome": "RAFAEL SANTOS DO CARMO",
+        "funcao": "Executor",
+        "horas": "0"
+      }
+    ],
+    "servicosExecutados": [
+      {
+        "data": "2026-08-10",
+        "horaInicio": "",
+        "horaFim1": "",
+        "horaInicio2": "",
+        "horaFim": "",
+        "descricao": "",
+        "isSaved": false,
+        "maoDeObra": [
+          {
+            "matricula": "46.709.353/0001-66",
+            "nome": "RAFAEL SANTOS DO CARMO",
+            "funcao": "Executor",
+            "horas": ""
+          }
+        ],
+        "pecasUtilizadas": [],
+        "veiculosUtilizados": []
+      }
+    ],
+    "dataInicio": "2026-08-10",
+    "horaInicio": "10:42",
+    "dataFim": "2026-08-10",
+    "horaFim": "10:42",
+    "usouVeiculo": "Não",
+    "veiculos": [
+      {
+        "placa": "SZE3I52",
+        "kmInicial": 2933126,
+        "kmFinal": 2933126,
+        "km": 0,
+        "trocouOleo": false,
+        "fezRevisao": false
+      }
+    ],
+    "descricaoServico": "",
+    "dataJustificativa": "2026-08-10",
+    "observacao": "NAO CONSEGUIM PREENCHER NO DIA.",
+    "resultado": "EXECUTADA",
+    "consumiveis": [],
+    "pecasDevolvidas": []
+  }
+]

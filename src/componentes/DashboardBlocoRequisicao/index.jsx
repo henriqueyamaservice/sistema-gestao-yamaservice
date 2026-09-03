@@ -3,7 +3,7 @@ import { PlusCircle, ClipboardList } from 'lucide-react';
 import styles from './DashboardBlocoRequisicao.module.css';
 import RequisicaoMobile from './componentes/RequisicaoMobile';
 import AcompanhamentoMobile from './componentes/AcompanhamentoMobile';
-import LogoYama from '../../assets/YAMASERVICE.jpeg';
+import HeaderBlocoRequisicao from './componentes/HeaderBlocoRequisicao';
 
 const DashboardBlocoRequisicao = () => {
   const [abaAtiva, setAbaAtiva] = useState('novo'); // 'novo' | 'acompanhamento'
@@ -17,7 +17,7 @@ const DashboardBlocoRequisicao = () => {
   const fetchProdutos = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3000/api/produtos');
+      const res = await fetch('/api/produtos/light');
       if (!res.ok) throw new Error('Falha ao buscar produtos');
       const data = await res.json();
       setProdutos(data);
@@ -31,15 +31,7 @@ const DashboardBlocoRequisicao = () => {
   return (
     <div className={styles.mobileContainer}>
       <div className={styles.mobileView}>
-        <header className={styles.mobileHeader}>
-          <div className={styles.logoContainer}>
-            <img src={LogoYama} alt="Yamaservice Logo" className={styles.logoImg} />
-          </div>
-          <div className={styles.mobileHeaderTitle}>
-            <h2>YAMASERVICE</h2>
-            <p>Solicitação de Materiais</p>
-          </div>
-        </header>
+        <HeaderBlocoRequisicao />
 
         <main className={styles.mobileContent}>
           {loading && abaAtiva === 'novo' ? (
@@ -54,15 +46,15 @@ const DashboardBlocoRequisicao = () => {
         </main>
 
         <nav className={styles.bottomNav}>
-          <button 
+          <button
             className={`${styles.navBtn} ${abaAtiva === 'novo' ? styles.navBtnAtivo : ''}`}
             onClick={() => setAbaAtiva('novo')}
           >
             <PlusCircle size={24} />
             <span>Novo Pedido</span>
           </button>
-          
-          <button 
+
+          <button
             className={`${styles.navBtn} ${abaAtiva === 'acompanhamento' ? styles.navBtnAtivo : ''}`}
             onClick={() => setAbaAtiva('acompanhamento')}
           >

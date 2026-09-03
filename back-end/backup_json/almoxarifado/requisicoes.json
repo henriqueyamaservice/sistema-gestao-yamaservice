@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1785443241295",
+    "dataCriacao": "2026-07-30T20:27:21.295Z",
+    "status": "finalizado",
+    "tipo": "os",
+    "numeroOS": "01-0726",
+    "solicitante": "FABIO SERRAO NUNES",
+    "departamento": "QEL5310",
+    "prioridade": "normal",
+    "centroCusto": "QEL5310",
+    "itens": [
+      {
+        "codigo": "PRD00021",
+        "descricao": "ROLAMENTO YAR 207-2F-PRD00021",
+        "quantidade": 1,
+        "valor_unitario": 0,
+        "status": "entregue",
+        "quantidade_entregue": 1,
+        "devolvido": 0
+      },
+      {
+        "codigo": "PRD0000021",
+        "descricao": "TESTE DE NITROGENIO",
+        "quantidade": 1,
+        "valor_unitario": 0,
+        "status": "entregue",
+        "quantidade_entregue": 1,
+        "devolvido": 0
+      }
+    ],
+    "entregador": "JUNIOR",
+    "localEstoque": "PADRAO - Local de Estoque Padrão",
+    "entrega_parcial": false
+  }
+]

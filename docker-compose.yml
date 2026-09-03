@@ -1,0 +1,74 @@
+services:
+  # 1. Banco de Dados MariaDB/MySQL Isolado
+  almoxarifado-db:
+    image: mariadb:10.11
+    container_name: almoxarifado_db
+    command: --max_allowed_packet=128M
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password_almox}
+      MARIADB_DATABASE: ${DB_NAME:-almoxarifado_db}
+      MARIADB_USER: ${DB_USER:-almox_user}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-almox_password_123}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - almoxarifado_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - almoxarifado-network
+
+  # 2. Aplicação Almoxarifado
+  almoxarifado-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: almoxarifado_app
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DB_HOST: almoxarifado-db
+      DB_PORT: "3306"
+      DB_USER: ${DB_USER:-almox_user}
+      DB_PASSWORD: ${DB_PASSWORD:-almox_password_123}
+      DB_NAME: ${DB_NAME:-almoxarifado_db}
+    volumes:
+      - ./back-end/data:/app/data
+    depends_on:
+      almoxarifado-db:
+        condition: service_healthy
+    networks:
+      - almoxarifado-network
+
+  # 3. Interface Visual do Banco (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: almoxarifado_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: almoxarifado-db
+      PMA_PORT: 3306
+    depends_on:
+      - almoxarifado-db
+    networks:
+      - almoxarifado-network
+
+networks:
+  almoxarifado-network:
+    name: almoxarifado-network
+    driver: bridge
+
+volumes:
+  almoxarifado_db_data:
+    name: almoxarifado_db_data

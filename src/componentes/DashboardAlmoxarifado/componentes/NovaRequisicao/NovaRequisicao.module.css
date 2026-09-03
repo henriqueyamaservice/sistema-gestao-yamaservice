@@ -139,18 +139,18 @@
 
 .listaResultados {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 0;
   right: 0;
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
-  margin-top: 4px;
+  margin-bottom: 4px;
   padding: 0;
   list-style: none;
   z-index: 10;
-  box-shadow: 0 10px 25px var(--cor-fundo-sutil-forte);
-  max-height: 200px;
+  box-shadow: 0 -10px 25px var(--cor-fundo-sutil-forte);
+  max-height: 400px;
   overflow-y: auto;
 }
 
@@ -308,9 +308,9 @@
 }
 
 .btnAdicionarLista {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: 1px solid var(--cor-destaque-hover);
   padding: 10px 16px; /* Reduzido */
   border-radius: 8px;
   font-weight: 600;
@@ -322,7 +322,7 @@
 }
 
 .btnAdicionarLista:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.3);
+  background: var(--cor-destaque-hover);
 }
 
 .btnAdicionarLista:disabled {

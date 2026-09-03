@@ -1,9 +1,9 @@
 .dashboardContainer {
   padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* Header Reused from OS */
@@ -22,7 +22,7 @@
 .logoContainer {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .title {
@@ -42,7 +42,7 @@
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .btnSecondary {
@@ -67,7 +67,6 @@
 .btnSecondary.active {
   background-color: var(--cor-fundo-sutil-forte);
   border-color: var(--cor-destaque);
-  color: var(--cor-destaque);
 }
 
 /* Layout Excel-like (Form on left, Table on right) */

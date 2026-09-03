@@ -16,80 +16,132 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
     emitente: '',
     veiculo: '',
     fornecedor: 'ORIENTE',
-    combustivel: 'DIESEL'
+    combustivel: 'DIESEL',
+    lote_origem_id: ''
   });
 
   const [veiculos, setVeiculos] = useState([]);
   const [caminhoes, setCaminhoes] = useState([]);
-  const [loadingEstoque, setLoadingEstoque] = useState(tipo === 'granja');
+  const [estoquesSecundarios, setEstoquesSecundarios] = useState([]);
+  const [lotesDisponiveis, setLotesDisponiveis] = useState([]);
+  const [loadingEstoque, setLoadingEstoque] = useState(true);
 
+  // Busca o próximo número de requisição automaticamente
   useEffect(() => {
-    fetch('http://localhost:3000/api/veiculos')
+    fetch('/api/combustivel')
+      .then(res => res.json())
+      .then(data => {
+        // Assume that numeroRequisicao is a number string
+        const numeros = data.map(req => parseInt(req.numeroRequisicao) || 0);
+        const proximo = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+        setFormData(prev => ({ ...prev, numeroRequisicao: proximo.toString() }));
+      })
+      .catch(err => console.error('Erro ao buscar o próximo número de requisição:', err));
+  }, []);
+  useEffect(() => {
+    fetch(`/api/veiculos`)
       .then(res => res.json())
       .then(data => setVeiculos(data))
       .catch(err => console.error(err));
   }, []);
 
   useEffect(() => {
-    if (tipo === 'granja') {
-      const fetchEstoqueCaminhoes = async () => {
-        try {
-          const [resEntradas, resSaidas] = await Promise.all([
-            fetch('http://localhost:3000/api/combustivel/entradas'),
-            fetch('http://localhost:3000/api/combustivel')
-          ]);
-          const dataEntradas = await resEntradas.json();
-          const dataSaidas = await resSaidas.json();
+    const fetchEstoqueSecundario = async () => {
+      setLoadingEstoque(true);
+      try {
+        const [resEntradas, resSaidas] = await Promise.all([
+          fetch(`/api/combustivel/entradas`),
+          fetch(`/api/combustivel`)
+        ]);
+        const dataEntradas = await resEntradas.json();
+        const dataSaidas = await resSaidas.json();
 
-          const controle = {};
-          const postosFixos = ['P YAMAVES', 'ALMOXARIFADO', 'ORIENTE'];
-          
-          dataEntradas.forEach(ent => {
-            const posto = ent.estoque;
-            if (posto && !postosFixos.includes(posto.toUpperCase())) {
-              if (ent.produto === 'DIESEL') {
-                if (!controle[posto]) controle[posto] = 0;
-                controle[posto] += parseFloat(ent.quantidade) || 0;
-              }
+        const controle = {};
+        const postosFixos = ['P YAMAVES', 'ORIENTE', 'ALMOXARIFADO'];
+        
+        dataEntradas.forEach(ent => {
+          const posto = ent.estoque;
+          if (posto && !postosFixos.includes(posto.toUpperCase())) {
+            if (ent.produto === 'DIESEL') {
+              if (!controle[posto]) controle[posto] = 0;
+              controle[posto] += parseFloat(ent.quantidade) || 0;
             }
-          });
-
-          dataSaidas.forEach(sai => {
-            const posto = sai.fornecedor;
-            if ((sai.status === 'CONCLUÍDO' || sai.status === 'ABASTECIDA') && posto && !postosFixos.includes(posto.toUpperCase()) && controle[posto] !== undefined) {
-              if (sai.combustivel === 'DIESEL') {
-                controle[posto] -= parseFloat(sai.qtde) || 0;
-              }
-            }
-          });
-
-          const disponiveis = Object.keys(controle).filter(p => controle[p] > 0);
-          setCaminhoes(disponiveis);
-          
-          if (disponiveis.length > 0) {
-            setFormData(prev => ({ ...prev, fornecedor: disponiveis[0] }));
-          } else {
-            setFormData(prev => ({ ...prev, fornecedor: '' }));
           }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setLoadingEstoque(false);
+        });
+
+        dataSaidas.forEach(sai => {
+          const posto = sai.fornecedor;
+          if ((sai.status === 'CONCLUÍDO' || sai.status === 'ABASTECIDA') && posto && !postosFixos.includes(posto.toUpperCase()) && controle[posto] !== undefined) {
+            if (sai.combustivel === 'DIESEL') {
+              controle[posto] -= parseFloat(sai.qtde) || 0;
+            }
+          }
+        });
+
+        const disponiveis = Object.keys(controle).filter(p => controle[p] > 0);
+        setEstoquesSecundarios(disponiveis);
+        setCaminhoes(disponiveis); // Mantido para compatibilidade com tipo === 'granja'
+        
+        if (tipo === 'granja' && disponiveis.length > 0) {
+          setFormData(prev => ({ ...prev, fornecedor: disponiveis[0] }));
+        } else if (tipo === 'granja') {
+          setFormData(prev => ({ ...prev, fornecedor: '' }));
         }
-      };
-      fetchEstoqueCaminhoes();
-    }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingEstoque(false);
+      }
+    };
+    fetchEstoqueSecundario();
   }, [tipo]);
 
+  useEffect(() => {
+    const fetchLotes = async () => {
+      if (!formData.fornecedor || !formData.combustivel) {
+        setLotesDisponiveis([]);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/combustivel/lotes-disponiveis?estoque=${formData.fornecedor}&produto=${formData.combustivel}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLotesDisponiveis(data);
+          if (data.length > 0) {
+            setFormData(prev => ({ ...prev, lote_origem_id: data[0].id }));
+          } else {
+            setFormData(prev => ({ ...prev, lote_origem_id: '' }));
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar lotes:', err);
+      }
+    };
+    fetchLotes();
+  }, [formData.fornecedor, formData.combustivel]);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const isNumberOrDate = type === 'number' || type === 'date' || type === 'time';
+    const finalValue = (typeof value === 'string' && !isNumberOrDate) ? value.toUpperCase() : value;
+    
+    setFormData(prev => {
+      const updated = { ...prev, [name]: finalValue };
+      if (name === 'combustivel') {
+        if (finalValue === 'ARLA REDUX' && (prev.fornecedor === 'P YAMAVES' || prev.fornecedor === 'ORIENTE' || !prev.fornecedor)) {
+          updated.fornecedor = 'ALMOXARIFADO';
+        } else if (finalValue === 'DIESEL' && prev.fornecedor === 'ALMOXARIFADO') {
+          updated.fornecedor = 'P YAMAVES';
+        }
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/api/combustivel/requisicao', {
+      const response = await fetch(`/api/combustivel/requisicao`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -135,13 +187,14 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
 
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Nº Requisição</label>
+            <label className={styles.label}>Nº da Requisição</label>
             <input 
               type="text" 
               name="numeroRequisicao"
               value={formData.numeroRequisicao}
               onChange={handleChange}
               className={styles.input}
+              placeholder="Digite o número da requisição"
               required
             />
           </div>
@@ -183,7 +236,7 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Veículo/Máquina/Trator</label>
+            <label className={styles.label}>{tipo === 'granja' ? 'Granja / Gerador' : 'Veículo/Máquina/Trator'}</label>
             {tipo === 'carro' ? (
               <>
                 <input 
@@ -237,9 +290,16 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
                 className={styles.select}
                 required
               >
-                <option value="ORIENTE">ORIENTE</option>
-                <option value="P YAMAVES">P YAMAVES</option>
-                <option value="ALMOXARIFADO">ALMOXARIFADO</option>
+                <optgroup label="Tanques e Postos Padrão">
+                  <option value="P YAMAVES">P YAMAVES</option>
+                  <option value="ALMOXARIFADO">ALMOXARIFADO</option>
+                  <option value="ORIENTE">ORIENTE</option>
+                </optgroup>
+                {estoquesSecundarios.length > 0 && (
+                  <optgroup label="Estoques Internos (Com Saldo)">
+                    {estoquesSecundarios.map(e => <option key={e} value={e}>{e}</option>)}
+                  </optgroup>
+                )}
               </select>
             ) : (
               <select 
@@ -274,6 +334,32 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
               <option value="DIESEL">DIESEL</option>
               <option value="GASOLINA">GASOLINA</option>
               <option value="ARLA REDUX">ARLA REDUX</option>
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label} style={{ color: 'var(--cor-destaque)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Lote / Fornecedor Origem
+              {lotesDisponiveis.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--cor-erro)' }}>(Sem Saldo)</span>}
+            </label>
+            <select 
+              name="lote_origem_id"
+              value={formData.lote_origem_id}
+              onChange={handleChange}
+              className={styles.select}
+              required
+              disabled={lotesDisponiveis.length === 0}
+              style={{ borderColor: lotesDisponiveis.length === 0 ? 'var(--cor-erro)' : 'var(--cor-borda-cartao)' }}
+            >
+              {lotesDisponiveis.length === 0 ? (
+                <option value="">Nenhum saldo físico disponível</option>
+              ) : (
+                lotesDisponiveis.map(lote => (
+                  <option key={lote.id} value={lote.id}>
+                    {lote.fornecedor} (NF: {lote.notaFiscal || 'S/N'}) - Saldo: {parseFloat(lote.saldoRestante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L
+                  </option>
+                ))
+              )}
             </select>
           </div>
 

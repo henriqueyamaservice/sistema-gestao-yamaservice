@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import styles from './index.module.css';
-import { FileText, BarChart2, Menu, X, Home, Settings } from 'lucide-react';
+import { FileText, BarChart2, Menu, Settings } from 'lucide-react';
 import FormularioOS from './componentes/FormularioOS';
 import TabelaOS from './componentes/TabelaOS';
 import FormularioServicoOS from './componentes/FormularioServicoOS';
@@ -8,6 +9,13 @@ import ImpressaoOS from './componentes/ImpressaoOS';
 import logoYamaservice from '../../assets/YAMASERVICE.jpeg';
 import { Truck, Fuel } from 'lucide-react';
 import DashboardControleCombustivel from './DashboardControleCombustivel';
+import MenuOs from './componentes/MenuOs';
+import CheckListVeiculo from './componentes/CheckListVeiculo';
+import TabelaCheckList from './componentes/TabelaCheckList';
+import GestaoCustos from './componentes/GestaoCustos';
+import { EM_ANDAMENTO } from '../../utils/osStatus';
+import GerenciadorUsuarios from '../GerenciadorUsuarios';
+import { ShieldAlert } from 'lucide-react';
 
 const DashboardOS = () => {
   const [osList, setOsList] = useState([]);
@@ -16,11 +24,22 @@ const DashboardOS = () => {
   const [osParaImprimir, setOsParaImprimir] = useState(null);
   const [showNovaOS, setShowNovaOS] = useState(false);
   const [viewMode, setViewMode] = useState('os'); // 'os' ou 'combustivel'
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [abaCombustivel, setAbaCombustivel] = useState('geral');
+  const [checklists, setChecklists] = useState([]);
+  const [checklistSelecionado, setChecklistSelecionado] = useState(null);
+  const [showGerenciadorUsuarios, setShowGerenciadorUsuarios] = useState(false);
+
+  // Carregar checklists do backend
+  useEffect(() => {
+    fetch('/api/checklists')
+      .then(res => res.json())
+      .then(data => setChecklists(data))
+      .catch(err => console.error("Erro ao carregar checklists:", err));
+  }, []);
 
   // Carregar as OS do backend ao iniciar
   useEffect(() => {
-    fetch('http://localhost:3000/api/os')
+    fetch('/api/os')
       .then(res => res.json())
       .then(data => setOsList(data))
       .catch(err => console.error("Erro ao carregar O.S:", err));
@@ -36,12 +55,28 @@ const DashboardOS = () => {
     setOsList(prev => prev.map(os => os.codigo === osAtualizada.codigo ? osAtualizada : os));
   };
 
+  const handleAddChecklist = async (novoChecklist) => {
+    try {
+      const res = await fetch('/api/checklists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoChecklist)
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setChecklists(prev => [result.checklist, ...prev]);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar checklist:", err);
+    }
+  };
+
   const handleStartOS = async (os) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/os/${os.codigo}`, {
+      const response = await fetch(`/api/os/${os.codigo}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ situacao: 'EM ANDAMENTO' })
+        body: JSON.stringify({ situacao: EM_ANDAMENTO })
       });
       if (!response.ok) throw new Error('Falha ao iniciar a O.S.');
       const result = await response.json();
@@ -61,93 +96,28 @@ const DashboardOS = () => {
   };
 
   return (
-    <div className={styles.dashboardOsContainer} style={{ position: 'relative' }}>
+    <div className={styles.appLayout}>
+      <MenuOs 
+        viewMode={viewMode} 
+        setViewMode={setViewMode} 
+        abaCombustivel={abaCombustivel}
+        setAbaCombustivel={setAbaCombustivel}
+        abaRelatorio={abaRelatorio}
+        setAbaRelatorio={setAbaRelatorio}
+        setShowNovaOS={setShowNovaOS}
+        setShowGerenciadorUsuarios={setShowGerenciadorUsuarios}
+      />
       
-      {/* --- OVERLAY E MENU LATERAL (SIDEBAR) --- */}
-      {menuOpen && (
-        <div 
-          onClick={() => setMenuOpen(false)} 
-          className={styles.overlay}
-        />
+      {showGerenciadorUsuarios && (
+        <GerenciadorUsuarios onClose={() => setShowGerenciadorUsuarios(false)} />
       )}
-
-      <div className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
-        <div className={styles.sidebarHeader}>
-          <h2 className={styles.sidebarLogoTitle}>
-            <img src={logoYamaservice} alt="Logo" className={styles.sidebarLogoImg} />
-            Menu
-          </h2>
-          <button onClick={() => setMenuOpen(false)} className={styles.closeMenuBtn}>
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className={styles.sidebarNav}>
-          <button 
-            onClick={() => { setViewMode('os'); setMenuOpen(false); }}
-            className={`${styles.navItem} ${viewMode === 'os' ? styles.navItemActive : ''}`}
-          >
-            <Home size={20} />
-            Ordens de Serviço
-          </button>
-
-          <button 
-            onClick={() => { setViewMode('combustivel'); setMenuOpen(false); }}
-            className={`${styles.navItem} ${viewMode === 'combustivel' ? styles.navItemActive : ''}`}
-          >
-            <Fuel size={20} />
-            Controle Combustível
-          </button>
-        </nav>
-        
-        <div className={styles.sidebarFooter}>
-          Yamaservice OS v1.0
-        </div>
-      </div>
-      {/* --- FIM DO MENU LATERAL --- */}
-
-      {viewMode === 'combustivel' ? (
-        <DashboardControleCombustivel osList={osList} onOpenMenu={() => setMenuOpen(true)} />
-      ) : (
+      
+      <div className={styles.appContent}>
+        <div className={styles.dashboardOsContainer} style={{ position: 'relative' }}>
+          {viewMode === 'combustivel' ? (
+            <DashboardControleCombustivel osList={osList} abaAtiva={abaCombustivel} />
+          ) : (
         <>
-          <header className={`${styles.osHeader} ${styles.animateFadeIn}`}>
-            <div className={styles.osLogoContainer}>
-              <button 
-                onClick={() => setMenuOpen(true)}
-                className={styles.openMenuBtn}
-                title="Abrir Menu"
-              >
-                <Menu size={32} />
-              </button>
-              <img 
-                src={logoYamaservice} 
-                alt="Yamaservice Logo" 
-                className={styles.headerLogoImg}
-              />
-              <div className={styles.osTitle}>
-                yamaservice
-                <span className={styles.osSubtitle}>Gestão de Ordens de Serviço</span>
-              </div>
-            </div>
-            
-            <div className={styles.osActions}>
-              <button 
-                className={`${styles.btnPrimary} ${styles.btnPrimaryMargin}`}
-                onClick={() => setShowNovaOS(true)}
-              >
-                + Criar Nova O.S.
-              </button>
-              
-              <button 
-                className={`${styles.btnSecondary} ${abaRelatorio === 'os' ? styles.btnSecondaryActive : ''}`}
-                onClick={() => setAbaRelatorio(abaRelatorio === 'os' ? null : 'os')}
-              >
-                <FileText size={18} />
-                Ordens de Serviço
-              </button>
-            </div>
-          </header>
-
       {/* Corpo principal */}
       <main className={osParaImprimir ? styles.noPrint : ''}>
         {/* Formulário de Cadastro Modal */}
@@ -166,7 +136,50 @@ const DashboardOS = () => {
             onRowClick={(os) => setOsSelecionada(os)} 
             onPrint={handleImprimirOS} 
             onStart={handleStartOS}
+            onNovoClick={() => setShowNovaOS(true)}
           />
+        )}
+
+        {abaRelatorio === 'checklist' && (
+          <CheckListVeiculo 
+            onSave={(novoCheck) => {
+              handleAddChecklist(novoCheck);
+              setAbaRelatorio('relatorio-checklist');
+            }} 
+            onClose={() => setAbaRelatorio('relatorio-checklist')}
+          />
+        )}
+
+        {abaRelatorio === 'relatorio-checklist' && (
+          <TabelaCheckList 
+            checklists={checklists} 
+            onView={setChecklistSelecionado} 
+            onNovoCheckList={() => setAbaRelatorio('checklist')}
+          />
+        )}
+
+        {abaRelatorio === 'custo-mensal' && (
+          <GestaoCustos osList={osList} />
+        )}
+
+        {/* Modal de Visualização de Check-List */}
+        {checklistSelecionado && (
+          <div style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <CheckListVeiculo 
+              checklist={checklistSelecionado} 
+              readOnly={true} 
+              onClose={() => setChecklistSelecionado(null)} 
+            />
+          </div>
         )}
 
 
@@ -179,11 +192,16 @@ const DashboardOS = () => {
           />
         )}
       </main>
-      </>
-      )}
+          </>
+          )}
 
-      {/* Componente de Impressão (Oculto na tela normal) */}
-      {osParaImprimir && <ImpressaoOS os={osParaImprimir} />}
+          {/* Componente de Impressão (Oculto na tela normal) */}
+          {osParaImprimir && ReactDOM.createPortal(
+            <ImpressaoOS os={osParaImprimir} />,
+            document.body
+          )}
+        </div>
+      </div>
     </div>
   );
 };

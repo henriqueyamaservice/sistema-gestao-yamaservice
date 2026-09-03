@@ -16,8 +16,8 @@ const Compras = () => {
   const fetchDados = async () => {
     try {
       const [resReq, resForn] = await Promise.all([
-        fetch('http://localhost:3000/api/requisicoes'),
-        fetch('http://localhost:3000/api/fornecedores')
+        fetch('/api/requisicoes'),
+        fetch('/api/fornecedores')
       ]);
       const dataReq = await resReq.json();
       const dataForn = await resForn.json();
@@ -43,7 +43,7 @@ const Compras = () => {
   const handleAguardarNfe = async (reqId) => {
     setConcluindoId(reqId);
     try {
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/avancar-etapa`, {
+      const response = await fetch(`/api/requisicoes/${reqId}/avancar-etapa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ novoStatus: 'aguardando_nfe' })

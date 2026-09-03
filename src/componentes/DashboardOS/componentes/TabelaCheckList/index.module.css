@@ -1,0 +1,115 @@
+.container {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--cor-borda-cartao);
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--cor-texto-principal);
+}
+
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--cor-texto-principal);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 16px 24px;
+  text-align: left;
+}
+
+.table th {
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-secundario);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--cor-borda-cartao);
+}
+
+.table td {
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgeSuccess {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.badgeWarning {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: #ca8a04;
+}
+
+.badgeError {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnIcon {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnIcon:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+.emptyState {
+  padding: 48px;
+  text-align: center;
+  color: var(--cor-texto-secundario);
+}

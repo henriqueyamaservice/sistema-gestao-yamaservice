@@ -1,32 +1,32 @@
-/* Modal Base Styles */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 24px;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .modalCard {
   background-color: var(--cor-fundo-cartao);
-  width: 100%;
-  max-width: 600px;
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid var(--cor-borda-cartao);
   padding: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
   overflow-y: auto;
-  max-height: 90vh;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

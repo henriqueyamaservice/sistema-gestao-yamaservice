@@ -1,30 +1,33 @@
-/* Modal Base Styles */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 24px;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .modalCard {
   background-color: var(--cor-fundo-cartao);
   width: 100%;
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid var(--cor-borda-cartao);
   padding: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   position: relative;
+  box-sizing: border-box;
+  max-height: 85vh;
   overflow-y: auto;
+  margin: 0;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -154,8 +157,36 @@
   font-weight: bold;
 }
 
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btnDanger {
+  flex: 1;
+  background-color: transparent;
+  color: var(--cor-erro);
+  border: 1px solid var(--cor-erro);
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btnDanger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: translateY(-1px);
+}
+
 .btnPrimary {
-  width: 100%;
+  flex: 1;
   background-color: var(--cor-destaque);
   color: #fff;
   border: none;
@@ -169,7 +200,7 @@
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .btnPrimary:hover {

@@ -18,7 +18,7 @@ const RequisicaoCompras = ({ setView }) => {
 
   const fetchRequisicoes = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/requisicoes');
+      const response = await fetch('/api/requisicoes');
       if (!response.ok) throw new Error('Falha ao carregar requisições');
       const data = await response.json();
       
@@ -46,7 +46,7 @@ const RequisicaoCompras = ({ setView }) => {
     e.stopPropagation();
     
     try {
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/avancar-etapa`, {
+      const response = await fetch(`/api/requisicoes/${reqId}/avancar-etapa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ novoStatus: 'em_concorrencia' })
@@ -76,7 +76,7 @@ const RequisicaoCompras = ({ setView }) => {
         motivo
       };
 
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqIdParaSubstituir}/substituir-item`, {
+      const response = await fetch(`/api/requisicoes/${reqIdParaSubstituir}/substituir-item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -1,11 +1,11 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import { getJsonData, saveJsonData } from '../services/jsonDbService.js';
+import getDb from '../config/database.js';
 import SefazService from '../services/sefaz.js';
 
 const router = express.Router();
 
-// Armazenamento em memória (mock) para simular um banco de dados de notas baixadas
+// Armazenamento em memória para notas sincronizadas nesta sessão
 let notasSincronizadas = [];
 
 /**
@@ -16,7 +16,6 @@ router.get('/sincronizar', async (req, res) => {
   try {
     const notas = await SefazService.sincronizarNotasRecentes();
     
-    // Adiciona apenas notas novas que não estejam no nosso "banco"
     let novas = 0;
     notas.forEach(nota => {
       if (!notasSincronizadas.find(n => n.chaveAcesso === nota.chaveAcesso)) {
@@ -25,49 +24,45 @@ router.get('/sincronizar', async (req, res) => {
       }
     });
 
-    // MATCHING AUTOMÁTICO (Auto-pareamento)
-    const reqPath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
-    const fornPath = path.resolve(process.cwd(), 'data', 'fornecedores.json');
-    
-    let requisicoes = [];
+    // MATCHING AUTOMÁTICO
+    let requisicoes = await getJsonData('requisicoes') || [];
     let fornecedores = [];
+
     try {
-      requisicoes = JSON.parse(await fs.readFile(reqPath, 'utf-8'));
-      fornecedores = JSON.parse(await fs.readFile(fornPath, 'utf-8'));
-    } catch(e) {}
+      const db = await getDb();
+      const rows = await db.all(`SELECT * FROM fornecedores_omie`);
+      fornecedores = rows.map(r => {
+        let d = {};
+        try { d = JSON.parse(r.dados_json || '{}'); } catch(e){}
+        return { ...d, codigo_cliente_omie: r.codigo, razao_social: r.razao_social, cnpj_cpf: r.cnpj_cpf };
+      });
+    } catch (e) {}
 
     let reqsModificadas = false;
-
-    // Função utilitária para limpar CNPJ/CPF (remover pontuações)
     const cleanDoc = (doc) => doc ? String(doc).replace(/[^\d]/g, '') : '';
 
-    // Passar por todas as notas sincronizadas
     notasSincronizadas.forEach(nota => {
-      if (nota.vinculadaAoPedido) return; // já foi vinculada antes
+      if (nota.vinculadaAoPedido) return;
 
       const cnpjNota = cleanDoc(nota.emitente.cnpj_cpf);
 
-      // Procurar em requisições que estão 'aguardando_nfe'
       requisicoes.forEach(req => {
         if (req.status_compras === 'aguardando_nfe' && req.pedidos_omie) {
           req.pedidos_omie.forEach(pedido => {
-            if (pedido.nota_fiscal_vinculada) return; // já tem nota
+            if (pedido.nota_fiscal_vinculada) return;
 
-            // Achar o fornecedor do pedido
             const forn = fornecedores.find(f => String(f.codigo_cliente_omie) === String(pedido.fornecedorId));
             if (forn) {
               const cnpjFornecedor = cleanDoc(forn.cnpj_cpf);
-              // SE DER MATCH NO CNPJ
               if (cnpjFornecedor === cnpjNota) {
-                // VINCULAR!
                 pedido.nota_fiscal_vinculada = nota;
                 nota.vinculadaAoPedido = pedido.numeroPedido;
                 reqsModificadas = true;
                 
-                // Opcional: Se todos os pedidos da req tiverem nota, avança para concluido
                 const todasTemNota = req.pedidos_omie.every(p => p.nota_fiscal_vinculada);
                 if (todasTemNota) {
                   req.status_compras = 'concluido';
+                  req.historico_status = req.historico_status || [];
                   req.historico_status.push({ status: 'concluido', data: new Date().toISOString() });
                 }
               }
@@ -78,7 +73,7 @@ router.get('/sincronizar', async (req, res) => {
     });
 
     if (reqsModificadas) {
-      await fs.writeFile(reqPath, JSON.stringify(requisicoes, null, 2), 'utf-8');
+      await saveJsonData('requisicoes', requisicoes);
     }
 
     res.json({

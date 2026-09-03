@@ -13,7 +13,7 @@ const AguardandoNFe = () => {
 
   const fetchDados = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/requisicoes');
+      const response = await fetch('/api/requisicoes');
       const data = await response.json();
       
       // Filtrar requisições
@@ -30,7 +30,7 @@ const AguardandoNFe = () => {
   const handleSimularRobo = async (reqId) => {
     try {
       // Avança a etapa para concluído (NF-e recebida) para cair no Entrada de Estoque
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/avancar-etapa`, {
+      const response = await fetch(`/api/requisicoes/${reqId}/avancar-etapa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ novoStatus: 'concluido' })
@@ -57,7 +57,7 @@ const AguardandoNFe = () => {
 
     try {
       // Simula o processamento do XML manual
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/avancar-etapa`, {
+      const response = await fetch(`/api/requisicoes/${reqId}/avancar-etapa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ novoStatus: 'concluido' })

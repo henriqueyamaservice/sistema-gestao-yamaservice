@@ -26,6 +26,25 @@ async function fetchProdutos() {
   const registrosPorPagina = 500; // Limite padrão por requisição
   let totalPaginas = 1;
 
+  // Carregar produtos locais existentes para preservar estoque mínimo, lotes e validade
+  let produtosLocais = new Map();
+  try {
+    const localFilePath = path.resolve(__dirname, '..', 'data', 'produtos.json');
+    const localData = await fs.readFile(localFilePath, 'utf-8');
+    const produtosAntigos = JSON.parse(localData);
+    produtosAntigos.forEach(p => {
+      produtosLocais.set(p.codigo, {
+        estoque_minimo: p.estoque_minimo,
+        lotes: p.lotes,
+        data_validade: p.data_validade,
+        quantidade_estoque: p.quantidade_estoque, // Preservar o estoque físico também, já que a Omie não envia saldo nesta rota
+        ean: p.ean // Preservar ean que pode ter sido vinculado manualmente
+      });
+    });
+  } catch (err) {
+    console.log("Nenhum banco de dados local encontrado ou erro ao ler, criando um novo do zero.");
+  }
+
   try {
     do {
       console.log(`Buscando página ${pagina}...`);
@@ -72,11 +91,18 @@ async function fetchProdutos() {
         );
 
         // Como a rota ListarProdutos da Omie não traz o saldo real de estoque,
-        // vamos simular um estoque para podermos testar a tela do almoxarifado
-        filtradosPRD = filtradosPRD.map(p => ({
-          ...p,
-          quantidade_estoque: Math.floor(Math.random() * 90) + 10 // Estoque aleatório entre 10 e 100
-        }));
+        // vamos usar o estoque local ou simular um para podermos testar a tela do almoxarifado
+        filtradosPRD = filtradosPRD.map(p => {
+          const dadosLocais = produtosLocais.get(p.codigo) || {};
+          return {
+            ...p,
+            quantidade_estoque: dadosLocais.quantidade_estoque !== undefined ? dadosLocais.quantidade_estoque : (Math.floor(Math.random() * 90) + 10),
+            estoque_minimo: dadosLocais.estoque_minimo,
+            lotes: dadosLocais.lotes,
+            data_validade: dadosLocais.data_validade,
+            ean: dadosLocais.ean || p.ean
+          };
+        });
         
         todosProdutos = todosProdutos.concat(filtradosPRD);
       }
@@ -88,9 +114,11 @@ async function fetchProdutos() {
 
     // --- MODO DE TESTE (A PEDIDO DO USUÁRIO) ---
     // Vamos forçar que os 10 primeiros produtos tenham um "estoque_minimo"
-    // maior que o estoque físico atual, para que acionem o Alerta no Dashboard.
+    // caso eles não tenham um definido localmente.
     for (let i = 0; i < Math.min(10, todosProdutos.length); i++) {
-      todosProdutos[i].estoque_minimo = (todosProdutos[i].quantidade_estoque || 0) + 5; 
+      if (todosProdutos[i].estoque_minimo === undefined) {
+        todosProdutos[i].estoque_minimo = (todosProdutos[i].quantidade_estoque || 0) + 5; 
+      }
     }
     // -------------------------------------------
 

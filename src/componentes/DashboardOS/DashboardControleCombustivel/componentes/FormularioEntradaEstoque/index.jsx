@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import styles from './index.module.css';
+import { parseMoeda } from '../../../../../utils/parseMoeda';
 
 const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
   const [formData, setFormData] = useState({
@@ -10,24 +11,27 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
     quantidade: '',
     notaFiscal: '',
     valorUn: '',
-    estoque: 'P YAMAVES', // Local
-    situacao: 'INTEGRO',
+    estoque: 'P YAMAVES',
+    situacao: 'AGUARDANDO COMBUSTIVEL',
+    prazoEntrega: '',
     observacao: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const isNumberOrDate = type === 'number' || type === 'date' || type === 'time';
+    const finalValue = (typeof value === 'string' && !isNumberOrDate) ? value.toUpperCase() : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: finalValue
     }));
   };
 
   const calcularValorTotal = () => {
-    const qtd = parseFloat(formData.quantidade) || 0;
-    const vu = parseFloat(formData.valorUn) || 0;
+    const qtd = parseMoeda(formData.quantidade);
+    const vu = parseMoeda(formData.valorUn);
     return (qtd * vu).toFixed(2);
   };
 
@@ -38,12 +42,13 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
     const dadosEnvio = {
       ...formData,
       valorTotal: calcularValorTotal(),
-      quantidade: parseFloat(formData.quantidade),
-      valorUn: parseFloat(formData.valorUn)
+      quantidade: parseMoeda(formData.quantidade),
+      quantidadeNf: parseMoeda(formData.quantidade),
+      valorUn: parseMoeda(formData.valorUn)
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/combustivel/entradas', {
+      const response = await fetch(`/api/combustivel/entradas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,7 +57,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao salvar entrada de estoque');
+        throw new Error('Erro ao salvar pedido de entrada');
       }
 
       const result = await response.json();
@@ -60,7 +65,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar entrada de estoque.');
+      alert('Erro ao salvar pedido de entrada.');
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +75,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
-          <h2>Nova Entrada de Estoque</h2>
+          <h2>Novo Pedido de Combustível</h2>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={20} />
           </button>
@@ -79,13 +84,23 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
         <form onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>Data</label>
+              <label>Data do Pedido</label>
               <input
                 type="date"
                 name="data"
                 value={formData.data}
                 onChange={handleChange}
                 required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Prazo de Entrega</label>
+              <input
+                type="date"
+                name="prazoEntrega"
+                value={formData.prazoEntrega}
+                onChange={handleChange}
               />
             </div>
 
@@ -122,7 +137,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Quantidade (Litros)</label>
+              <label>Quantidade Pedida / NF (L)</label>
               <input
                 type="number"
                 name="quantidade"
@@ -173,15 +188,6 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
               </datalist>
             </div>
 
-            <div className={styles.formGroup}>
-              <label>Situação</label>
-              <select name="situacao" value={formData.situacao} onChange={handleChange}>
-                <option value="INTEGRO">INTEGRO</option>
-                <option value="EM CONSUMO">EM CONSUMO</option>
-                <option value="ESGOTADO">ESGOTADO</option>
-              </select>
-            </div>
-
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
               <label>Observação</label>
               <textarea
@@ -200,7 +206,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
             </button>
             <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
               <Save size={18} />
-              {isSubmitting ? 'Salvando...' : 'Salvar Entrada'}
+              {isSubmitting ? 'Salvando...' : 'Salvar Pedido'}
             </button>
           </div>
         </form>

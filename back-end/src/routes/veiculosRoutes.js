@@ -1,34 +1,37 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import getDb from '../config/database.js';
 
 const router = express.Router();
-const veiculosPath = path.resolve(process.cwd(), 'data', 'veiculos.json');
 
-// Helper para ler o arquivo com segurança
-const lerVeiculos = async () => {
-  try {
-    const data = await fs.readFile(veiculosPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return [];
-    }
-    throw error;
-  }
-};
+// HELPER: Monta o objeto veículo a partir das colunas + json
+function dbRowToVeiculo(row) {
+  if (!row) return null;
+  let dados = {};
+  try { dados = JSON.parse(row.dados_json || '{}'); } catch (e) { /* ignore */ }
+  return {
+    id: row.id,
+    placa: row.placa,
+    modelo: row.modelo,
+    tipo: row.tipo,
+    marca: row.marca,
+    ano: row.ano,
+    status: row.status,
+    ...dados
+  };
+}
 
 // GET: Retorna as configurações de todos os veículos
 router.get('/', async (req, res) => {
   try {
-    const veiculos = await lerVeiculos();
-    res.json(veiculos);
+    const db = await getDb();
+    const rows = await db.all(`SELECT * FROM frota_veiculos ORDER BY placa ASC`);
+    res.json(rows.map(dbRowToVeiculo));
   } catch (error) {
     res.status(500).json({ message: 'Erro ao ler veículos', error: error.message });
   }
 });
 
-// POST: Cadastra ou atualiza um veículo (usa a Placa como chave primária)
+// POST: Cadastra ou atualiza um veículo (usa a Placa como chave principal para update)
 router.post('/', async (req, res) => {
   try {
     const { placa, ...outrosCampos } = req.body;
@@ -37,26 +40,35 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'A placa do veículo é obrigatória' });
     }
 
+    const db = await getDb();
     const placaUpper = placa.toUpperCase().trim();
-    let veiculos = await lerVeiculos();
+    const row = await db.get(`SELECT * FROM frota_veiculos WHERE placa = ?`, [placaUpper]);
     
-    const index = veiculos.findIndex(v => v.placa === placaUpper);
+    const veiculoId = row ? row.id : Date.now().toString();
+    const dadosJson = JSON.stringify({ ...outrosCampos, ultimaAtualizacao: new Date().toISOString() });
     
-    const veiculoData = {
-      id: index !== -1 ? veiculos[index].id : Date.now().toString(),
-      placa: placaUpper,
-      ...outrosCampos,
-      ultimaAtualizacao: new Date().toISOString()
-    };
+    const modelo = outrosCampos.modelo || null;
+    const tipo = outrosCampos.tipo || null;
+    const marca = outrosCampos.marca || null;
+    const ano = outrosCampos.ano || null;
+    const status = outrosCampos.status || 'Ativo';
 
-    if (index !== -1) {
-      veiculos[index] = { ...veiculos[index], ...veiculoData };
+    if (row) {
+      await db.run(
+        `UPDATE frota_veiculos 
+         SET modelo = ?, tipo = ?, marca = ?, ano = ?, status = ?, dados_json = ? 
+         WHERE placa = ?`,
+        [modelo, tipo, marca, ano, status, dadosJson, placaUpper]
+      );
     } else {
-      veiculos.push(veiculoData);
+      await db.run(
+        `INSERT INTO frota_veiculos (id, placa, modelo, tipo, marca, ano, status, dados_json) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [veiculoId, placaUpper, modelo, tipo, marca, ano, status, dadosJson]
+      );
     }
 
-    await fs.writeFile(veiculosPath, JSON.stringify(veiculos, null, 2), 'utf-8');
-    res.json({ message: 'Veículo salvo com sucesso', veiculo: veiculoData });
+    res.json({ message: 'Veículo salvo com sucesso', veiculo: { id: veiculoId, placa: placaUpper, ...outrosCampos } });
 
   } catch (error) {
     res.status(500).json({ message: 'Erro ao salvar veículo', error: error.message });
@@ -67,16 +79,10 @@ router.post('/', async (req, res) => {
 router.delete('/:placa', async (req, res) => {
   try {
     const { placa } = req.params;
+    const db = await getDb();
     const placaUpper = placa.toUpperCase().trim();
-    let veiculos = await lerVeiculos();
     
-    const novaLista = veiculos.filter(v => v.placa !== placaUpper);
-    
-    if (novaLista.length === veiculos.length) {
-      return res.status(404).json({ message: 'Veículo não encontrado' });
-    }
-
-    await fs.writeFile(veiculosPath, JSON.stringify(novaLista, null, 2), 'utf-8');
+    await db.run(`DELETE FROM frota_veiculos WHERE placa = ?`, [placaUpper]);
     res.json({ message: 'Veículo removido com sucesso' });
 
   } catch (error) {

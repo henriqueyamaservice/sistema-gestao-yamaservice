@@ -27,3 +27,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Regras, Agentes AI e Contratos Locais
+.agents/
+
+.AGENTS.md
+
+**/agente.md
+CONTRATO_API.md

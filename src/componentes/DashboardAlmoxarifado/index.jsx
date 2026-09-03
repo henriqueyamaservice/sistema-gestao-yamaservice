@@ -19,14 +19,14 @@ const DashboardAlmoxarifado = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:3000/api/produtos');
+      const response = await fetch('/api/produtos');
       
       if (!response.ok) {
         throw new Error('Falha ao buscar produtos da API. Verifique se o servidor backend está rodando.');
       }
       
       const data = await response.json();
-      setProdutos(data || []);
+      setProdutos(Array.isArray(data) ? data : (data.produtos || []));
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,0 +1,284 @@
+.overlayModal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(10px);
+  z-index: 99990;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.22s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modalCard {
+  background-color: var(--cor-fundo-cartao);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 24px;
+  width: 96%;
+  max-width: 1050px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  position: relative;
+}
+
+.modalHeader {
+  padding: 20px 30px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--cor-fundo-secundario);
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerIconBubble {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-sucesso, #10b981);
+}
+
+.headerTitles h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  letter-spacing: -0.01em;
+}
+
+.headerTitles p {
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnClose {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnClose:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.modalBody {
+  padding: 26px 30px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* CARDS DE RESUMO (COMPACTOS E DISCRETOS) */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.summaryCard {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summaryCardLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.summaryCardValue {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  word-break: break-word;
+  line-height: 1.25;
+}
+
+/* SEÇÃO DE DIAS */
+.secaoDiasContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.secaoTitulo {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardDiaEspelho {
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 18px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
+}
+
+.cardDiaEspelhoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--cor-borda-cartao);
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.diaTag {
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: var(--cor-destaque);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.horasTag {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--cor-sucesso, #10b981);
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnEditarDiaEspelho {
+  background: var(--cor-fundo-cartao);
+  border: 1.5px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnEditarDiaEspelho:hover {
+  background-color: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+  transform: translateY(-1px);
+}
+
+.pecaItemTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.modalFooter {
+  padding: 20px 30px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btnVoltarEdicao {
+  background: transparent;
+  border: 1.5px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btnVoltarEdicao:hover {
+  background-color: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+}
+
+.btnConfirmarFinal {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s;
+}
+
+.btnConfirmarFinal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+}
+
+.btnConfirmarFinal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

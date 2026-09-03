@@ -4,21 +4,26 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .modalContent {
-  background-color: #fff;
-  border-radius: 8px;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  border-radius: 16px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
 }
 
 .modalHeader {
@@ -26,19 +31,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--cor-borda-cartao);
 }
 
 .modalHeader h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--cor-texto-principal);
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--cor-texto-secundario);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -46,13 +51,13 @@
 }
 
 .closeBtn:hover {
-  background-color: #f1f5f9;
-  color: #ef4444;
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-erro, #ef4444);
 }
 
 .formGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 15px;
   padding: 20px;
 }
@@ -70,14 +75,16 @@
 .formGroup label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--cor-texto-secundario);
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
   padding: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
   border-radius: 6px;
   font-size: 0.875rem;
   outline: none;
@@ -87,8 +94,8 @@
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
 }
 
 .formActions {
@@ -96,15 +103,15 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 20px;
-  border-top: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border-top: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
 }
 
 .btnCancel {
   padding: 10px 16px;
-  border: 1px solid #cbd5e1;
-  background-color: #fff;
-  color: #475569;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
@@ -112,7 +119,7 @@
 }
 
 .btnCancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--cor-fundo-sutil);
 }
 
 .btnPrimary {
@@ -120,7 +127,7 @@
   align-items: center;
   gap: 8px;
   background-color: var(--cor-destaque, #2563eb);
-  color: white;
+  color: var(--cor-texto-inverso, white);
   border: none;
   padding: 10px 16px;
   border-radius: 6px;

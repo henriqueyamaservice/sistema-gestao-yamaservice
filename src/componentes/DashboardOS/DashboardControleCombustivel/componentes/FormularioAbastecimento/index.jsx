@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Fuel, X } from 'lucide-react';
+import { Save, Fuel, X, Ban } from 'lucide-react';
 import styles from './index.module.css';
+import { parseMoeda } from '../../../../../utils/parseMoeda';
 
 const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
   const [formData, setFormData] = useState({
@@ -10,19 +11,20 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
     combustivel: requisicao ? requisicao.combustivel : 'DIESEL',
     valorUnitario: '',
     ultimoKm: '',
-    media: ''
+    media: '',
+    loteTemValor: false
   });
   
   const [veiculosList, setVeiculosList] = useState([]);
   const [geradoresList, setGeradoresList] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/veiculos')
+    fetch('/api/veiculos')
       .then(res => res.json())
       .then(data => setVeiculosList(data))
       .catch(err => console.error('Erro ao buscar veículos:', err));
 
-    fetch('http://localhost:3000/api/geradores')
+    fetch('/api/geradores')
       .then(res => res.json())
       .then(data => setGeradoresList(data))
       .catch(err => console.error('Erro ao buscar geradores:', err));
@@ -53,9 +55,58 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
     }
   }, [requisicao, veiculosList, geradoresList]);
 
+  // Efeito para preencher o Valor Unitário com base no Lote de Origem
+  useEffect(() => {
+    if (requisicao && requisicao.lote_origem_id) {
+      fetch(`/api/combustivel/entradas`)
+        .then(res => res.json())
+        .then(data => {
+          const lote = data.find(e => e.id === requisicao.lote_origem_id);
+          if (lote && parseFloat(lote.valorUn) > 0) {
+            setFormData(prev => ({ ...prev, valorUnitario: lote.valorUn, loteTemValor: true }));
+          } else {
+            setFormData(prev => ({ ...prev, loteTemValor: false }));
+          }
+        })
+        .catch(err => console.error('Erro ao buscar lote origem:', err));
+    }
+  }, [requisicao]);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const isNumberOrDate = type === 'number' || type === 'date' || type === 'time';
+    const finalValue = (typeof value === 'string' && !isNumberOrDate) ? value.toUpperCase() : value;
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
+  };
+
+  const handleCancel = async () => {
+    if (!requisicao) return;
+
+    const confirm = window.confirm(`Deseja realmente cancelar a Requisição #${requisicao.numeroRequisicao}?`);
+    if (!confirm) return;
+
+    try {
+      const identificador = requisicao.id || requisicao.numeroRequisicao;
+      const response = await fetch(`/api/combustivel/cancelar/${identificador}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ motivoCancelamento: 'Cancelado pelo usuário' })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        if (onAdd) onAdd(result.requisicao);
+        if (onClose) onClose();
+      } else {
+        alert(result.message || 'Erro ao cancelar requisição');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Erro na comunicação com o servidor ao cancelar requisição.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,7 +114,7 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
     if (!requisicao) return;
 
     if (onAdd) {
-      const valorTotal = (parseFloat(formData.qtde) * parseFloat(formData.valorUnitario)).toFixed(2);
+      const valorTotal = (parseMoeda(formData.qtde) * parseMoeda(formData.valorUnitario)).toFixed(2);
       
       const payload = {
         ...formData,
@@ -75,7 +126,7 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
 
       try {
         const identificador = requisicao.id || requisicao.numeroRequisicao;
-        const response = await fetch(`http://localhost:3000/api/combustivel/abastecimento/${identificador}`, {
+        const response = await fetch(`/api/combustivel/abastecimento/${identificador}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -119,7 +170,7 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
           <div className={styles.infoGrid}>
             <div>
               <span className={`${styles.label} ${styles.labelTiny}`}>Data</span>
-              <strong className={styles.infoValue}>{requisicao.data ? requisicao.data.split('-').reverse().join('/') : ''}</strong>
+              <strong className={styles.infoValue}>{requisicao.data ? requisicao.data.split('T')[0].split('-').reverse().join('/') : ''}</strong>
             </div>
             <div>
               <span className={`${styles.label} ${styles.labelTiny}`}>Motorista</span>
@@ -172,11 +223,11 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
 
           <div className={styles.grid3Cols}>
             <div className={`${styles.formGroup} ${styles.formGroupNoMargin}`}>
-              <label className={`${styles.label} ${styles.labelSmall}`}>Horímetro / KM Atual</label>
+              <label className={`${styles.label} ${styles.labelSmall}`}>{requisicao.veiculo && (requisicao.veiculo.toUpperCase().includes('GERADOR') || requisicao.veiculo.toUpperCase().includes('GRANJA') || requisicao.veiculo.toUpperCase().startsWith('G. ')) ? 'Horímetro Atual' : 'KM Atual'}</label>
               <input type="number" step="0.1" name="km" value={formData.km} onChange={handleChange} className={`${styles.input} ${styles.inputSmall}`} required />
             </div>
             <div className={`${styles.formGroup} ${styles.formGroupNoMargin}`}>
-              <label className={`${styles.label} ${styles.labelSmall}`}>Último Horímetro / KM</label>
+              <label className={`${styles.label} ${styles.labelSmall}`}>{requisicao.veiculo && (requisicao.veiculo.toUpperCase().includes('GERADOR') || requisicao.veiculo.toUpperCase().includes('GRANJA') || requisicao.veiculo.toUpperCase().startsWith('G. ')) ? 'Último Horímetro' : 'Último KM'}</label>
               <input type="number" step="0.1" name="ultimoKm" value={formData.ultimoKm} onChange={handleChange} className={`${styles.input} ${styles.inputSmall}`} />
             </div>
             <div className={`${styles.formGroup} ${styles.formGroupNoMargin}`}>
@@ -188,7 +239,16 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
           <div className={styles.grid3Cols}>
             <div className={`${styles.formGroup} ${styles.formGroupNoMargin}`}>
               <label className={`${styles.label} ${styles.labelSmall}`}>V. Unitário (R$)</label>
-              <input type="number" step="0.01" name="valorUnitario" value={formData.valorUnitario} onChange={handleChange} className={`${styles.input} ${styles.inputSmall}`} required />
+              <input 
+                type="number" 
+                step="0.01" 
+                name="valorUnitario" 
+                value={formData.valorUnitario} 
+                onChange={handleChange} 
+                className={`${styles.input} ${styles.inputSmall} ${formData.loteTemValor ? styles.inputReadOnly : ''}`}
+                readOnly={formData.loteTemValor}
+                required 
+              />
             </div>
             <div className={`${styles.formGroup} ${styles.formGroupNoMargin}`}>
               <label className={`${styles.label} ${styles.labelSmall}`}>V. Total (R$)</label>
@@ -200,10 +260,16 @@ const FormularioAbastecimento = ({ onAdd, requisicao, onClose }) => {
             </div>
           </div>
 
-          <button type="submit" className={styles.btnPrimary}>
-            <Save size={18} />
-            FINALIZAR ABASTECIMENTO
-          </button>
+          <div className={styles.actionsRow}>
+            <button type="button" onClick={handleCancel} className={styles.btnDanger}>
+              <Ban size={18} />
+              CANCELAR REQUISIÇÃO
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              <Save size={18} />
+              FINALIZAR ABASTECIMENTO
+            </button>
+          </div>
         </form>
       </div>
     </div>

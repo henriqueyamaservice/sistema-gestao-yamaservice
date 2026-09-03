@@ -1,0 +1,132 @@
+.container {
+  padding: 24px;
+  background-color: var(--cor-fundo-principal);
+  min-height: 100vh;
+  color: var(--cor-texto-principal);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tabsNav {
+  display: flex;
+  gap: 8px;
+  background-color: var(--cor-fundo-cartao);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tabAtiva {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  font-weight: 600;
+}
+
+.gridCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.cardOS {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.codigoOS {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--cor-destaque);
+}
+
+.situacaoBadge {
+  font-size: 0.75rem;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.cardBody {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.descricao {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.infoMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnAtender {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+  }
+
+  .gridCards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .cardOS {
+    padding: 14px;
+    border-radius: 14px;
+  }
+}
+

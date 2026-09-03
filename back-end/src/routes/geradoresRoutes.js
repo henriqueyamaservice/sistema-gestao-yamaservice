@@ -1,28 +1,28 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import getDb from '../config/database.js';
 
 const router = express.Router();
-const geradoresPath = path.resolve(process.cwd(), 'data', 'geradores.json');
 
-// Helper para ler o arquivo com segurança
-const lerGeradores = async () => {
-  try {
-    const data = await fs.readFile(geradoresPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return [];
-    }
-    throw error;
-  }
-};
+function dbRowToGerador(row) {
+  if (!row) return null;
+  let dados = {};
+  try { dados = JSON.parse(row.dados_json || '{}'); } catch (e) {}
+  return {
+    id: row.id,
+    codigo: row.codigo,
+    granja: row.nome,
+    localizacao: row.localizacao,
+    status: row.status,
+    ...dados
+  };
+}
 
 // GET: Retorna todos os geradores cadastrados
 router.get('/', async (req, res) => {
   try {
-    const geradores = await lerGeradores();
-    res.json(geradores);
+    const db = await getDb();
+    const rows = await db.all(`SELECT * FROM frota_geradores ORDER BY nome ASC`);
+    res.json(rows.map(dbRowToGerador));
   } catch (error) {
     res.status(500).json({ message: 'Erro ao ler geradores', error: error.message });
   }
@@ -37,31 +37,49 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'A granja associada é obrigatória' });
     }
 
-    let geradores = await lerGeradores();
+    const db = await getDb();
+    let row = null;
     
-    // Se não tiver ID passado, procura se a granja já tem gerador
-    // Assumimos 1 gerador principal por granja para simplificar
-    const index = geradores.findIndex(g => g.id === id || g.granja === granja);
+    if (id) {
+      row = await db.get(`SELECT * FROM frota_geradores WHERE id = ?`, [id]);
+    }
+    if (!row) {
+      row = await db.get(`SELECT * FROM frota_geradores WHERE nome = ?`, [granja]);
+    }
     
-    const geradorData = {
-      id: index !== -1 ? geradores[index].id : Date.now().toString(),
-      granja,
-      marca,
-      horimetroAtual: parseFloat(horimetroAtual) || 0,
-      horimetroInicial: index !== -1 ? geradores[index].horimetroInicial : (parseFloat(horimetroAtual) || 0),
+    const geradorId = row ? row.id : Date.now().toString();
+    
+    let dados = {};
+    if (row) {
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
+    }
+    
+    dados = {
+      ...dados,
       ...outrosCampos,
       ultimaAtualizacao: new Date().toISOString()
     };
-
-    if (index !== -1) {
-      geradores[index] = { ...geradores[index], ...geradorData };
-    } else {
-      geradores.push(geradorData);
+    
+    if (marca !== undefined) dados.marca = marca;
+    
+    if (horimetroAtual !== undefined && horimetroAtual !== null && horimetroAtual !== '') {
+      dados.horimetroAtual = parseFloat(horimetroAtual) || 0;
+      dados.horimetroInicial = row ? (dados.horimetroInicial || dados.horimetroAtual) : dados.horimetroAtual;
     }
 
-    await fs.writeFile(geradoresPath, JSON.stringify(geradores, null, 2), 'utf-8');
-    res.json({ message: 'Gerador salvo com sucesso', gerador: geradorData });
+    if (row) {
+      await db.run(
+        `UPDATE frota_geradores SET nome = ?, dados_json = ? WHERE id = ?`,
+        [granja, JSON.stringify(dados), geradorId]
+      );
+    } else {
+      await db.run(
+        `INSERT INTO frota_geradores (id, codigo, nome, dados_json) VALUES (?, ?, ?, ?)`,
+        [geradorId, granja, granja, JSON.stringify(dados)]
+      );
+    }
 
+    res.json({ message: 'Gerador salvo com sucesso', gerador: { id: geradorId, granja, ...dados } });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao salvar gerador', error: error.message });
   }
@@ -71,19 +89,75 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    let geradores = await lerGeradores();
+    const db = await getDb();
     
-    const novaLista = geradores.filter(g => g.id !== id);
-    
-    if (novaLista.length === geradores.length) {
-      return res.status(404).json({ message: 'Gerador não encontrado' });
-    }
-
-    await fs.writeFile(geradoresPath, JSON.stringify(novaLista, null, 2), 'utf-8');
+    await db.run(`DELETE FROM frota_geradores WHERE id = ?`, [id]);
     res.json({ message: 'Gerador removido com sucesso' });
 
   } catch (error) {
     res.status(500).json({ message: 'Erro ao remover gerador', error: error.message });
+  }
+});
+
+// ==========================================
+// HISTÓRICO DE REVISÕES
+// ==========================================
+
+// GET: Retorna o histórico de revisões de um gerador
+router.get('/:id/revisoes', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = await getDb();
+    
+    const rows = await db.all(
+      `SELECT * FROM historico_revisoes_geradores WHERE gerador_id = ? ORDER BY data_revisao DESC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar histórico de revisões', error: error.message });
+  }
+});
+
+// POST: Registra uma nova revisão (e atualiza o gerador)
+router.post('/revisoes', async (req, res) => {
+  try {
+    const { gerador_id, data_revisao, horimetro, litros_oleo, litros_borra, observacoes } = req.body;
+    
+    if (!gerador_id || !data_revisao) {
+      return res.status(400).json({ message: 'O ID do gerador e a data da revisão são obrigatórios' });
+    }
+
+    const db = await getDb();
+    const id = Date.now().toString();
+
+    // 1. Salva no histórico
+    await db.run(
+      `INSERT INTO historico_revisoes_geradores 
+       (id, gerador_id, data_revisao, horimetro, litros_oleo, litros_borra, observacoes) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [id, gerador_id, data_revisao, parseFloat(horimetro) || 0, parseFloat(litros_oleo) || 0, parseFloat(litros_borra) || 0, observacoes || '']
+    );
+
+    // 2. Atualiza a 'Última Revisão' no gerador
+    const row = await db.get(`SELECT * FROM frota_geradores WHERE id = ?`, [gerador_id]);
+    if (row) {
+      let dados = {};
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
+      
+      dados.dataUltimaRevisao = data_revisao;
+      if (horimetro) {
+        dados.horimetroUltimaRevisao = parseFloat(horimetro);
+        // Atualiza o atual também se a revisão for mais recente
+        dados.horimetroAtual = parseFloat(horimetro);
+      }
+      
+      await db.run(`UPDATE frota_geradores SET dados_json = ? WHERE id = ?`, [JSON.stringify(dados), gerador_id]);
+    }
+
+    res.status(201).json({ message: 'Revisão registrada com sucesso', id });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao registrar revisão', error: error.message });
   }
 });
 

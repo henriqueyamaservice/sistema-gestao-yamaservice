@@ -1,0 +1,214 @@
+.container {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--cor-borda-cartao);
+  max-width: 900px;
+  margin: 0 auto;
+  color: var(--cor-texto-principal);
+  font-family: 'Inter', sans-serif;
+}
+
+.publicContainer {
+  margin: 10px auto;
+  max-width: 800px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cor-fundo-sutil-forte);
+}
+
+.header h2 {
+  font-size: 1.25rem;
+  color: var(--cor-destaque);
+  margin-bottom: 12px;
+}
+
+.vehicleInfo {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  flex: 1;
+  min-width: 150px;
+}
+
+.inputGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.input {
+  padding: 6px 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 4px;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--cor-destaque);
+}
+
+/* Tabela de itens */
+.tableContainer {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.table th, .table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  text-align: left;
+}
+
+.table th {
+  background-color: var(--cor-fundo-sutil);
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.itemDescricao {
+  font-weight: 500;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.radioLabelOk {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: #16a34a;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.radioLabelRuim {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #dc2626;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.radioInput {
+  accent-color: var(--cor-destaque);
+  width: 16px;
+  height: 16px;
+}
+
+.obsInput {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 4px;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+}
+
+/* Dados Finais */
+.footerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid var(--cor-fundo-sutil-forte);
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  min-height: 80px;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btnPrimary {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.btnPrimary:hover {
+  opacity: 0.9;
+}
+
+.btnSecondary {
+  background-color: transparent;
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.btnSecondary:hover {
+  background-color: var(--cor-fundo-sutil);
+}
+
+@media (max-width: 768px) {
+  .vehicleInfo, .row {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,19 @@
+.listaPendentes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 20px;
+  color: #94a3b8;
+  margin-top: 20px;
+}
+
+.emptyState h3 {
+  color: #334155;
+  margin-top: 16px;
+}

@@ -1,6 +1,6 @@
 .container {
   padding: 24px;
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease-out;
 }

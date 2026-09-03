@@ -25,13 +25,13 @@ const Concorrencia = ({ setView }) => {
     setLoading(true);
     try {
       // Busca Requisições
-      const resReq = await fetch('http://localhost:3000/api/requisicoes');
+      const resReq = await fetch('/api/requisicoes');
       const dataReq = await resReq.json();
       const emConcorrencia = dataReq.filter(req => req.status_compras === 'em_concorrencia');
       setRequisicoes(emConcorrencia);
 
       // Busca Fornecedores
-      const resForn = await fetch('http://localhost:3000/api/fornecedores');
+      const resForn = await fetch('/api/fornecedores');
       if (resForn.ok) {
         const dataForn = await resForn.json();
         setFornecedores(dataForn);
@@ -93,7 +93,7 @@ const Concorrencia = ({ setView }) => {
 
   const autoCotar = async (reqId, codigoItem) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/produtos/${codigoItem}/sugestao-precos`);
+      const response = await fetch(`/api/produtos/${codigoItem}/sugestao-precos`);
       if (!response.ok) throw new Error('Falha ao buscar sugestão de preços');
       const sugestoes = await response.json();
       
@@ -152,14 +152,14 @@ const Concorrencia = ({ setView }) => {
         cotacoes: cotacoesReq
       };
 
-      await fetch(`http://localhost:3000/api/requisicoes/${reqId}/salvar-cotacoes`, {
+      await fetch(`/api/requisicoes/${reqId}/salvar-cotacoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payloadCotacoes)
       });
 
       // 2. Avançar etapa
-      const resAvancar = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/avancar-etapa`, {
+      const resAvancar = await fetch(`/api/requisicoes/${reqId}/avancar-etapa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ novoStatus: 'em_orcamento' })
@@ -189,7 +189,7 @@ const Concorrencia = ({ setView }) => {
         motivo
       };
 
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqIdParaSubstituir}/substituir-item`, {
+      const response = await fetch(`/api/requisicoes/${reqIdParaSubstituir}/substituir-item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

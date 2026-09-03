@@ -1,0 +1,218 @@
+.headerContainer {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 16px;
+  padding: 12px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ========================================================= */
+/* LINHA SUPERIOR: LOGO + IDENTIDADE + PAINEL DO USUÁRIO     */
+/* ========================================================= */
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoImg {
+  height: 38px;
+  width: 38px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.dividerVertical {
+  width: 1px;
+  height: 30px;
+  background-color: var(--cor-borda-cartao);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brandTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 1px 0 0 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+/* Painel de Ações do Usuário (Alinhado Horizontalmente e Amplo) */
+.userActionsBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 4px 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.btnAtualizar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 5px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.78rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnAtualizar:hover {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border-color: var(--cor-destaque);
+}
+
+.iconDivider {
+  width: 1px;
+  height: 22px;
+  background-color: var(--cor-borda-cartao);
+}
+
+/* Container do Usuário para evitar corte de texto */
+.userInfoWrapper {
+  display: flex;
+  align-items: center;
+  min-width: 140px;
+}
+
+/* ========================================================= */
+/* LINHA INFERIOR: ORGANIZADOR DE BUSCA E CONTADOR           */
+/* ========================================================= */
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--cor-borda-cartao);
+  flex-wrap: wrap;
+}
+
+.searchBoxOrganizador {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 7px 14px;
+  transition: all 0.2s ease;
+}
+
+.searchBoxOrganizador:focus-within {
+  border-color: var(--cor-destaque);
+  background-color: var(--cor-fundo-principal);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+}
+
+.searchInputOrganizador {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.searchInputOrganizador::placeholder {
+  color: var(--cor-texto-secundario);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.btnClearSearch {
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s;
+}
+
+.btnClearSearch:hover {
+  color: var(--cor-destaque);
+  background-color: var(--cor-fundo-sutil);
+}
+
+.statusCounterBadge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 107, 0, 0.12);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  color: var(--cor-destaque);
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 850px) {
+  .headerContainer {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .userActionsBar {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dividerVertical {
+    display: none;
+  }
+
+  .bottomRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

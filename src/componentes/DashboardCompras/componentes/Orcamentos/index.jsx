@@ -32,10 +32,10 @@ const Orcamentos = () => {
   const fetchDados = async () => {
     setLoading(true);
     try {
-      const resReq = await fetch('http://localhost:3000/api/requisicoes');
+      const resReq = await fetch('/api/requisicoes');
       const reqs = await resReq.json();
       
-      const resForn = await fetch('http://localhost:3000/api/fornecedores');
+      const resForn = await fetch('/api/fornecedores');
       const forns = await resForn.json();
       
       setFornecedores(forns);
@@ -104,7 +104,7 @@ const Orcamentos = () => {
 
     setGerandoPedidoId(reqId);
     try {
-      const response = await fetch(`http://localhost:3000/api/requisicoes/${reqId}/gerar-pedidos`, {
+      const response = await fetch(`/api/requisicoes/${reqId}/gerar-pedidos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vencedores })
@@ -134,7 +134,7 @@ const Orcamentos = () => {
 
     setGerandoLink(true);
     try {
-      const response = await fetch('http://localhost:3000/api/cotacao-link', {
+      const response = await fetch('/api/cotacao-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requisicaoId: reqId, fornecedorId: fornId })
@@ -189,7 +189,7 @@ const Orcamentos = () => {
 
     setGerandoLink(fornId);
     try {
-      const response = await fetch('http://localhost:3000/api/cotacao-link', {
+      const response = await fetch('/api/cotacao-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requisicaoId: reqId, fornecedorId: fornId })
@@ -299,7 +299,7 @@ const Orcamentos = () => {
   const salvarNovoFornecedor = async () => {
     setSalvandoFornecedor(true);
     try {
-      const res = await fetch('http://localhost:3000/api/fornecedores', {
+      const res = await fetch('/api/fornecedores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(novoForn)

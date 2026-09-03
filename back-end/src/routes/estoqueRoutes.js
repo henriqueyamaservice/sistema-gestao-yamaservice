@@ -1,35 +1,33 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import { getJsonData, saveJsonData } from '../services/jsonDbService.js';
+import getDb from '../config/database.js';
 
 const router = express.Router();
 
-// Rota simulada para Mapeamento Fiscal (Entrada de Estoque -> Salvar Mapeamento)
+// Rota para Mapeamento Fiscal (Entrada de Estoque -> Salvar Mapeamento)
 router.post('/receber-nota/:id', async (req, res) => {
   try {
     const reqId = req.params.id;
     const { mapeamentoItens } = req.body;
 
-    const reqsPath = path.resolve(process.cwd(), 'data', 'requisicoes.json');
-    let requisicoes = [];
-    try { requisicoes = JSON.parse(await fs.readFile(reqsPath, 'utf-8')); } catch(e){}
+    const db = await getDb();
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ?`, [reqId]);
     
-    const reqIndex = requisicoes.findIndex(r => r.id === reqId);
-    if (reqIndex === -1) return res.status(404).json({message: 'Not found'});
+    if (!row) return res.status(404).json({ message: 'Not found' });
     
-    const requisicao = requisicoes[reqIndex];
+    let requisicao = {};
+    try { requisicao = JSON.parse(row.dados_json || '{}'); } catch(e){}
+
     requisicao.mapeamento_nfe = mapeamentoItens;
     requisicao.mapeamento_concluido = true;
 
     const nota = requisicao.pedidos_omie?.find(p => p.nota_fiscal_vinculada)?.nota_fiscal_vinculada;
-    if (!nota) return res.status(400).json({message: 'Sem NFe vinculada'});
+    if (!nota) return res.status(400).json({ message: 'Sem NFe vinculada' });
 
     // Cria a Ordem de Recebimento Físico para o Almoxarifado
-    const pendentesPath = path.resolve(process.cwd(), 'data', 'pedidos_pendentes.json');
-    let pendentes = [];
-    try { pendentes = JSON.parse(await fs.readFile(pendentesPath, 'utf-8')); } catch(e){}
+    let pendentes = await getJsonData('pedidos_pendentes') || [];
 
-    // Remove se já existir um recebimento pendente para essa mesma requisição para evitar duplicatas (caso ele salve novamente)
+    // Remove se já existir um recebimento pendente para essa requisição
     pendentes = pendentes.filter(p => p.requisicaoOrigemId !== reqId);
 
     const itensParaReceber = [];
@@ -40,7 +38,7 @@ router.post('/receber-nota/:id', async (req, res) => {
         let finalDesc = item.descricao;
 
         if (mapping.startsWith('NOVO:')) {
-          finalCode = 'NEW-' + Date.now().toString().substring(8) + Math.floor(Math.random()*100);
+          finalCode = 'NEW-' + Date.now().toString().substring(8) + Math.floor(Math.random() * 100);
           finalDesc = mapping.substring(5);
         }
 
@@ -63,16 +61,19 @@ router.post('/receber-nota/:id', async (req, res) => {
         status: 'Aguardando Recebimento',
         itens: itensParaReceber
       });
-      await fs.writeFile(pendentesPath, JSON.stringify(pendentes, null, 2));
+      await saveJsonData('pedidos_pendentes', pendentes);
     }
 
-    // OBS: O código antigo tinha uma segunda rota idêntica que mudava status_compras = 'estoque_faturado'.
-    // Mantivemos a mais robusta aqui. Se precisar da outra lógica, ela deve ser renomeada.
-    await fs.writeFile(reqsPath, JSON.stringify(requisicoes, null, 2));
+    if (db.driver === 'mysql') {
+      await db.run(`UPDATE requisicoes SET dados_json = ?, atualizado_em = NOW() WHERE id = ?`, [JSON.stringify(requisicao), reqId]);
+    } else {
+      await db.run(`UPDATE requisicoes SET dados_json = ?, atualizado_em = CURRENT_TIMESTAMP WHERE id = ?`, [JSON.stringify(requisicao), reqId]);
+    }
+
     res.json({ message: 'Mapeamento salvo. Aguardando Almoxarifado.' });
 
-  } catch(e) {
-    res.status(500).json({error: e.message});
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 

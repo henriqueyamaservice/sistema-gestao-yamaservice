@@ -16,7 +16,7 @@ const DivergenciasDevolucao = ({ setView }) => {
   const fetchDivergencias = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3000/api/requisicoes');
+      const res = await fetch('/api/requisicoes');
       const data = await res.json();
       
       // Filtra apenas requisições que tiveram entrega parcial
@@ -37,7 +37,7 @@ const DivergenciasDevolucao = ({ setView }) => {
 
     setResolvendo(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/requisicoes/${req.id}/resolver-divergencia`, {
+      const res = await fetch(`/api/requisicoes/${req.id}/resolver-divergencia`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(resolucaoDados)

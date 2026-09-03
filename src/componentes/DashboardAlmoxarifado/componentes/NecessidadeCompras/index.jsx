@@ -28,7 +28,7 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
   useEffect(() => {
     const fetchProjetos = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/projetos');
+        const res = await fetch('/api/projetos');
         if (res.ok) setProjetos(await res.json());
       } catch (err) {
         console.error('Erro ao buscar projetos:', err);
@@ -120,7 +120,7 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/requisicoes', {
+      const response = await fetch('/api/requisicoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requisicaoData)

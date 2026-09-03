@@ -79,8 +79,9 @@
 
 .table th,
 .table td {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap; /* Garante que nenhuma célula quebre linhas */
 }
 
 .table th {
@@ -147,8 +148,30 @@
   color: var(--cor-texto-secundario);
 }
 
-.truncateCell {
-  max-width: 200px;
+.truncateCell,
+.truncateDescricao {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truncateRequisitante {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truncateSetor {
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truncateCentroCusto {
+  max-width: 140px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -212,8 +235,153 @@
   font-weight: bold;
 }
 
-.actionsContainer {
+.actionsHeader {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
+
+.exportButton {
+  background-color: var(--cor-fundo-secundario, #374151);
+  color: var(--cor-texto-principal, #fff);
+  border: 1px solid var(--cor-borda-cartao, #4b5568);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exportButton:hover {
+  background-color: var(--cor-fundo-sutil-forte, #4b5568);
+  border-color: var(--cor-destaque, #FF6B00);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background-color: var(--cor-fundo-secundario, #111827);
+  border: 1px solid var(--cor-borda-cartao, #374151);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kpiCard:hover {
+  border-color: var(--cor-destaque, #FF6B00);
+  transform: translateY(-2px);
+}
+
+.kpiCardActive {
+  border-color: var(--cor-destaque, #FF6B00) !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
+}
+
+.kpiIconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpiInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpiValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal, #fff);
+  line-height: 1.2;
+}
+
+.kpiLabel {
+  font-size: 0.7rem;
+  color: var(--cor-texto-secundario, #9ca3af);
+  font-weight: 500;
+}
+
+.sectorSection {
+  background-color: var(--cor-fundo-secundario, #111827);
+  border: 1px solid var(--cor-borda-cartao, #374151);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.sectorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sectorTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal, #fff);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clearFilterBtn {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.clearFilterBtn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.actionsContainer {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.badgeTotem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(255, 107, 0, 0.15);
+  color: var(--cor-destaque, #ff6b00);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+

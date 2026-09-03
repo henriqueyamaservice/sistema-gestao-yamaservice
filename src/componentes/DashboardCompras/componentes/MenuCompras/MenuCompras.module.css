@@ -8,20 +8,45 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+}
+
+.sidebarCollapsed {
+  width: 68px;
 }
 
 .menu-header {
-  padding: 24px;
+  padding: 18px 16px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 10px;
   border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.sidebarCollapsed .menu-header {
+  justify-content: center;
+  padding: 18px 0;
+}
+
+.brandContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebarCollapsed .brandContainer {
+  display: none;
 }
 
 .logo {
   height: 38px;
   width: auto;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .brand h2 {
@@ -38,6 +63,27 @@
   color: var(--cor-texto-secundario);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.toggleCollapseBtn {
+  background: var(--cor-fundo-sutil-forte);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.toggleCollapseBtn:hover {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso, #fff);
+  border-color: var(--cor-destaque);
 }
 
 .menu-nav {
@@ -58,20 +104,21 @@
 }
 
 .menu-item {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
   background: transparent;
   border: none;
   color: var(--cor-texto-secundario);
-  padding: 10px 14px;
-  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  white-space: nowrap;
 }
 
 .menu-item:hover:not(:disabled) {
@@ -90,9 +137,22 @@
 }
 
 .menu-footer {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   border-top: 1px solid var(--cor-borda-cartao);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--cor-texto-secundario);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.collapsedCenter {
+  justify-content: center !important;
+  padding: 10px 0 !important;
+}
+
+.collapsedCenter span {
+  display: none;
 }

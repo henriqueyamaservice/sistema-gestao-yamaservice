@@ -1,0 +1,1535 @@
+.painelOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.painelContainer {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 20px;
+  width: 98%;
+  max-width: 1400px;
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  position: relative;
+}
+
+.painelHeader {
+  padding: 18px 24px;
+  background-color: var(--cor-fundo-secundario);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badgeSetor {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.btnFechar {
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnFechar:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+}
+
+/* ========================================================= */
+/* BARRA DE PROGRESSO / STEPPER (PASSO A PASSO)             */
+/* ========================================================= */
+.stepperHeader {
+  background-color: var(--cor-fundo-secundario);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.stepperItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.stepCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  background-color: var(--cor-fundo-principal);
+  border: 2px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  transition: all 0.25s ease;
+}
+
+.stepperItem.active .stepCircle {
+  background-color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.4);
+}
+
+.stepperItem.completed .stepCircle {
+  background-color: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+  color: #fff;
+}
+
+.stepperItem.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stepLabel {
+  display: flex;
+  flex-direction: column;
+}
+
+.stepNumber {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+}
+
+.stepTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.stepperItem.active .stepTitle {
+  color: var(--cor-destaque);
+}
+
+/* ========================================================= */
+/* CORPO DO PASSO                                            */
+/* ========================================================= */
+.painelBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: slideStep 0.25s ease-out;
+}
+
+@keyframes slideStep {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.bannerOSInfo {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.88rem;
+  color: var(--cor-texto-secundario);
+}
+
+.bannerOSInfo strong {
+  color: var(--cor-texto-principal);
+}
+
+.secaoCartao {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.secaoTitulo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 10px;
+}
+
+.gridCampos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.campoGrupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campoGrupo label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+}
+
+.inputField,
+.selectField,
+.textareaField {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--cor-texto-principal);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.inputField:focus,
+.selectField:focus,
+.textareaField:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
+}
+
+.textareaField {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Subcards do Passo 1 */
+.subcardMecanica {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.subcardHeaderMecanica {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 10px;
+}
+
+/* Badges e Toggles de Veículo */
+.toggleRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1.5px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.toggleBtn:hover {
+  border-color: var(--cor-destaque);
+  color: var(--cor-texto-principal);
+}
+
+.toggleBtn.active {
+  background-color: rgba(255, 107, 0, 0.15);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+}
+
+/* ========================================================= */
+/* ESTILO DE APP - CARDS DE HORÁRIOS & TURNOS                */
+/* ========================================================= */
+.appTurnoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appTurnoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: var(--cor-fundo-principal);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.displayHorasDigital {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--cor-sucesso);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.btnCancelarDiaAdicional {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--cor-erro, #ef4444);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnCancelarDiaAdicional:hover {
+  background-color: var(--cor-erro, #ef4444);
+  color: #ffffff;
+}
+
+.periodosGridApp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.periodoCardApp {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.periodoCardApp:hover {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.periodoHeaderApp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 10px;
+}
+
+.periodoIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.horasCamposRowApp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.campoHoraApp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campoHoraApp label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputHoraApp {
+  background-color: var(--cor-fundo-secundario);
+  border: 2px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 12px 10px;
+  color: var(--cor-texto-principal);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .inputHoraApp {
+  background-color: #1e293b;
+  color: #f8fafc !important;
+  border-color: #475569;
+  color-scheme: dark;
+}
+
+[data-theme="light"] .inputHoraApp {
+  background-color: #f8fafc;
+  color: #0f172a !important;
+  border-color: #cbd5e1;
+  color-scheme: light;
+}
+
+.inputHoraApp::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+[data-theme="dark"] .inputHoraApp::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.5);
+}
+
+.inputHoraApp:focus {
+  border-color: var(--cor-destaque);
+  background-color: var(--cor-fundo-cartao);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+}
+
+/* Banner de Resumo de Horários exibido nos Passos 3, 4 e 5 */
+.bannerHorasDiaInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px solid var(--cor-borda-cartao);
+  padding: 12px 16px;
+  border-radius: 14px;
+  margin-top: 10px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  color: var(--cor-texto-principal);
+}
+
+.badgeHorasDestaque {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--cor-sucesso);
+  padding: 5px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnAddSegundoPeriodo {
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px dashed var(--cor-destaque);
+  color: var(--cor-destaque);
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btnAddSegundoPeriodo:hover {
+  background-color: rgba(255, 107, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* ========================================================= */
+/* DROPDOWN DE BUSCA INTERATIVA DE PEÇAS (PASSO 5)          */
+/* ========================================================= */
+.buscaPecaWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownPecasLista {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 420px;
+  width: 100%;
+  max-width: 650px;
+  background-color: var(--cor-fundo-cartao);
+  border: 2px solid var(--cor-destaque);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 99999;
+  list-style: none;
+  padding: 6px;
+  margin: 0;
+}
+
+[data-theme="light"] .dropdownPecasLista {
+  background-color: #ffffff;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .dropdownPecasLista {
+  background-color: #1e2225;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+.itemPecaOpcao {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+}
+
+.itemPecaOpcao:last-child {
+  border-bottom: none;
+}
+
+.itemPecaOpcao:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+}
+
+.pecaInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.pecaDescricaoText {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.pecaCodigoText {
+  font-size: 0.76rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* ========================================================= */
+/* CHECKBOXES / OPÇÕES DE MÃO DE OBRA PURA & VEÍCULOS       */
+/* ========================================================= */
+.checkboxOptionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--cor-fundo-principal);
+  border: 1.5px solid var(--cor-borda-cartao);
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--cor-texto-principal);
+}
+
+.checkboxOptionRow:hover {
+  border-color: var(--cor-destaque);
+  background-color: var(--cor-fundo-sutil-forte);
+}
+
+.checkboxOptionRow.checked {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--cor-sucesso);
+}
+
+.customCheckboxInput {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--cor-destaque);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.avisoMaoDeObraPura {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--cor-sucesso);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pecaPrecoBadge {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--cor-destaque);
+  background: rgba(255, 107, 0, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Badge de Horas */
+.horasBadge {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--cor-sucesso);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Tabelas de Itens e Equipe */
+.subTabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.subTabela th {
+  text-align: left;
+  padding: 10px;
+  color: var(--cor-texto-secundario);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-weight: 700;
+}
+
+.subTabela td {
+  padding: 10px;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.btnAdicionarItem {
+  background-color: var(--cor-fundo-principal);
+  border: 1px dashed var(--cor-borda-cartao);
+  color: var(--cor-destaque);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnAdicionarItem:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  border-color: var(--cor-destaque);
+}
+
+.btnRemoverItem {
+  background: none;
+  border: none;
+  color: var(--cor-erro);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.btnRemoverItem:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+/* Card Resumo do Passo Final */
+.cardResumo {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resumoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+  padding-bottom: 8px;
+}
+
+.resumoItem strong {
+  color: var(--cor-destaque);
+}
+
+/* ========================================================= */
+/* RODAPÉ DO WIZARD (VOLTAR / AVANÇAR / CONCLUIR)           */
+/* ========================================================= */
+.painelFooter {
+  padding: 16px 24px;
+  background-color: var(--cor-fundo-secundario);
+  border-top: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnVoltar {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btnVoltar:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+}
+
+.btnAvancar {
+  background-color: var(--cor-destaque);
+  border: none;
+  color: var(--cor-texto-inverso);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.98rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+  transition: all 0.2s;
+}
+
+.btnAvancar:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnConcluirOS {
+  background-color: var(--cor-sucesso);
+  border: none;
+  color: #fff;
+  padding: 12px 26px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s;
+}
+
+.btnConcluirOS:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btnSalvarParcial {
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+/* Seletor de Dias / Turnos Ativos */
+.diaSelectorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--cor-fundo-principal);
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.diaBadgeBtn {
+  background: none;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.diaBadgeBtn.active {
+  background-color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+}
+
+.cardDiaResumo {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cardDiaResumoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnEditarDiaCard {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btnEditarDiaCard:hover {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border-color: var(--cor-destaque);
+}
+
+.btnExcluirDiaCard {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-erro, #ef4444);
+  padding: 5px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnExcluirDiaCard:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: var(--cor-erro, #ef4444);
+}
+
+.botaoAddNovoDia {
+  background-color: rgba(255, 107, 0, 0.12);
+  border: 1px dashed var(--cor-destaque);
+  color: var(--cor-destaque);
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.botaoAddNovoDia:hover {
+  background-color: rgba(255, 107, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Card e Banner de Justificativa de Atraso */
+.cardJustificativaAtraso {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bannerAtrasoInfo {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.badgeAtrasoAlerta {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: var(--cor-erro, #ef4444);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Card de Manutenção do Veículo Atendido */
+.cardVeiculoAtendido {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardVeiculoAtendidoHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+  border-bottom: 1px dashed var(--cor-borda-cartao);
+  padding-bottom: 10px;
+}
+
+.cardVeiculoAtendidoCorpo {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.checkboxesVeiculoAtendido {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 240px;
+}
+
+.checkboxItemVeiculo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  transition: all 0.2s;
+}
+
+.checkboxItemVeiculo.checked {
+  background-color: rgba(59, 130, 246, 0.12);
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+/* ========================================================= */
+/* PEÇAS EXTERNAS / COMPRAS DIRETAS & FOTO NOTA FISCAL       */
+/* ========================================================= */
+.btnAdicionarItemExterna {
+  background-color: rgba(217, 119, 6, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  color: #d97706;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnAdicionarItemExterna:hover {
+  background-color: rgba(217, 119, 6, 0.22);
+  transform: translateY(-1px);
+}
+
+.badgeOrigemEstoque {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badgeOrigemExterna {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(217, 119, 6, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.4);
+}
+
+.btnFotoNotaAnexo {
+  background-color: var(--cor-fundo-principal);
+  border: 1px dashed var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnFotoNotaAnexo:hover {
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+}
+
+.btnFotoNotaVer {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #059669;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btnFotoNotaVer:hover {
+  background-color: rgba(16, 185, 129, 0.22);
+}
+
+.miniaturaFotoNota {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+/* Modal de Visualização de Foto em Alta */
+.modalFotoBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalFotoCard {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.modalFotoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.modalFotoImg {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #000;
+}
+
+/* ========================================================= */
+/* TABELAS MODERNAS E ALINHADAS (PASSOS 4 E 5)              */
+/* ========================================================= */
+.subTabelaContainer {
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--cor-fundo-cartao);
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.subTabela {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.subTabela th {
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-secundario);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  vertical-align: middle;
+}
+
+.subTabela td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  vertical-align: middle;
+}
+
+.subTabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.subTabela tbody tr:hover {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.subTabelaInput {
+  background-color: var(--cor-fundo-principal);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.subTabelaInput:focus {
+  border-color: var(--cor-destaque);
+  background-color: var(--cor-fundo-cartao);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
+}
+
+.btnRemoverItem {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnRemoverItem:hover {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--cor-erro, #ef4444);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ========================================================= */
+/* OVERLAY DE AUDITORIA & PRÉ-CONFERÊNCIA (15 SEGUNDOS)      */
+/* ========================================================= */
+.overlayAuditoria {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(14px);
+  z-index: 99995;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  animation: fadeInAuditoria 0.25s ease-out;
+}
+
+@keyframes fadeInAuditoria {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.cardAuditoria {
+  background: radial-gradient(circle at center, var(--cor-fundo-sutil) 0%, var(--cor-fundo-cartao) 80%);
+  border: 2px solid var(--cor-destaque);
+  border-radius: 26px;
+  width: 95%;
+  max-width: 680px;
+  padding: 44px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 25px 80px rgba(255, 107, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.scannerScene {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.auditOrbit1 {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 107, 0, 0.55);
+  animation: spinClockwiseAudit 12s linear infinite;
+}
+
+.auditOrbit2 {
+  position: absolute;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top: 2.5px solid #10b981;
+  border-bottom: 2.5px solid var(--cor-destaque);
+  animation: spinCounterClockwiseAudit 4s linear infinite;
+}
+
+@keyframes spinClockwiseAudit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinCounterClockwiseAudit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+.auditCore {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.3), rgba(16, 185, 129, 0.2));
+  border: 2px solid var(--cor-destaque);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-destaque);
+  box-shadow: 0 0 35px rgba(255, 107, 0, 0.4);
+  animation: pulseAuditCore 2s infinite ease-in-out;
+  z-index: 2;
+}
+
+@keyframes pulseAuditCore {
+  0%, 100% {
+    transform: scale(0.96);
+    box-shadow: 0 0 22px rgba(255, 107, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 45px rgba(255, 107, 0, 0.65);
+  }
+}
+
+.satelliteAudit1 {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: #3b82f6;
+  animation: twinkleAudit 2.2s infinite ease-in-out;
+  z-index: 3;
+}
+
+.satelliteAudit2 {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  color: #10b981;
+  animation: twinkleAudit 2.6s infinite ease-in-out 0.5s;
+  z-index: 3;
+}
+
+@keyframes twinkleAudit {
+  0%, 100% {
+    transform: scale(0.8) rotate(0deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.25) rotate(15deg);
+    opacity: 1;
+  }
+}
+
+.auditBadgeLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 107, 0, 0.12);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  color: var(--cor-destaque);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--cor-destaque);
+  box-shadow: 0 0 8px var(--cor-destaque);
+  animation: dotBlinkAudit 1.4s infinite ease-in-out;
+}
+
+@keyframes dotBlinkAudit {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.auditTitle {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.auditSubtitle {
+  font-size: 0.94rem;
+  color: var(--cor-texto-secundario);
+  max-width: 520px;
+  margin: 8px 0 16px 0;
+  line-height: 1.5;
+}
+
+.auditProgressTrack {
+  width: 100%;
+  max-width: 440px;
+  height: 10px;
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  margin: 10px 0 20px 0;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auditProgressBar15s {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, var(--cor-destaque), #f59e0b, #10b981);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.6);
+  animation: fillProgress7s 7s linear forwards;
+}
+
+@keyframes fillProgress7s {
+  0% { width: 0%; }
+  25% { width: 28%; }
+  50% { width: 55%; }
+  75% { width: 80%; }
+  95% { width: 96%; }
+  100% { width: 100%; }
+}
+
+.btnPularAuditoria {
+  background: transparent;
+  border: 1.5px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnPularAuditoria:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border-color: var(--cor-destaque);
+}

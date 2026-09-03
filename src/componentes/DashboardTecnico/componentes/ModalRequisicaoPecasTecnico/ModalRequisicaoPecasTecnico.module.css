@@ -1,0 +1,307 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-principal);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  border-radius: 12px;
+  padding: 24px;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid var(--cor-borda-cartao);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.modalHeaderFlex h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+}
+
+.btnCloseModal {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btnCloseModal:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.alertaInformativo {
+  background-color: rgba(255, 107, 0, 0.1);
+  border-left: 4px solid var(--cor-destaque);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.alertaInformativo strong {
+  color: var(--cor-destaque);
+}
+
+.sectionForm {
+  background-color: var(--cor-fundo-secundario);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.sectionTitle {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  text-transform: uppercase;
+}
+
+.listaBusca {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-destaque);
+  border-radius: 6px;
+  margin: 4px 0 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.listaBusca li {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.listaBusca li:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-destaque);
+}
+
+.pecaSelectedRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background-color: var(--cor-fundo-principal);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-destaque);
+}
+
+.pecaName {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--cor-texto-principal);
+}
+
+.qtdInput {
+  width: 70px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-principal);
+  text-align: center;
+}
+
+.btnSmallConfirm {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.btnSmallCancel {
+  background-color: transparent;
+  color: var(--cor-texto-secundario);
+  border: 1px solid var(--cor-texto-secundario);
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tableResp {
+  overflow-x: auto;
+}
+
+.tableForm {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tableForm th,
+.tableForm td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.tableForm th {
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.btnDelLine {
+  background: transparent;
+  border: none;
+  color: var(--cor-erro);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnDelLine:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-borda-cartao);
+}
+
+.btnSalvarRascunho {
+  background-color: transparent;
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btnFinalizarOS {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnFinalizarOS:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modalContent {
+    width: 100%;
+    max-width: 100%;
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    border-radius: 20px 20px 0 0;
+    padding: 16px 14px 50px 14px;
+  }
+
+  .modalInput,
+  .qtdInput {
+    font-size: 16px !important;
+    /* Previne auto-zoom no navegador mobile Safari/Chrome */
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .pecaSelectedRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    margin-top: 20px;
+  }
+
+  .modalActions button {
+    width: 100%;
+    min-height: 42px;
+    font-size: 0.9rem;
+    justify-content: center;
+  }
+
+  .tableForm {
+    font-size: 0.76rem !important;
+  }
+
+  .tableForm th,
+  .tableForm td {
+    padding: 6px 4px !important;
+    font-size: 0.75rem !important;
+  }
+}

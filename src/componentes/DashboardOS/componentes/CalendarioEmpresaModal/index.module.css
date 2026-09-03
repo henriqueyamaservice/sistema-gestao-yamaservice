@@ -1,0 +1,411 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1.5rem;
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-cartao, #1e1e1e);
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.1));
+  border-radius: 16px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  color: var(--cor-texto-principal, #ffffff);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.1));
+  background-color: var(--cor-fundo-secundario, #252525);
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconContainer {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--cor-fundo-sutil-forte, rgba(255, 107, 0, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-destaque, #FF6B00);
+}
+
+.headerTitleGroup h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal, #ffffff);
+}
+
+.headerTitleGroup p {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario, #a0a0a0);
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario, #a0a0a0);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  background-color: var(--cor-fundo-sutil, rgba(255, 255, 255, 0.1));
+  color: var(--cor-texto-principal, #ffffff);
+}
+
+.modalBody {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Nav de Mês e Ano */
+.controlsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: var(--cor-fundo-secundario, #252525);
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.08));
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navBtn {
+  background-color: var(--cor-fundo-cartao, #1e1e1e);
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.15));
+  color: var(--cor-texto-principal, #ffffff);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navBtn:hover {
+  background-color: var(--cor-destaque, #FF6B00);
+  border-color: var(--cor-destaque, #FF6B00);
+  color: #fff;
+}
+
+.currentMonthTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  min-width: 160px;
+  text-align: center;
+  color: var(--cor-texto-principal, #ffffff);
+  text-transform: capitalize;
+}
+
+.legendBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.825rem;
+  color: var(--cor-texto-secundario, #a0a0a0);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dotNacional { background-color: #3b82f6; }
+.dotMunicipal { background-color: var(--cor-destaque, #FF6B00); }
+.dotSabado { background-color: #eab308; }
+.dotDomingo { background-color: #6b7280; }
+
+/* Grid do Calendário */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.weekHeader {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 4px;
+  color: var(--cor-texto-secundario, #a0a0a0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dayCell {
+  background-color: var(--cor-fundo-secundario, #252525);
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  min-height: 85px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dayCell:hover {
+  border-color: var(--cor-destaque, #FF6B00);
+  transform: translateY(-2px);
+}
+
+.dayCellEmpty {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+  min-height: 85px;
+}
+
+.dayHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dayNumber {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal, #ffffff);
+}
+
+.hoursTag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--cor-texto-secundario, #a0a0a0);
+}
+
+.hoursTagSegSex {
+  color: var(--cor-sucesso, #10b981);
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+.hoursTagSab {
+  color: #eab308;
+  background-color: rgba(234, 179, 8, 0.15);
+}
+
+.hoursTagZero {
+  color: #6b7280;
+  background-color: rgba(107, 114, 128, 0.15);
+}
+
+.feriadoBadge {
+  margin-top: 4px;
+  font-size: 0.725rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-weight: 500;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.badgeNacional {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.badgeMunicipal {
+  background-color: rgba(255, 107, 0, 0.2);
+  color: var(--cor-destaque, #FF6B00);
+  border: 1px solid rgba(255, 107, 0, 0.4);
+}
+
+/* Modal / Form para Adicionar Feriado Municipal */
+.formCard {
+  background-color: var(--cor-fundo-secundario, #252525);
+  border: 1px solid var(--cor-destaque, #FF6B00);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formCardTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--cor-destaque, #FF6B00);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario, #a0a0a0);
+}
+
+.inputField {
+  background-color: var(--cor-fundo-cartao, #1e1e1e);
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.15));
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--cor-texto-principal, #ffffff);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.inputField:focus {
+  border-color: var(--cor-destaque, #FF6B00);
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btnSecondary {
+  background-color: transparent;
+  border: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.2));
+  color: var(--cor-texto-principal, #ffffff);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+  background-color: var(--cor-fundo-sutil, rgba(255, 255, 255, 0.1));
+}
+
+.btnPrimary {
+  background-color: var(--cor-destaque, #FF6B00);
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+  background-color: var(--cor-destaque-hover, #e05e00);
+}
+
+.btnDelete {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: var(--cor-erro, #ef4444);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btnDelete:hover {
+  background-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Footer do Modal */
+.modalFooter {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--cor-borda-cartao, rgba(255, 255, 255, 0.1));
+  background-color: var(--cor-fundo-secundario, #252525);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.summaryCards {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario, #a0a0a0);
+  text-transform: uppercase;
+}
+
+.summaryValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cor-destaque, #FF6B00);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

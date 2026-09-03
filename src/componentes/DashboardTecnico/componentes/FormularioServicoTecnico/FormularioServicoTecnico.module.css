@@ -1,0 +1,776 @@
+/* ESTILOS DO MODAL DO TÉCNICO */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: var(--cor-texto-principal);
+}
+
+.stickyModalHeader {
+  position: sticky;
+  top: -24px;
+  margin: -24px -24px 16px -24px;
+  padding: 24px 24px 16px 24px;
+  background-color: var(--cor-fundo-cartao);
+  z-index: 20;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px 12px 0 0;
+}
+
+.btnCloseModalHeader {
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btnCloseModalHeader:hover {
+  color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+.modalHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.btnBackModal {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-principal);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.tagCC {
+  display: inline-block;
+  background: var(--cor-fundo-sutil, #3b82f633);
+  color: var(--cor-destaque, #3b82f6);
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: bold;
+}
+.subText {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  margin-bottom: 0;
+}
+
+.sectionForm {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionFormVeiculo {
+  background-color: rgba(239, 68, 68, 0.05);
+  border: 1px dashed var(--cor-erro, #ef4444);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  color: var(--cor-destaque);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sectionHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+.formGroup label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  color: var(--cor-texto-secundario);
+}
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+}
+
+.btnSmallAdd {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.btnSmallAdd:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-destaque);
+}
+
+.tableResp {
+  width: 100%;
+  overflow-x: auto;
+}
+.tableForm {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tableForm th {
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  padding-bottom: 6px;
+}
+.tableForm td {
+  padding: 4px 2px;
+}
+.tableForm input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+}
+
+.btnDelLine {
+  background: transparent;
+  border: none;
+  color: var(--cor-erro, #ef4444);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.listaBusca {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  list-style: none;
+  margin: 4px 0 0 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.listaBusca li {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+.listaBusca li:hover {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.pecaSelectedRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.pecaName {
+  flex: 1;
+  font-size: 0.85rem;
+}
+.qtdInput {
+  width: 70px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+}
+.btnSmallConfirm {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btnSmallCancel {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.listaPecasUsadas {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+}
+.listaPecasUsadas li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--cor-borda-cartao);
+}
+.listaPecasUsadas button {
+  background: transparent;
+  border: none;
+  color: var(--cor-erro);
+  cursor: pointer;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.btnSalvarRascunho {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: transparent;
+  color: var(--cor-texto-principal);
+  cursor: pointer;
+}
+.btnFinalizarOS {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--cor-sucesso, #10b981);
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnSalvarTurno {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2), 0 2px 4px -1px rgba(16, 185, 129, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btnSalvarTurno:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3), 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.btnSalvarTurno:active {
+  transform: translateY(0);
+}
+
+.btnEditarTurno {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btnEditarTurno:hover {
+  background-color: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+}
+
+.periodoCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cor-fundo-secundario);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.periodoTag {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--cor-destaque);
+  white-space: nowrap;
+}
+
+.campoHora {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.campoHora label {
+  font-size: 0.7rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.campoHora input {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  width: 95px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+}
+
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modalContent {
+    max-width: 100%;
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    border-radius: 20px 20px 0 0;
+    padding: 38px 14px 50px 14px;
+    gap: 12px;
+  }
+
+  .stickyModalHeader {
+    position: sticky;
+    top: -38px;
+    background-color: var(--cor-fundo-cartao);
+    z-index: 50;
+    padding: 10px 14px 10px 14px;
+    margin: -38px -14px 16px -14px;
+    border-bottom: 1px solid var(--cor-borda-cartao);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .modalHeaderFlex {
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .modalHeaderFlex h3 {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    margin: 0;
+  }
+
+  .subText {
+    font-size: 0.8rem !important;
+    margin-bottom: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .formGroup input,
+  .formGroup select,
+  .formGroup textarea {
+    font-size: 16px !important; /* Previne auto-zoom no navegador mobile Safari/Chrome */
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    margin-top: 20px;
+  }
+
+  .modalActions button {
+    width: 100%;
+    min-height: 42px;
+    font-size: 0.9rem;
+    justify-content: center;
+  }
+
+  .periodoCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    flex: 1 1 100%;
+  }
+
+  .campoHora {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .campoHora input {
+    width: 100% !important;
+    min-height: 38px !important;
+    font-size: 15px !important;
+    padding: 6px 4px !important;
+    box-sizing: border-box !important;
+    text-align: center;
+  }
+
+  .periodoAtendimentoBox {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .periodoLabel {
+    align-self: center;
+    justify-content: center;
+  }
+
+  .periodoValueBox {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+.periodoAtendimentoBox {
+  background-color: var(--cor-fundo-secundario);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  border: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.periodoLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.periodoValueBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.periodoBadgeItem {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-principal);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.periodoDivisor {
+  font-size: 0.78rem;
+  color: var(--cor-destaque);
+  font-weight: bold;
+}
+
+.turnoHeaderBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--cor-fundo-secundario);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.maoDeObraRow {
+  display: grid;
+  grid-template-columns: 1fr 140px 80px 30px;
+  gap: 8px;
+  align-items: center;
+}
+
+.pecaUtilizadaRow {
+  display: grid;
+  grid-template-columns: 1fr 90px 30px;
+  gap: 8px;
+  align-items: center;
+}
+
+.veiculoUtilizadoRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 80px) 30px;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0;
+  }
+  
+  .modalContent {
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  
+  .turnoHeaderBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .maoDeObraRow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+
+  .maoDeObraNomeInput {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .maoDeObraFuncaoSelect {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .maoDeObraHorasInput {
+    width: 75px !important;
+  }
+
+  .pecaUtilizadaRow {
+    display: flex !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+
+  .pecaUtilizadaRow input[type="text"] {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .pecaUtilizadaRow input[type="number"] {
+    width: 65px !important;
+  }
+
+  .veiculoUtilizadoRow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+
+  .veiculoPlacaSelect {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .veiculoUtilizadoRow input {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .sectionHeaderFlex {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sectionHeaderButtons {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .sectionHeaderButtons button {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 0.76rem !important;
+    white-space: normal !important;
+    text-align: center;
+  }
+
+  .turnoSalvoHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .turnoSalvoTopLine {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .turnoSalvoHorarios {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.8rem;
+  }
+
+  .veiculoSalvoRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .dataApontamentoBox {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .turnoBotoesBox {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .turnoBotoesBox button:first-child {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.sectionHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.sectionHeaderButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.turnoSalvoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.turnoSalvoTopLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.turnoSalvoHorarios {
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.veiculoSalvoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--cor-borda-cartao);
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dataApontamentoBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.turnoBotoesBox {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}

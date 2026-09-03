@@ -1,0 +1,352 @@
+[
+  {
+    "codigo": "685531835",
+    "descricao": "ADMINSTRATIVO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "685531836",
+    "descricao": "PRODUÇÃO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "685531837",
+    "descricao": "KAZUNORI YAMAGUCHI - YAMAVES",
+    "inativo": "N"
+  },
+  {
+    "codigo": "685531838",
+    "descricao": "SERVIÇO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674053",
+    "descricao": "COMERCIAL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674055",
+    "descricao": "FINANCEIRO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674858",
+    "descricao": "SUPRIMENTOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674861",
+    "descricao": "RH-PESSOAL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674863",
+    "descricao": "SEGURANÇA DO TRABALHO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688674865",
+    "descricao": "SAÚDE DO TRABALHO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679664",
+    "descricao": "GANJAS PRÓPRIA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679666",
+    "descricao": "CONSTRUCAO CIVIL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679668",
+    "descricao": "ELÉTRICA PREDIAL E COMANDOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679670",
+    "descricao": "MECÂNICA AUTOMITIVA E INDUSTRIAL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679672",
+    "descricao": "SERRALHERIA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679674",
+    "descricao": "LOGÍSTICA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679676",
+    "descricao": "MÁQUINAS PESADAS E EQUIPAMENTOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679678",
+    "descricao": "ÁGUA BRANCA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679680",
+    "descricao": "AREAL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679682",
+    "descricao": "CAMPINA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679684",
+    "descricao": "CASTANHEIRA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679686",
+    "descricao": "GENIPAÚBA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679688",
+    "descricao": "GUARIMÃ",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679690",
+    "descricao": "ITÁ",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679692",
+    "descricao": "MOSQUEIRO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679694",
+    "descricao": "PALMEIRA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688679696",
+    "descricao": "SÃO CAETANO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680515",
+    "descricao": "PATRIMÔNIO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680518",
+    "descricao": "ESTOQUE",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680520",
+    "descricao": "IMOVEIS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680522",
+    "descricao": "VEÍCULOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680524",
+    "descricao": "MÁQUINAS EQUIPAMENTOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680528",
+    "descricao": "FERRAMENTAS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680530",
+    "descricao": "VEÍCULOS PESADOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680532",
+    "descricao": "AUTOMÓVEIS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680534",
+    "descricao": "FERRAMENTAS MANUAIS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688680537",
+    "descricao": "ELÉTRICAS E PNEUMÁTICAS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691589",
+    "descricao": "GRANJAS PARCEIRAS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691609",
+    "descricao": "NÚCLEO 01",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691612",
+    "descricao": "NÚCLEO 02",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691653",
+    "descricao": "KAWAMURA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691655",
+    "descricao": "KIMURA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691658",
+    "descricao": "TAKASHI",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688691660",
+    "descricao": "TERUO SATO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688693800",
+    "descricao": "FROTA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688693842",
+    "descricao": "EQUIPAMENTOS AVICOLAS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688694658",
+    "descricao": "ALMOXARIFADO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688694660",
+    "descricao": "DEPOSITO-SERRAGEM",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688694662",
+    "descricao": "DEPOSITO-CAMA DE FRANGO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "688694664",
+    "descricao": "PATIO 01",
+    "inativo": "N"
+  },
+  {
+    "codigo": "752381508",
+    "descricao": "INCUBATORIO DE AVES",
+    "inativo": "N"
+  },
+  {
+    "codigo": "752381510",
+    "descricao": "POSTO DE COMBUSTIVEL",
+    "inativo": "N"
+  },
+  {
+    "codigo": "776434658",
+    "descricao": "APANHA DE FRANGOS",
+    "inativo": "N"
+  },
+  {
+    "codigo": "776434663",
+    "descricao": "SLD (SERVIÇO DE LIMPEZA E DESINFECÇÃO)",
+    "inativo": "N"
+  },
+  {
+    "codigo": "1084835884",
+    "descricao": "FABRICA DE RAÇAO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "1087496926",
+    "descricao": "OFICINA ELETRONICA E TI",
+    "inativo": "N"
+  },
+  {
+    "codigo": "1153832453",
+    "descricao": "LIMOEIRO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "1242684851",
+    "descricao": "ARÚ",
+    "inativo": "N"
+  },
+  {
+    "codigo": "5900629971",
+    "descricao": "PA-140 KM-53/ANTIGO KM-14",
+    "inativo": "N"
+  },
+  {
+    "codigo": "5923437567",
+    "descricao": "CASA AO LADO DO ESCRITORIO",
+    "inativo": "N"
+  },
+  {
+    "codigo": "5923438113",
+    "descricao": "DIRETORIA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "5924917752",
+    "descricao": "OFICINA SERRALHERIA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "8607089924",
+    "descricao": "USINA SOLAR",
+    "inativo": "N"
+  },
+  {
+    "codigo": "8683821221",
+    "descricao": "SITIO ARATANHA",
+    "inativo": "N"
+  },
+  {
+    "codigo": "11830821192",
+    "descricao": "CONTAINER 01",
+    "inativo": "N"
+  },
+  {
+    "codigo": "11830821233",
+    "descricao": "CONTAINER 02",
+    "inativo": "N"
+  },
+  {
+    "codigo": "11830821417",
+    "descricao": "CONTAINER 03",
+    "inativo": "N"
+  },
+  {
+    "codigo": "11830821497",
+    "descricao": "CONTAINER 04",
+    "inativo": "N"
+  },
+  {
+    "codigo": "11892192296",
+    "descricao": "CARROCERIA ROOL ON - 7",
+    "inativo": "N"
+  },
+  {
+    "codigo": "12005204703",
+    "descricao": "AVICEMA - PA-242",
+    "inativo": "N"
+  }
+]

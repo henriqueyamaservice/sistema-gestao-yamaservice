@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import styles from './index.module.css';
-import { Fuel, FileText, Truck, Plus, Settings, Database, Menu } from 'lucide-react';
+import { Fuel, FileText, Truck, Plus, Settings, Database, Menu, Zap, X } from 'lucide-react';
 import logoYamaservice from '../../../assets/YAMASERVICE.jpeg';
 
 import FormularioRequisicao from './componentes/FormularioRequisicao';
@@ -10,15 +11,17 @@ import DetalhesAbastecimentoModal from './componentes/DetalhesAbastecimentoModal
 import CadastroVeiculos from './componentes/CadastroVeiculos';
 import RevisaoVeiculo from './componentes/RevisaoVeiculo';
 import EstoqueCombustivel from './componentes/EstoqueCombustivel';
+import HistoricoCombustivel from './componentes/HistoricoCombustivel';
 import RelatorioGeradores from './componentes/RelatorioGeradores';
+import RevisaoGerador from './componentes/RevisaoGerador';
+import NotificationRevisaoService from './componentes/NotificationRevisaoService';
 
-const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
-  const [abaAtiva, setAbaAtiva] = useState('geral');
+const DashboardControleCombustivel = ({ osList, abaAtiva }) => {
   const [requisicoes, setRequisicoes] = useState([]);
 
   // Buscar dados do backend
   useEffect(() => {
-    fetch('http://localhost:3000/api/combustivel')
+    fetch(`/api/combustivel`)
       .then(res => res.json())
       .then(data => {
         setRequisicoes(data);
@@ -31,20 +34,24 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
   const [showNovoAbastecimento, setShowNovoAbastecimento] = useState(false);
   const [showDetalhesAbastecimento, setShowDetalhesAbastecimento] = useState(false);
   const [requisicaoParaAbastecer, setRequisicaoParaAbastecer] = useState(null);
+  
+  // Novo estado para o modal de escolha do tipo de requisição
+  const [showTipoRequisicaoModal, setShowTipoRequisicaoModal] = useState(false);
+  const [tipoRequisicaoSelecionado, setTipoRequisicaoSelecionado] = useState('carro');
 
   const handleAddRequisicao = (req) => {
     setRequisicoes(prev => [...prev, req]);
   };
 
   const handleAddAbastecimento = (abast) => {
-    setRequisicoes(prev => prev.map(r => r.numeroRequisicao === abast.numeroRequisicao ? abast : r));
+    setRequisicoes(prev => prev.map(r => (r.id === abast.id || r.numeroRequisicao === abast.numeroRequisicao) ? abast : r));
   };
 
   const handleRowClick = (req) => {
     if (req.status === 'EM ANDAMENTO' || req.status === 'ABERTA') {
       setRequisicaoParaAbastecer(req);
       setShowNovoAbastecimento(true);
-    } else if (req.status === 'CONCLUÍDO' || req.status === 'ABASTECIDA') {
+    } else {
       setRequisicaoParaAbastecer(req);
       setShowDetalhesAbastecimento(true);
     }
@@ -52,101 +59,77 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Header */}
-      <header className={`${styles.header} ${styles.animateFadeIn}`}>
-        <div className={`${styles.logoContainer} ${styles.logoContainerHeader}`}>
-          {onOpenMenu && (
-            <button
-              onClick={onOpenMenu}
-              className={styles.menuBtn}
-              title="Abrir Menu"
-            >
-              <Menu size={32} />
-            </button>
-          )}
-          <img
-            src={logoYamaservice}
-            alt="Yamaservice Logo"
-            className={styles.logoImg}
-          />
-          <div className={styles.title}>
-            yamaservice
-            <span className={styles.subtitle}>Controle de Combustível</span>
-          </div>
-        </div>
-
-        <div className={styles.actions}>
-          <button
-            className={`${styles.btnSecondary} ${abaAtiva === 'geral' ? styles.active : ''}`}
-            onClick={() => setAbaAtiva('geral')}
-          >
-            <FileText size={18} />
-            Relatório Geral
-          </button>
-
-          <button
-            className={`${styles.btnSecondary} ${abaAtiva === 'cadastro' ? styles.active : ''}`}
-            onClick={() => setAbaAtiva('cadastro')}
-          >
-            <Truck size={18} />
-            Cad. Veículos
-          </button>
-
-          <button
-            className={`${styles.btnSecondary} ${abaAtiva === 'estoque' ? styles.active : ''}`}
-            onClick={() => setAbaAtiva('estoque')}
-          >
-            <Database size={18} />
-            Estoque
-          </button>
-
-          <button
-            className={`${styles.btnSecondary} ${abaAtiva === 'geradores' ? styles.active : ''}`}
-            onClick={() => setAbaAtiva('geradores')}
-          >
-            <Fuel size={18} />
-            Granjas
-          </button>
-
-          <button
-            className={`${styles.btnSecondary} ${abaAtiva === 'frota' ? styles.active : ''}`}
-            onClick={() => setAbaAtiva('frota')}
-          >
-            <Settings size={18} />
-            Revisão
-          </button>
-        </div>
-      </header>
-
+      <NotificationRevisaoService />
+      
       {/* Main Content Area */}
       <main className={styles.animateFadeIn}>
         {abaAtiva === 'geral' && (
-          <div>
+          <div className={styles.tableSection}>
             <div className={styles.flexRow}>
               <h2 className={`${styles.cardTitle} ${styles.noBorderBottom}`}>
-                Gerenciamento de Abastecimentos
+                Relatório de Saídas (Abastecimentos)
               </h2>
               <button
                 className={`${styles.btnSecondary} ${styles.btnDestaque}`}
-                onClick={() => setShowNovaRequisicao(true)}
+                onClick={() => setShowTipoRequisicaoModal(true)}
               >
                 <Plus size={18} />
                 Nova Requisição
               </button>
             </div>
 
-            <div className={`${styles.tableSection} ${styles.tableSectionTransparent}`}>
-              <TabelaCombustivel requisicoes={requisicoes} onRowClick={handleRowClick} />
-            </div>
+            <TabelaCombustivel requisicoes={requisicoes} onRowClick={handleRowClick} />
 
-            {showNovaRequisicao && (
-              <FormularioRequisicao
-                onAdd={handleAddRequisicao}
-                onClose={() => setShowNovaRequisicao(false)}
-              />
+            {showTipoRequisicaoModal && ReactDOM.createPortal(
+              <div className={styles.overlay}>
+                <div className={styles.modalCard} style={{ maxWidth: '400px', textAlign: 'center' }}>
+                  <button type="button" onClick={() => setShowTipoRequisicaoModal(false)} className={styles.closeButton}>
+                    <X size={24} />
+                  </button>
+                  <h2 className={styles.cardTitle} style={{ justifyContent: 'center', borderBottom: 'none', marginBottom: '20px' }}>
+                    Para onde é a saída?
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <button
+                      className={styles.btnSecondary}
+                      style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
+                      onClick={() => {
+                        setTipoRequisicaoSelecionado('carro');
+                        setShowTipoRequisicaoModal(false);
+                        setShowNovaRequisicao(true);
+                      }}
+                    >
+                      <Truck size={32} color="var(--cor-destaque)" />
+                      Veículos / Frota
+                    </button>
+                    <button
+                      className={styles.btnSecondary}
+                      style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
+                      onClick={() => {
+                        setTipoRequisicaoSelecionado('granja');
+                        setShowTipoRequisicaoModal(false);
+                        setShowNovaRequisicao(true);
+                      }}
+                    >
+                      <Zap size={32} color="#eab308" />
+                      Geradores / Granjas
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body
             )}
 
-            {showNovoAbastecimento && requisicaoParaAbastecer && (
+            {showNovaRequisicao && ReactDOM.createPortal(
+              <FormularioRequisicao
+                tipo={tipoRequisicaoSelecionado}
+                onAdd={handleAddRequisicao}
+                onClose={() => setShowNovaRequisicao(false)}
+              />,
+              document.body
+            )}
+
+            {showNovoAbastecimento && requisicaoParaAbastecer && ReactDOM.createPortal(
               <FormularioAbastecimento
                 onAdd={handleAddAbastecimento}
                 requisicao={requisicaoParaAbastecer}
@@ -154,23 +137,29 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
                   setShowNovoAbastecimento(false);
                   setRequisicaoParaAbastecer(null);
                 }}
-              />
+              />,
+              document.body
             )}
 
-            {showDetalhesAbastecimento && requisicaoParaAbastecer && (
+            {showDetalhesAbastecimento && requisicaoParaAbastecer && ReactDOM.createPortal(
               <DetalhesAbastecimentoModal
                 requisicao={requisicaoParaAbastecer}
                 onClose={() => {
                   setShowDetalhesAbastecimento(false);
                   setRequisicaoParaAbastecer(null);
                 }}
-              />
+              />,
+              document.body
             )}
           </div>
         )}
 
         {abaAtiva === 'estoque' && (
           <EstoqueCombustivel />
+        )}
+
+        {abaAtiva === 'historico' && (
+          <HistoricoCombustivel />
         )}
 
         {abaAtiva === 'geradores' && (
@@ -183,9 +172,15 @@ const DashboardControleCombustivel = ({ osList, onOpenMenu }) => {
           </div>
         )}
 
-        {abaAtiva === 'frota' && (
+        {abaAtiva === 'revisao-veiculos' && (
           <div className={styles.tableSection}>
             <RevisaoVeiculo osList={osList || []} />
+          </div>
+        )}
+
+        {abaAtiva === 'revisao-geradores' && (
+          <div className={styles.tableSection}>
+            <RevisaoGerador osList={osList || []} />
           </div>
         )}
       </main>

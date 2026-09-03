@@ -15,7 +15,7 @@ const NotasFiscais = () => {
   const fetchNotas = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/sefaz/notas');
+      const res = await fetch('/api/sefaz/notas');
       const data = await res.json();
       setNotas(data);
     } catch (error) {
@@ -28,7 +28,7 @@ const NotasFiscais = () => {
   const handleSincronizar = async () => {
     setSincronizando(true);
     try {
-      const res = await fetch('http://localhost:3000/api/sefaz/sincronizar');
+      const res = await fetch('/api/sefaz/sincronizar');
       const data = await res.json();
       alert(data.message);
       setNotas(data.notas);

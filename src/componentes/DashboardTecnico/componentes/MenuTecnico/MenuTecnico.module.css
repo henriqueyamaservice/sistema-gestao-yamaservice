@@ -1,0 +1,246 @@
+.sidebar {
+  width: 260px;
+  background-color: var(--cor-fundo-cartao);
+  border-right: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  height: 100%;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebarCollapsed {
+  width: 68px;
+}
+
+.sidebarHeader {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+  margin-bottom: 12px;
+}
+
+.sidebarCollapsed .sidebarHeader {
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.brandContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebarCollapsed .brandContainer {
+  display: none;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.brand h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand p {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  margin: 0;
+}
+
+.toggleCollapseBtn {
+  background: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.toggleCollapseBtn:hover {
+  background: var(--cor-destaque);
+  color: #fff;
+  border-color: var(--cor-destaque);
+}
+
+.navMenu {
+  flex: 1;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.navSection {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.navItemActive {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
+  border-color: rgba(255, 107, 0, 0.2);
+  font-weight: 600;
+}
+
+.navIcon {
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.badge {
+  background-color: var(--cor-fundo-sutil-forte);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.navItemActive .badge {
+  background-color: rgba(255, 107, 0, 0.2);
+  color: var(--cor-destaque);
+}
+
+.collapsedCenter {
+  justify-content: center !important;
+  padding: 10px 0 !important;
+}
+
+.sidebarFooter {
+  padding: 20px;
+  border-top: 1px solid var(--cor-fundo-sutil);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.mobileMenuOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+}
+
+.mobileMenuBtn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  transition: transform 0.2s;
+}
+
+.mobileMenuBtn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    bottom: 0;
+    width: 280px;
+    z-index: 9999;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.mobileOpen {
+    left: 0;
+  }
+
+  .sidebarCollapsed {
+    width: 280px;
+  }
+
+  .toggleCollapseBtn {
+    display: none;
+  }
+
+  .mobileMenuOverlay.isOpen {
+    display: block;
+  }
+
+  .mobileMenuBtn {
+    display: flex;
+  }
+}

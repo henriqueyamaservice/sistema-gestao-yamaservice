@@ -8,7 +8,6 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   const [quantidadeItem, setQuantidadeItem] = useState(1);
   const [itensCarrinho, setItensCarrinho] = useState([]);
   const [clientes, setClientes] = useState([]);
-  const [vendedores, setVendedores] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [projetos, setProjetos] = useState([]);
   const [locaisEstoque, setLocaisEstoque] = useState([]);
@@ -20,7 +19,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   useEffect(() => {
     const fetchClientes = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/fornecedores');
+        const res = await fetch('/api/fornecedores');
         if (res.ok) {
           const data = await res.json();
           setClientes(data);
@@ -31,22 +30,9 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     };
     fetchClientes();
 
-    const fetchVendedores = async () => {
-      try {
-        const res = await fetch('http://localhost:3000/api/vendedores');
-        if (res.ok) {
-          const data = await res.json();
-          setVendedores(data);
-        }
-      } catch (err) {
-        console.error('Erro ao buscar vendedores:', err);
-      }
-    };
-    fetchVendedores();
-
     const fetchDepartamentos = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/departamentos');
+        const res = await fetch('/api/departamentos');
         if (res.ok) setDepartamentos(await res.json());
       } catch (err) { console.error('Erro ao buscar departamentos:', err); }
     };
@@ -54,15 +40,36 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
 
     const fetchProjetos = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/projetos');
-        if (res.ok) setProjetos(await res.json());
-      } catch (err) { console.error('Erro ao buscar projetos:', err); }
+        const [resProj, resOs] = await Promise.all([
+          fetch('/api/projetos'),
+          fetch('/api/os')
+        ]);
+
+        let listaCombinada = [];
+
+        if (resProj.ok) {
+          const projs = await resProj.json();
+          listaCombinada = projs.map(p => ({ codigo: p.codigo, nome: p.nome }));
+        }
+
+        if (resOs.ok) {
+          const ordens = await resOs.json();
+          ordens.forEach(os => {
+            const veiculosStr = os.veiculos?.map(v => v.placa).filter(Boolean).join(', ');
+            const infoVeiculos = veiculosStr ? ` (${veiculosStr})` : '';
+            const labelOs = `${os.codigo}${infoVeiculos}`;
+            listaCombinada.unshift({ codigo: os.codigo, nome: labelOs });
+          });
+        }
+
+        setProjetos(listaCombinada);
+      } catch (err) { console.error('Erro ao buscar projetos e O.S.:', err); }
     };
     fetchProjetos();
 
     const fetchLocaisEstoque = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/locais-estoque');
+        const res = await fetch('/api/locais-estoque');
         if (res.ok) setLocaisEstoque(await res.json());
       } catch (err) { console.error('Erro ao buscar locais de estoque:', err); }
     };
@@ -80,10 +87,10 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   }, [itensIniciais]);
 
   const [formulario, setFormulario] = useState({
+    dataLancamento: new Date().toISOString().split('T')[0],
     localEstoque: '01 - Almoxarifado',
     centroCusto: 'GRANJA',
     contatoCliente: '',
-    vendedor: '',
     numeroOS: ''
   });
 
@@ -100,7 +107,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         const ean = (p.ean || '').toLowerCase();
         const bateLote = p.lotes?.some(l => (l.ean || '').toLowerCase().includes(termo));
         return nome.includes(termo) || codigo.includes(termo) || ean.includes(termo) || bateLote;
-      }).slice(0, 5)
+      }).slice(0, 15)
     : [];
 
   const handleSelecionarProduto = (prod) => {
@@ -118,7 +125,11 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
-    setFormulario(prev => ({ ...prev, [name]: value.toUpperCase() }));
+    if (name === 'localEstoque' || name === 'centroCusto' || name === 'dataLancamento') {
+      setFormulario(prev => ({ ...prev, [name]: value }));
+    } else {
+      setFormulario(prev => ({ ...prev, [name]: value.toUpperCase() }));
+    }
   };
 
   const handleAbrirModalCadastro = (tipo, titulo, campoTarget) => {
@@ -182,7 +193,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/requisicoes', {
+      const response = await fetch('/api/requisicoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -197,7 +208,12 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
       const totalItens = req.itens?.reduce((acc, item) => acc + (Number(item.quantidade) || 0), 0) || 0;
 
       const printWindow = window.open('', '_blank', 'width=400,height=600');
-      printWindow.document.write(`
+
+      if (!printWindow) {
+        alert('⚠️ O seu navegador bloqueou a janela de impressão! Por favor, libere os pop-ups para este site para imprimir o comprovante.');
+        // Continua a execução normalmente (limpa o formulário, etc)
+      } else {
+        printWindow.document.write(`
         <html>
           <head>
             <title>Comprovante - OS ${req.numeroOS || req.id.slice(-6)}</title>
@@ -315,9 +331,14 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         </html>
       `);
       printWindow.document.close();
+      }
 
       setItensCarrinho([]);
       setFormulario({ ...formulario, contatoCliente: '', vendedor: '', numeroOS: '' });
+
+      setTimeout(() => {
+        if (onVoltar) onVoltar();
+      }, 1500);
 
     } catch (error) {
       setMensagem({ tipo: 'erro', texto: error.message });
@@ -351,6 +372,15 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         <div className={styles.cardSection}>
           <h3>1. Dados Gerais da {tipoInicial === 'reposicao' ? 'Solicitação' : 'Saída'}</h3>
           <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label>Data</label>
+              <input
+                type="date"
+                name="dataLancamento"
+                value={formulario.dataLancamento}
+                onChange={handleChangeForm}
+              />
+            </div>
             <div className={styles.formGroup}>
               <label>Local de Estoque</label>
               <select name="localEstoque" value={formulario.localEstoque} onChange={handleChangeForm}>
@@ -400,31 +430,9 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                   value={formulario.contatoCliente}
                   onChange={handleChangeForm}
                 />
-                <datalist id="lista-clientes">
+                  <datalist id="lista-clientes">
                   {clientes.map(c => (
                     <option key={c.codigo_cliente_omie} value={c.razao_social || c.nome_fantasia} />
-                  ))}
-                </datalist>
-              </div>
-              <div className={styles.formGroup}>
-                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  Vendedor
-                  <button type="button" onClick={() => handleAbrirModalCadastro('vendedor', 'Cadastrar Novo Vendedor', 'vendedor')} title="Novo Vendedor" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cor-destaque)', padding: 0 }}>
-                    <Plus size={16} />
-                  </button>
-                </label>
-                <input
-                  id="input-vendedor"
-                  type="text"
-                  name="vendedor"
-                  list="lista-vendedores"
-                  placeholder="Selecione ou digite um novo..."
-                  value={formulario.vendedor}
-                  onChange={handleChangeForm}
-                />
-                <datalist id="lista-vendedores">
-                  {vendedores.map(v => (
-                    <option key={v.codigo} value={v.nome} />
                   ))}
                 </datalist>
               </div>

@@ -1,0 +1,30 @@
+[
+    {
+        "id": "1785347162488",
+        "data": "2026-07-29",
+        "fornecedor": "VETRA",
+        "produto": "DIESEL",
+        "quantidade": 15000,
+        "notaFiscal": "950",
+        "valorUn": 5.94,
+        "estoque": "P YAMAVES",
+        "situacao": "EM CONSUMO",
+        "observacao": "",
+        "valorTotal": "89100.00",
+        "situacaoForcada": "EM CONSUMO"
+    },
+    {
+        "id": "1787075598055",
+        "data": "2026-08-13",
+        "fornecedor": "VETRA COMERCIO (GM)",
+        "produto": "DIESEL",
+        "quantidade": 15000,
+        "notaFiscal": "1019",
+        "valorUn": 5.9,
+        "estoque": "P YAMAVES",
+        "situacao": "INTEGRO",
+        "observacao": "",
+        "valorTotal": "88500.00",
+        "situacaoForcada": "EM CONSUMO"
+    }
+]

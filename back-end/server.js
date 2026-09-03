@@ -1,9 +1,40 @@
 import app from './src/app.js';
+import omieProdutosService from './src/services/omieProdutosService.js';
+import getDb from './src/config/database.js';
+import { sincronizarCadastrosParaBanco } from './src/services/cadastrosSyncService.js';
+
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  }
+});
+
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Novo cliente conectado: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`🔌 Cliente desconectado: ${socket.id}`);
+  });
+});
+
+server.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  
+  try {
+    const db = await getDb();
+    console.log(`💾 Banco de dados (${db.driver}) inicializado com sucesso.`);
+  } catch (err) {
+    console.error(`❌ Erro ao inicializar o banco de dados:`, err.message);
+  }
+  
   console.log(`📂 Arquitetura MVC/Modular aplicada com sucesso!`);
   console.log(`Rotas principais disponíveis:`);
   console.log(`- GET  http://localhost:${PORT}/api/produtos`);
@@ -11,4 +42,25 @@ app.listen(PORT, () => {
   console.log(`- GET  http://localhost:${PORT}/api/requisicoes`);
   console.log(`- GET  http://localhost:${PORT}/api/os`);
   console.log(`- GET  http://localhost:${PORT}/api/pedidos`);
+  console.log(`- POST http://localhost:${PORT}/api/remessa/enviar`);
+
+  // Iniciar sincronização em background da Omie
+  setTimeout(() => {
+    omieProdutosService.sincronizarProdutosPrd(); // Chama 5 segundos após subir o servidor
+    
+    // Agendador manual: Roda às 07:00, 12:00, 17:00 e 00:00
+    setInterval(() => {
+      const now = new Date();
+      const hours = now.getHours();
+      const mins = now.getMinutes();
+      
+      if ((hours === 7 || hours === 12 || hours === 17 || hours === 0) && mins === 0) {
+        if (!global.lastSyncTime || (now.getTime() - global.lastSyncTime) > 60000) {
+          global.lastSyncTime = now.getTime();
+          console.log(`[AGENDADOR] Iniciando sincronização automática programada para as ${hours}:00`);
+          omieProdutosService.sincronizarProdutosPrd();
+        }
+      }
+    }, 30000); // Checa a cada 30 segundos
+  }, 5000);
 });

@@ -35,7 +35,7 @@ const RelatorioVeiculos = ({ osList }) => {
   const [veiculosConfig, setVeiculosConfig] = useState([]);
 
   const carregarConfiguracoes = () => {
-    fetch('http://localhost:3000/api/veiculos')
+    fetch(`/api/veiculos`)
       .then(res => res.json())
       .then(data => setVeiculosConfig(data))
       .catch(err => console.error(err));

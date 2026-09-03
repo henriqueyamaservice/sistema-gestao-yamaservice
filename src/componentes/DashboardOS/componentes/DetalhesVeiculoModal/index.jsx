@@ -19,9 +19,11 @@ function parseKM(kmString) {
 }
 
 const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
-
   // Encontra a configuração do veículo
   const conf = veiculosConfig?.find(v => v.placa === placa);
+  const isMaq = conf?.tipoEquipamento === 'MAQUINA' || conf?.tipoMedicao === 'Horas' || conf?.tipoMedicao === 'HORAS';
+  const unidade = isMaq ? 'Horas' : 'KM';
+  const labelMedicao = isMaq ? 'Horímetro Atual' : 'KM Atual';
 
   // Filtra as O.S. que esse veículo participou
   const historicoOS = useMemo(() => {
@@ -40,6 +42,15 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
           km: os.kmRodado, 
           kmInicial: os.kmInicial, 
           kmFinal: os.kmFinal 
+        });
+      }
+
+      // Adiciona também os veículos do diário de bordo (turnos)
+      if (os.servicosExecutados && Array.isArray(os.servicosExecutados)) {
+        os.servicosExecutados.forEach(s => {
+          if (s.veiculosUtilizados && Array.isArray(s.veiculosUtilizados)) {
+            veiculosDestaOS.push(...s.veiculosUtilizados);
+          }
         });
       }
 
@@ -92,7 +103,7 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
         status = 'Vencida';
         cor = '#ef4444';
         icone = <AlertTriangle size={20} />;
-      } else if (diff <= 500) {
+      } else if (diff <= (isMaq ? 25 : 500)) {
         status = 'Atenção';
         cor = '#f59e0b';
         icone = <AlertTriangle size={20} />;
@@ -113,24 +124,24 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
             </h4>
           </div>
           <div className={styles.statusBadge} style={{ backgroundColor: `${cor}15`, color: cor }}>
-            {status === 'Aguardando' ? 'Aguardando O.S com KM Final' : status}
+            {status === 'Aguardando' ? 'Aguardando O.S com Fechamento' : status}
           </div>
         </div>
 
         <div className={styles.manutencaoBody}>
           <div className={styles.infoCol}>
-            <span className={styles.infoLabel}>Última Troca:</span>
-            <span className={styles.infoValue}>{kmTroca.toLocaleString('pt-BR')} KM</span>
+            <span className={styles.infoLabel}>Última:</span>
+            <span className={styles.infoValue}>{kmTroca.toLocaleString('pt-BR')} {unidade}</span>
           </div>
           <div className={styles.infoCol}>
             <span className={styles.infoLabel}>Próxima Meta:</span>
-            <span className={styles.infoValue}>{meta.toLocaleString('pt-BR')} KM</span>
+            <span className={styles.infoValue}>{meta.toLocaleString('pt-BR')} {unidade}</span>
           </div>
           {kmAtualMaximo !== null && diff > 0 && (
             <div className={styles.infoCol} style={{ flex: '1 1 100%' }}>
               <span className={styles.infoLabel}>Faltam:</span>
               <span className={styles.infoValue} style={{ color: cor, fontSize: '1.05rem' }}>
-                {diff.toLocaleString('pt-BR')} KM
+                {diff.toLocaleString('pt-BR')} {unidade}
               </span>
             </div>
           )}
@@ -138,7 +149,7 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
             <div className={styles.infoCol} style={{ flex: '1 1 100%' }}>
               <span className={styles.infoLabel}>Atraso:</span>
               <span className={styles.infoValue} style={{ color: cor, fontSize: '1.05rem' }}>
-                {(diff * -1).toLocaleString('pt-BR')} KM vencidos
+                {(diff * -1).toLocaleString('pt-BR')} {unidade} vencidos
               </span>
             </div>
           )}
@@ -160,19 +171,30 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
               <Truck size={24} />
             </div>
             <div>
-              <h2 className={styles.title}>Histórico do Veículo: {placa}</h2>
-              <p className={styles.subtitle}>{conf ? conf.modelo : 'Veículo não configurado na frota'}</p>
+              <h2 className={styles.title}>Histórico do Equipamento: {placa}</h2>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap' }}>
+                <p className={styles.subtitle} style={{ margin: 0 }}>{conf ? (conf.modelo || conf.subtipoMaquina) : 'Não configurado na frota'}</p>
+                {conf && conf.kmAtual && (
+                  <span className={styles.badgeNeutral} style={{ fontSize: '0.85rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    {labelMedicao}: <strong style={{ color: 'var(--cor-texto-principal)' }}>{Number(conf.kmAtual).toLocaleString('pt-BR')} {unidade}</strong>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         <div className={styles.content}>
-          {conf && (
-            <div className={styles.manutencaoContainer}>
+          <div className={styles.manutencaoSection}>
+            <h3 className={styles.sectionTitle}>
+              <Truck size={18} /> Metas de Manutenção ({unidade})
+            </h3>
+            
+            <div className={styles.manutencaoGrid}>
               {renderCardManutencao('oleo')}
               {renderCardManutencao('revisao')}
             </div>
-          )}
+          </div>
 
           {!conf && (
             <div className={styles.alertNotConfigured}>
@@ -194,34 +216,39 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
                     <th>Código O.S.</th>
                     <th>Executor</th>
                     <th>Situação</th>
-                    <th>KM Inicial</th>
-                    <th>KM Final</th>
-                    <th>KM Rodado</th>
+                    <th>{labelMedicao} Inicial</th>
+                    <th>{labelMedicao} Final</th>
+                    <th>{isMaq ? 'Horas Trab.' : 'KM Rodado'}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {historicoOS.length === 0 ? (
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--cor-texto-secundario)' }}>
-                        Nenhuma Ordem de Serviço encontrada para este veículo.
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--cor-texto-secundario)' }}>
+                        Nenhuma Ordem de Serviço encontrada para este equipamento.
                       </td>
                     </tr>
                   ) : (
-                    historicoOS.map((os, idx) => (
-                      <tr key={idx}>
-                        <td>{formatDateBR(os.dataFim) || '-'}</td>
-                        <td><strong>{os.codigo}</strong></td>
-                        <td>{os.executor || '-'}</td>
-                        <td>
-                          <span className={`${styles.badge} ${os.situacao === 'CONCLUÍDO' ? styles.badgeSuccess : styles.badgeNeutral}`}>
-                            {os.situacao}
-                          </span>
-                        </td>
-                        <td>{os.dadosVeiculo.kmInicial ? Number(os.dadosVeiculo.kmInicial).toLocaleString('pt-BR') : '-'}</td>
-                        <td>{os.dadosVeiculo.kmFinal ? Number(os.dadosVeiculo.kmFinal).toLocaleString('pt-BR') : '-'}</td>
-                        <td>{os.dadosVeiculo.km ? Number(os.dadosVeiculo.km).toLocaleString('pt-BR') : '-'}</td>
-                      </tr>
-                    ))
+                    historicoOS.map((os, idx) => {
+                      const executorNome = os.executor || os.tecnicoResponsavel || os.maoDeObra?.find(m => m.nome)?.nome || os.servicosExecutados?.flatMap(s => s.maoDeObra || [])?.find(m => m.nome)?.nome || '-';
+                      const isConcluida = os.situacao === 'CONCLUIDO' || os.situacao === 'CONCLUÍDO';
+
+                      return (
+                        <tr key={idx}>
+                          <td>{formatDateBR(os.dataFim || os.dataInicio) || '-'}</td>
+                          <td><strong>{os.codigo}</strong></td>
+                          <td>{executorNome}</td>
+                          <td>
+                            <span className={`${styles.badge} ${isConcluida ? styles.badgeSuccess : styles.badgeNeutral}`}>
+                              {os.situacao}
+                            </span>
+                          </td>
+                          <td>{os.dadosVeiculo.kmInicial ? `${Number(os.dadosVeiculo.kmInicial).toLocaleString('pt-BR')} ${unidade}` : '-'}</td>
+                          <td>{os.dadosVeiculo.kmFinal ? `${Number(os.dadosVeiculo.kmFinal).toLocaleString('pt-BR')} ${unidade}` : '-'}</td>
+                          <td>{os.dadosVeiculo.km ? `${Number(os.dadosVeiculo.km).toLocaleString('pt-BR')} ${unidade}` : '-'}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

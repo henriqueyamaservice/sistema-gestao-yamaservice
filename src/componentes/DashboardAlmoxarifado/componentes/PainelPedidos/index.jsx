@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Inbox, Clock, PackageCheck, X, CheckCircle2, Printer, ScanLine, Minus } from 'lucide-react';
+import { Plus, Inbox, Clock, PackageCheck, X, CheckCircle2, Printer, ScanLine, Minus, AlertTriangle, AlertOctagon, ArrowRight } from 'lucide-react';
 import styles from './PainelPedidos.module.css';
 import NovaRequisicao from '../NovaRequisicao';
 
@@ -21,14 +21,33 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
   const barcodeInputRef = useRef(null);
 
   const [isProcessando, setIsProcessando] = useState(false);
+  const [modalFefo, setModalFefo] = useState({ isOpen: false, type: '', loteMaisAntigo: null, itemAchado: null });
 
-  const fetchDados = async () => {
+  const confirmarBipagem = (itemAchado) => {
+    const qtdBipada = itensBipados[itemAchado.codigo] || 0;
+    const qtdPedida = Number(itemAchado.quantidade);
+
+    if (qtdBipada >= qtdPedida) {
+      alert('Quantidade máxima já separada para este produto!');
+    } else {
+      setItensBipados(prev => ({
+        ...prev,
+        [itemAchado.codigo]: qtdBipada + 1
+      }));
+    }
+    setCodigoBarrasScanner('');
+    setModalFefo({ isOpen: false, type: '', loteMaisAntigo: null, itemAchado: null });
+    setTimeout(() => barcodeInputRef.current?.focus(), 100);
+  };
+
+  const fetchDados = async (isFirstLoad = false) => {
     try {
-      setLoading(true);
+      if (isFirstLoad) setLoading(true);
+      const now = Date.now();
       const [resReq, resVend, resLocais] = await Promise.all([
-        fetch('http://localhost:3000/api/requisicoes'),
-        fetch('http://localhost:3000/api/vendedores'),
-        fetch('http://localhost:3000/api/locais-estoque')
+        fetch(`/api/requisicoes?_t=${now}`, { cache: 'no-store' }),
+        fetch(`/api/vendedores?_t=${now}`, { cache: 'no-store' }),
+        fetch(`/api/locais-estoque?_t=${now}`, { cache: 'no-store' })
       ]);
 
       if (resReq.ok) {
@@ -54,13 +73,17 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
-      setLoading(false);
+      if (isFirstLoad) setLoading(false);
     }
   };
 
   useEffect(() => {
     if (!isNovaReqOpen) {
-      fetchDados();
+      fetchDados(true);
+      const interval = setInterval(() => {
+        fetchDados(false);
+      }, 3000);
+      return () => clearInterval(interval);
     }
   }, [isNovaReqOpen]);
 
@@ -107,40 +130,25 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
         alert('Código inválido ou não pertence a este pedido!');
       } else {
         if (prodCompleto && prodCompleto.lotes && prodCompleto.lotes.length > 0) {
-          const loteMaisAntigo = [...prodCompleto.lotes].sort((a, b) => new Date(a.validade) - new Date(b.validade))[0];
+          const lotesAtivos = prodCompleto.lotes.filter(l => l.quantidade > 0);
+          if (lotesAtivos.length > 1) {
+            const loteMaisAntigo = [...lotesAtivos].sort((a, b) => new Date(a.validade) - new Date(b.validade))[0];
 
-          if (loteBipado) {
-            // Operador bipou o código de barras de um Lote específico!
-            if (loteBipado.ean !== loteMaisAntigo.ean) {
-              // BLOQUEIO TOTAL
-              const utcDate = new Date(loteMaisAntigo.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-              alert(`⛔ ERRO FEFO OBRIGATÓRIO ⛔\n\nLOTE BLOQUEADO PELO SISTEMA!\n\nVocê bipou um código de barras de um lote que vence mais tarde.\n\n👉 DEVOLVA ESSA CAIXA NA PRATELEIRA.\n👉 PROCURE O LOTE: ${loteMaisAntigo.numero} (Cód. Barras: ${loteMaisAntigo.ean})\n⏳ Ele vence antes, em: ${utcDate}`);
-              setCodigoBarrasScanner('');
-              return; // Bloqueia a bipagem
-            }
-          } else {
-            // Operador bipou o código principal (ex: PRD11301) sem especificar qual caixa pegou
-            const utcDate = new Date(loteMaisAntigo.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-            const pegouCerto = window.confirm(`⚠️ ALERTA FEFO ⚠️\n\nEste produto tem controle de lote.\nVocê está segurando em mãos os itens do LOTE: ${loteMaisAntigo.numero} (Vence em ${utcDate})?\n\nClique OK se for o lote correto, ou Cancelar se pegou o errado.`);
-
-            if (!pegouCerto) {
-              setCodigoBarrasScanner('');
-              return; // Impede a bipagem
+            if (loteBipado) {
+              if (loteBipado.ean !== loteMaisAntigo.ean) {
+                setModalFefo({ isOpen: true, type: 'error', loteMaisAntigo: loteMaisAntigo, itemAchado: itemAchado });
+                setCodigoBarrasScanner('');
+                return;
+              }
+            } else {
+              setModalFefo({ isOpen: true, type: 'warning', loteMaisAntigo: loteMaisAntigo, itemAchado: itemAchado });
+              return; // Pausa a execução aguardando o clique no Modal
             }
           }
         }
 
-        const qtdBipada = itensBipados[itemAchado.codigo] || 0;
-        const qtdPedida = Number(itemAchado.quantidade);
-
-        if (qtdBipada >= qtdPedida) {
-          alert('Quantidade máxima já separada para este produto!');
-        } else {
-          setItensBipados(prev => ({
-            ...prev,
-            [itemAchado.codigo]: qtdBipada + 1
-          }));
-        }
+        // Se passou direto (1 lote só ou não tem lote)
+        confirmarBipagem(itemAchado);
       }
       setCodigoBarrasScanner('');
     }
@@ -179,11 +187,11 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
 
     setIsProcessando(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/requisicoes/${pedidoSelecionado.id}/finalizar`, {
+      const res = await fetch(`/api/requisicoes/${pedidoSelecionado.id}/finalizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vendedor: vendedorNome,
+          entregador: vendedorNome,
           localEstoque: localEstoqueEditado,
           itensEntregues: itensBipados
         })
@@ -194,6 +202,53 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
 
       // Imprimir comprovante térmico (Mesmo padrão da NovaRequisicao)
       imprimirComprovante(data.requisicao);
+
+      // Atualizar OS correspondente se for uma requisição de OS
+      if (pedidoSelecionado.numeroOS) {
+        // Encontrar os dados dos itens que foram realmente entregues
+        const pecasUtilizadas = pedidoSelecionado.itens
+          .filter(item => (itensBipados[item.codigo] || 0) > 0)
+          .map(item => ({
+            codigo: item.codigo,
+            descricao: item.descricao,
+            quantidade: itensBipados[item.codigo],
+            valor_unitario: item.valor_unitario || 0,
+            data: new Date().toISOString().split('T')[0]
+          }));
+
+        try {
+          // Buscar OS correspondente pelo código
+          const osRes = await fetch(`/api/os`);
+          if (osRes.ok) {
+            const ordens = await osRes.json();
+            const os = ordens.find(o => o.codigo === pedidoSelecionado.numeroOS);
+            if (os) {
+              // Atualiza o status das peças na OS para ENTREGUE
+              const novasPecasSolicitadas = os.pecasSolicitadas ? os.pecasSolicitadas.map(p => {
+                const qtdEntregue = itensBipados[p.codigo] || 0;
+                if (qtdEntregue > 0) {
+                  return { ...p, status: 'ENTREGUE' };
+                }
+                return p;
+              }) : [];
+
+              const situacaoFinalOS = (os.situacao === 'EM_ANDAMENTO' || os.situacao === 'EM ANDAMENTO') ? 'EM_ANDAMENTO' : 'PECAS_ENTREGUES';
+
+              await fetch(`/api/os/${os.id || os.codigo}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  situacao: situacaoFinalOS,
+                  consumiveis: pecasUtilizadas,
+                  pecasSolicitadas: novasPecasSolicitadas
+                })
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Erro ao atualizar status da OS:', e);
+        }
+      }
 
       // Remove da lista
       setPedidosPendentes(prev => prev.filter(p => p.id !== pedidoSelecionado.id));
@@ -210,6 +265,11 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
     const isParcial = req.entrega_parcial;
     const totalItens = req.itens?.reduce((acc, item) => acc + (Number(item.quantidade_entregue ?? item.quantidade) || 0), 0) || 0;
     const printWindow = window.open('', '_blank', 'width=400,height=600');
+
+    if (!printWindow) {
+      alert('⚠️ O seu navegador bloqueou a janela de impressão! Por favor, libere os pop-ups para este site para imprimir o comprovante.');
+      return; // Sai da função sem quebrar o resto do código
+    }
 
     printWindow.document.write(`
       <html>
@@ -407,7 +467,7 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
                 <div className={styles.taxInfo}>
                   <p>Local de Estoque</p>
                   <select
-                    style={{ width: '100%', padding: '6px', marginTop: '4px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    style={{ width: '100%', padding: '6px', marginTop: '4px', borderRadius: '4px', border: '1px solid var(--cor-borda-cartao)', background: 'var(--cor-fundo-cartao)', color: 'var(--cor-texto-principal)' }}
                     value={localEstoqueEditado}
                     onChange={(e) => setLocalEstoqueEditado(e.target.value)}
                   >
@@ -433,7 +493,7 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
                 />
               </div>
 
-              <h4 style={{ margin: '0 0 12px 0', color: '#0f172a' }}>Progresso de Separação</h4>
+              <h4 style={{ margin: '0 0 12px 0', color: 'var(--cor-texto-principal)' }}>Progresso de Separação</h4>
               <div className={styles.listaConferencia}>
                 {pedidoSelecionado.itens?.map((item, idx) => {
                   const qtdPedida = Number(item.quantidade);
@@ -443,8 +503,8 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
                   return (
                     <div key={idx} className={`${styles.itemConferencia} ${isCompleto ? styles.itemCompleto : styles.itemIncompleto}`}>
                       <div style={{ flex: 1 }}>
-                        <strong style={{ color: '#0f172a', display: 'block', fontSize: '1.1rem' }}>{item.codigo}</strong>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>{item.descricao}</span>
+                        <strong style={{ color: 'var(--cor-texto-principal)', display: 'block', fontSize: '1.1rem' }}>{item.codigo}</strong>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--cor-texto-secundario)' }}>{item.descricao}</span>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '16px' }}>
@@ -468,7 +528,7 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
                         {isCompleto ? (
                           <CheckCircle2 size={32} color="#84cc16" />
                         ) : (
-                          <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px dashed #cbd5e1' }}></div>
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px dashed var(--cor-borda-cartao)' }}></div>
                         )}
                       </div>
                     </div>
@@ -508,6 +568,83 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
               >
                 <Printer size={20} />
                 {isProcessando ? 'Processando...' : (!isTudoBipado ? 'Confirmar Entrega Parcial' : 'Confirmar Entrega e Imprimir')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FEFO */}
+      {modalFefo.isOpen && modalFefo.type === 'error' && (
+        <div className={styles.modalOverlay} style={{ zIndex: 9999, padding: '20px' }}>
+          <div className={styles.modalContent} style={{ maxWidth: '400px', textAlign: 'center', padding: '32px', boxSizing: 'border-box' }}>
+            <div style={{ color: 'var(--cor-erro)', marginBottom: '16px' }}>
+              <AlertOctagon size={48} style={{ margin: '0 auto' }} />
+            </div>
+            <h2 style={{ color: 'var(--cor-erro)', marginBottom: '12px' }}>ERRO FEFO</h2>
+            <p style={{ fontSize: '1.05rem', marginBottom: '16px', color: 'var(--cor-texto-principal)' }}>
+              Você bipou um lote mais novo!
+            </p>
+            <p style={{ fontSize: '0.95rem', marginBottom: '24px', color: 'var(--cor-texto-secundario)' }}>
+              Deixe esta caixa na prateleira e pegue a que vence primeiro:
+            </p>
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '16px', borderRadius: '8px', marginBottom: '24px', boxSizing: 'border-box' }}>
+              <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--cor-erro)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Clock size={18} /> Vencimento: {new Date(modalFefo.loteMaisAntigo.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+              </p>
+              <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: 'var(--cor-erro)', opacity: 0.8 }}>
+                (Lote: {modalFefo.loteMaisAntigo.numero})
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                setModalFefo({ isOpen: false, type: '', loteMaisAntigo: null, itemAchado: null });
+                setTimeout(() => barcodeInputRef.current?.focus(), 100);
+              }}
+              style={{ width: '100%', background: 'var(--cor-erro)', color: '#fff', padding: '14px', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
+            >
+              OK, Entendi
+            </button>
+          </div>
+        </div>
+      )}
+
+      {modalFefo.isOpen && modalFefo.type === 'warning' && (
+        <div className={styles.modalOverlay} style={{ zIndex: 9999, padding: '20px' }}>
+          <div className={styles.modalContent} style={{ maxWidth: '450px', padding: '32px', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', color: '#f59e0b' }}>
+              <AlertTriangle size={32} />
+              <h2 style={{ margin: 0, color: '#f59e0b' }}>Alerta de Validade</h2>
+            </div>
+            <p style={{ fontSize: '1.05rem', marginBottom: '16px', color: 'var(--cor-texto-principal)', lineHeight: '1.5' }}>
+              Tem mais de uma caixa desse produto na prateleira com validades diferentes!
+            </p>
+            <p style={{ fontSize: '0.95rem', marginBottom: '20px', color: 'var(--cor-texto-secundario)' }}>
+              O sistema recomenda que você pegue a caixa que vence PRIMEIRO, que tem a validade:
+            </p>
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '20px', borderRadius: '8px', marginBottom: '24px', textAlign: 'center', boxSizing: 'border-box' }}>
+              <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.2rem', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <ArrowRight size={20} /> {new Date(modalFefo.loteMaisAntigo.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+              </p>
+            </div>
+            <p style={{ textAlign: 'center', marginBottom: '20px', fontWeight: 'bold', color: 'var(--cor-texto-principal)', fontSize: '1.05rem' }}>
+              Você pegou a caixa com essa data?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => {
+                  setModalFefo({ isOpen: false, type: '', loteMaisAntigo: null, itemAchado: null });
+                  setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                }}
+                style={{ flex: 1, background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', border: '1px solid var(--cor-borda-cartao)', padding: '14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                <X size={20} /> Cancelar
+              </button>
+              <button 
+                onClick={() => confirmarBipagem(modalFefo.itemAchado)}
+                style={{ flex: 1, background: 'var(--cor-destaque)', color: 'var(--cor-texto-inverso)', padding: '14px', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                <CheckCircle2 size={20} /> Sim, peguei
               </button>
             </div>
           </div>

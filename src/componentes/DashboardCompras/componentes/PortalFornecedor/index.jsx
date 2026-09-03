@@ -14,7 +14,7 @@ const PortalFornecedor = ({ token }) => {
   useEffect(() => {
     const fetchDados = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/cotacao-externa/${token}`);
+        const response = await fetch(`/api/cotacao-externa/${token}`);
         if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.message || 'Erro ao carregar dados');
@@ -97,7 +97,7 @@ const PortalFornecedor = ({ token }) => {
 
     setEnviando(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/cotacao-externa/${token}`, {
+      const response = await fetch(`/api/cotacao-externa/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cotacoes: cotacoesPreenchidas, descontoGeral: Number(descontoGeral) || 0 })

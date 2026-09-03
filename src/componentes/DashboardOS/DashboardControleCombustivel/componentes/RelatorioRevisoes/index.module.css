@@ -1,0 +1,224 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modal {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 16px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cor-fundo-sutil-forte);
+}
+
+.logoIcon {
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil-forte);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.headerActions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.btnPrimary {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btnPrimary:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnClose {
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btnClose:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.content {
+  margin-top: 24px;
+}
+
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.summaryCard {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summaryIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summaryValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.summaryLabel {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chartContainer {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chartTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  margin-bottom: 16px;
+}
+
+.tableSection {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableTitle {
+  padding: 16px 20px;
+  margin: 0;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-size: 1rem;
+  background-color: rgba(220, 38, 38, 0.1);
+  color: var(--cor-erro);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 12px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  font-size: 0.85rem;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+@media print {
+  .overlay {
+    position: static;
+    padding: 0;
+    background: none;
+  }
+  .modal {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    max-height: none;
+  }
+  .btnClose, .btnPrimary {
+    display: none !important;
+  }
+  .content {
+    overflow: visible;
+  }
+}
