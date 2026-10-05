@@ -235,6 +235,9 @@ async function initTablesMysql(db) {
       dados_json LONGTEXT
     );
   `);
+  try {
+    await db.exec(`ALTER TABLE saidas_combustivel MODIFY COLUMN dados_json LONGTEXT`);
+  } catch(e) { /* ignore if already LONGTEXT */ }
 
   // 5. Tabela de Veículos / Frota
   await db.exec(`
@@ -356,6 +359,66 @@ async function initTablesMysql(db) {
       atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
   `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS vendedores_omie (
+      codigo VARCHAR(191) PRIMARY KEY,
+      nome VARCHAR(255),
+      dados_json LONGTEXT,
+      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
+  `);
+
+  // 10. Kits de Serviços — Tabela Dedicada com Área de Manutenção
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS servicos_kits (
+      id VARCHAR(191) PRIMARY KEY,
+      nome VARCHAR(255),
+      area_manutencao VARCHAR(100),
+      categoria VARCHAR(100),
+      dados_json LONGTEXT,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
+  `);
+
+  // --- MIGRAÇÃO AUTOMÁTICA DE json_collections PARA servicos_kits ---
+  try {
+    const rowOld = await db.get(`SELECT dados FROM json_collections WHERE colecao = 'servicos_kits'`);
+    if (rowOld && rowOld.dados) {
+      const oldKits = JSON.parse(rowOld.dados);
+      if (Array.isArray(oldKits) && oldKits.length > 0) {
+        console.log(`[MIGRAÇÃO] Encontrados ${oldKits.length} kits em json_collections. Movendo para servicos_kits...`);
+        for (const kit of oldKits) {
+          const area = kit.areaManutencao || 'MECANICA';
+          const cat = kit.categoria || 'GERAL';
+          // Para não quebrar se já existir, fazemos um INSERT IGNORE ou ON DUPLICATE KEY UPDATE (MariaDB/MySQL) ou ON CONFLICT (SQLite)
+          const kitJson = JSON.stringify(kit);
+          
+          if (db.driver === 'mysql') {
+            await db.run(
+              `INSERT INTO servicos_kits (id, nome, area_manutencao, categoria, dados_json) 
+               VALUES (?, ?, ?, ?, ?)
+               ON DUPLICATE KEY UPDATE nome=VALUES(nome), area_manutencao=VALUES(area_manutencao), categoria=VALUES(categoria), dados_json=VALUES(dados_json)`,
+              [kit.id, kit.nome, area, cat, kitJson]
+            );
+          } else {
+            await db.run(
+              `INSERT INTO servicos_kits (id, nome, area_manutencao, categoria, dados_json) 
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET nome=excluded.nome, area_manutencao=excluded.area_manutencao, categoria=excluded.categoria, dados_json=excluded.dados_json`,
+              [kit.id, kit.nome, area, cat, kitJson]
+            );
+          }
+        }
+        // Apaga o registro antigo para não rodar a migração duas vezes
+        await db.run(`DELETE FROM json_collections WHERE colecao = 'servicos_kits'`);
+        console.log(`[MIGRAÇÃO] Kits movidos com sucesso. Registro antigo deletado.`);
+      }
+    }
+  } catch (err) {
+    console.error(`[MIGRAÇÃO] Erro ao tentar migrar servicos_kits:`, err.message);
+  }
 
 }
 

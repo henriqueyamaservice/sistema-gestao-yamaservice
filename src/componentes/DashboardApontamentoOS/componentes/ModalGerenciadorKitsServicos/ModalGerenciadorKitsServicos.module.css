@@ -1,0 +1,839 @@
+/* ModalGerenciadorKitsServicos.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContainer {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 18px;
+  width: 96%;
+  max-width: 1400px;
+  height: 95vh;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px) scale(0.98);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.headerIconBubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: rgba(255, 107, 0, 0.15);
+  color: var(--cor-destaque);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+}
+
+.modalSubtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnClose {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnClose:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+  flex-wrap: wrap;
+}
+
+.tabsGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cor-fundo-principal);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  overflow-x: auto;
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-sutil);
+}
+
+.tabBtn.active {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.35);
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 7px 12px;
+  min-width: 220px;
+  max-width: 320px;
+  width: 100%;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--cor-texto-principal);
+  font-size: 0.82rem;
+  width: 100%;
+}
+
+.btnNovoKit {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnNovoKit:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+/* Modal Body */
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+/* Lista de Kits (Substituiu o Grid) */
+.kitsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kitCard {
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.kitCard:hover {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.kitCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.kitTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kitNome {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.kitBadgesRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badgeCategoria {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+}
+
+.badgeCategoria.caminhao {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badgeCategoria.carro {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeCategoria.borracharia {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badgeCategoria.maquina {
+  background-color: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.badgeModelo {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.badgePreventiva {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Card Specs */
+.kitSpecs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--cor-fundo-cartao);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  font-size: 0.76rem;
+  color: var(--cor-texto-secundario);
+}
+
+.specItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.specItem strong {
+  color: var(--cor-texto-principal);
+}
+
+/* Card Descricao */
+.kitDescricaoText {
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Insumos preview */
+.pecasBox {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pecasBoxHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cor-destaque);
+  text-transform: uppercase;
+}
+
+.pecasPillList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pecaPill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.pecaQtdBadge {
+  font-weight: 800;
+  color: var(--cor-destaque);
+  background-color: var(--cor-fundo-sutil-forte);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* Card Actions */
+.kitCardActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  padding-top: 10px;
+}
+
+.btnActionKit {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btnActionKit:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border-color: var(--cor-texto-secundario);
+}
+
+.btnActionKit.delete:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--cor-texto-secundario);
+}
+
+/* Formulário de Edição / Criação */
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 12px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.input,
+.select,
+.textarea {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--cor-texto-principal);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--cor-destaque);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  cursor: pointer;
+}
+
+.checkboxInput {
+  accent-color: var(--cor-destaque);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Tabela de Insumos no Formulário */
+.tablePecasForm {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.tablePecasForm th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cor-texto-secundario);
+  padding: 8px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  text-transform: uppercase;
+}
+
+.tablePecasForm td {
+  padding: 8px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  vertical-align: middle;
+}
+
+.btnAddPecaRow {
+  background-color: transparent;
+  border: 1.5px dashed var(--cor-borda-cartao);
+  color: var(--cor-destaque);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.btnAddPecaRow:hover {
+  background-color: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+}
+
+/* Busca de Material do Estoque com Autocomplete Dropdown */
+.buscaPecaWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownPecasLista {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  min-width: 380px;
+  max-width: 600px;
+  background-color: var(--cor-fundo-cartao);
+  border: 1.5px solid var(--cor-destaque);
+  border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 999999;
+  list-style: none;
+  padding: 4px;
+  margin: 0;
+}
+
+[data-theme="light"] .dropdownPecasLista {
+  background-color: #ffffff;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .dropdownPecasLista {
+  background-color: #1e2225;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.7);
+}
+
+.itemPecaOpcao {
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+}
+
+.itemPecaOpcao:last-child {
+  border-bottom: none;
+}
+
+.itemPecaOpcao:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+}
+
+.pecaInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.pecaDescricaoText {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.pecaCodigoText {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+}
+
+.pecaSaldoBadge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cor-destaque);
+  background-color: var(--cor-fundo-sutil-forte);
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.btnCancelar {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnCancelar:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.btnSalvar {
+  background-color: var(--cor-sucesso, #10b981);
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btnSalvar:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Footer Modal */
+.modalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* Agrupamento por Veículos */
+.vehicleGroup {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.vehicleGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  background-color: var(--cor-fundo-secundario);
+  transition: background-color 0.2s ease;
+}
+
+.vehicleGroupHeader:hover {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.vehicleInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vehiclePhoto {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-cartao);
+}
+
+.vehicleIconPlaceholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background-color: rgba(255, 107, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-destaque);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
+
+.vehicleTexts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vehicleTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  margin: 0;
+}
+
+.vehicleSubtitle {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badgeCount {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.vehicleGroupBody {
+  padding: 16px;
+  background-color: var(--cor-fundo-cartao);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--cor-borda-cartao);
+}

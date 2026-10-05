@@ -1437,3 +1437,203 @@
   justify-content: center;
   color: var(--cor-texto-secundario);
 }
+
+/* ==========================================
+   SELETOR DE TURNO E HORÁRIOS INTELIGENTES
+   ========================================== */
+.tipoTurnoSelector {
+  display: inline-flex;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btnTipoTurno {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btnTipoTurno:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+}
+
+.btnTipoTurnoActive {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+}
+
+.btnTipoTurnoActive:hover {
+  background-color: var(--cor-destaque-hover);
+  color: var(--cor-texto-inverso);
+}
+
+.horariosCardLinha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.horarioItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.horarioSubLabel {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+}
+
+.horarioAte {
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 500;
+}
+
+.horarioDivisor {
+  color: var(--cor-borda-cartao);
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.badgeHorasDia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-left: auto;
+}
+
+.btnAddPecaEstoque {
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  color: #3b82f6;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btnAddPecaEstoque:hover {
+  background: rgba(37, 99, 235, 0.16);
+  border-color: #2563eb;
+}
+
+.btnAddPecaExterna {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #d97706;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btnAddPecaExterna:hover {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #b45309;
+}
+
+.btnFotoNotaAnexo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px dashed rgba(245, 158, 11, 0.6);
+  color: #d97706;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btnFotoNotaAnexo:hover {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: #d97706;
+}
+
+.fotoNotaContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.linhaPecaEdicao {
+  transition: background-color 0.2s ease;
+}
+
+.linhaPecaEdicao:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+}
+
+/* ==========================================================================
+   Inputs Modernos (Cabeçalho de Edição)
+   ========================================================================== */
+.inputField {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.inputField:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+  background-color: var(--cor-fundo-cartao);
+}
+
+.inputField::placeholder {
+  color: var(--cor-texto-secundario);
+  opacity: 0.7;
+}
+
+.inputField:disabled {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+  opacity: 0.8;
+}

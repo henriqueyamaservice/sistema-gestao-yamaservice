@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { 
   X, Save, Plus, Trash2, Calendar, Clock, User, Wrench, AlertCircle, 
   Package, CheckCircle, UserPlus, Car, Camera, Smartphone, Eye, Image, UserCheck,
   Pencil, FileText, Users, ShieldCheck, Tag, AlertTriangle, ArrowRight, Droplet,
-  Printer
+  Printer, Sparkles
 } from 'lucide-react';
 import styles from './index.module.css';
 import ImpressaoOS from '../ImpressaoOS';
 import { CONCLUIDO, EM_ANDAMENTO, AGUARDANDO_INSUMO, CANCELADO } from '../../../../utils/osStatus';
 import { formatarOdometroDisplay, formatarNumeroBR, validarAntiRetrocessoKM } from '../../../../utils/formatadorOdometro';
-
+import InputOdometroInteligente from '../../../DashboardOS/DashboardControleCombustivel/componentes/InputOdometroInteligente';
+import { obterBadgeInfo, obterRotuloUnidade } from '../../../../utils/classificadorUnidades';
 const mapNomesCamposDiff = {
   requisitante: 'Requisitante',
   setor: 'Setor',
@@ -159,6 +160,76 @@ const formatarValorDiffHumanizado = (campo, valor) => {
   return String(valor);
 };
 
+const detectarModoTurno = (t) => {
+  if (t?.tipoTurno) return t.tipoTurno;
+  if (t?.horaInicio2 || (t?.horaFim1 && t?.horaFim && t?.horaFim1 !== t?.horaFim)) {
+    return 'INTEGRAL';
+  }
+  if (t?.horaInicio && t?.horaFim1 && !t?.horaFim) {
+    return 'MANHA';
+  }
+  if (!t?.horaInicio && t?.horaInicio2 && t?.horaFim) {
+    return 'TARDE';
+  }
+  if (t?.horaInicio && t?.horaFim && !t?.horaFim1 && !t?.horaInicio2) {
+    return 'CONTINUO';
+  }
+  return 'INTEGRAL';
+};
+
+const calcularHorasTrabalhadas = (horaInicio, horaAlmocoInicio, horaAlmocoFim, horaFim, tipoTurno = 'INTEGRAL') => {
+  const timeToMinutes = (timeStr) => {
+    if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  };
+
+  const t1 = timeToMinutes(horaInicio);
+  const t2 = timeToMinutes(horaAlmocoInicio);
+  const t3 = timeToMinutes(horaAlmocoFim);
+  const t4 = timeToMinutes(horaFim);
+
+  let minutosTotais = 0;
+
+  if (tipoTurno === 'MANHA') {
+    const fimManha = t2 !== null ? t2 : (t4 !== null ? t4 : null);
+    if (t1 !== null && fimManha !== null) {
+      minutosTotais = Math.max(0, fimManha - t1);
+    }
+  } else if (tipoTurno === 'TARDE') {
+    const iniTarde = t3 !== null ? t3 : (t1 !== null ? t1 : null);
+    if (iniTarde !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - iniTarde);
+    }
+  } else if (tipoTurno === 'CONTINUO') {
+    const fim = t4 !== null ? t4 : (t2 !== null ? t2 : null);
+    if (t1 !== null && fim !== null) {
+      minutosTotais = Math.max(0, fim - t1);
+    }
+  } else {
+    // INTEGRAL
+    if (t1 !== null && t2 !== null && t3 !== null && t4 !== null) {
+      const manha = Math.max(0, t2 - t1);
+      const tarde = Math.max(0, t4 - t3);
+      minutosTotais = manha + tarde;
+    } else if (t1 !== null && t2 !== null && t3 === null && t4 === null) {
+      minutosTotais = Math.max(0, t2 - t1);
+    } else if (t1 === null && t2 === null && t3 !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - t3);
+    } else if (t1 !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - t1);
+    }
+  }
+
+  const horasDecimais = parseFloat((minutosTotais / 60).toFixed(2));
+  const hDisplay = Math.floor(minutosTotais / 60);
+  const mDisplay = minutosTotais % 60;
+  const textoFormatado = `${hDisplay}h${mDisplay > 0 ? `${mDisplay.toString().padStart(2, '0')}m` : '00m'}`;
+
+  return { minutosTotais, horasDecimais, textoFormatado };
+};
+
 const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
   const [isEditandoGeral, setIsEditandoGeral] = useState(false);
   const sitNorm = (os.situacao || '').trim().replace(/\s+/g, '_');
@@ -166,31 +237,24 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
 
   // Declarar listas auxiliares antes dos estados dependentes
   const [produtosEstoque, setProdutosEstoque] = useState([]);
+  const [servicosKits, setServicosKits] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
   const [veiculosConfig, setVeiculosConfig] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [requisitantesList, setRequisitantesList] = useState([]);
   const [fotoVisualizando, setFotoVisualizando] = useState(null);
 
   // Helper para cálculo de horas no diário de bordo
   const calcularHorasServico = (serv) => {
-    let total = 0;
-    if (serv.horaInicio && serv.horaFim1) {
-      const [h1, m1] = serv.horaInicio.split(':').map(Number);
-      const [h2, m2] = serv.horaFim1.split(':').map(Number);
-      const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-      if (diff > 0) total += diff / 60;
-    }
-    if (serv.horaInicio2 && serv.horaFim) {
-      const [h1, m1] = serv.horaInicio2.split(':').map(Number);
-      const [h2, m2] = serv.horaFim.split(':').map(Number);
-      const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-      if (diff > 0) total += diff / 60;
-    } else if (!serv.horaFim1 && serv.horaInicio && serv.horaFim) {
-      const [h1, m1] = serv.horaInicio.split(':').map(Number);
-      const [h2, m2] = serv.horaFim.split(':').map(Number);
-      const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-      if (diff > 0) total += diff / 60;
-    }
-    return total > 0 ? `${total.toFixed(1)}h` : '';
+    const modo = detectarModoTurno(serv);
+    const { horasDecimais, textoFormatado } = calcularHorasTrabalhadas(
+      serv.horaInicio,
+      serv.horaFim1,
+      serv.horaInicio2,
+      serv.horaFim,
+      modo
+    );
+    return horasDecimais > 0 ? textoFormatado : '';
   };
 
   // Inicializar estado com dados existentes ou vazios
@@ -235,7 +299,14 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
         descricao: os.descricaoServico || 'Atendimento de Manutenção',
         isSaved: true,
         maoDeObra: os.maoDeObra ? [...os.maoDeObra] : [],
-        pecasUtilizadas: os.consumiveis ? os.consumiveis.map(c => ({ codigo: c.codigo, descricao: c.descricao, quantidade: c.quantidade })) : [],
+        pecasUtilizadas: os.consumiveis ? os.consumiveis.map(c => ({
+          codigo: c.codigo || (c.tipo === 'EXTERNA' ? 'EXTERNO' : ''),
+          descricao: c.descricao,
+          quantidade: c.quantidade,
+          valor_unitario: c.valor_unitario || 0,
+          tipo: c.tipo || (c.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
+          fotoNota: c.fotoNota || ''
+        })) : [],
         veiculosUtilizados: os.veiculos ? [...os.veiculos] : []
       });
     }
@@ -265,7 +336,11 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       return {
         ...s,
         maoDeObra: mList,
-        pecasUtilizadas: s.pecasUtilizadas || [],
+        pecasUtilizadas: (s.pecasUtilizadas || []).map(p => ({
+          ...p,
+          tipo: p.tipo || (p.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
+          fotoNota: p.fotoNota || ''
+        })),
         veiculosUtilizados: s.veiculosUtilizados || [],
         horaInicio: s.horaInicio || s.hora || '',
         horaFim: s.horaFim || '',
@@ -278,6 +353,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
   // Extrair o veículo sendo mantido (se existir nos registros antigos)
   const veiculoManutencaoInit = os.veiculos?.find(v => v.placa === os.centroCusto && (v.kmInicial === undefined || v.kmInicial === ''));
   const [kmManutencao, setKmManutencao] = useState(veiculoManutencaoInit ? veiculoManutencaoInit.kmFinal : '');
+  const [erroRetrocesso, setErroRetrocesso] = useState(false);
 
   // Função auxiliar para verificar presença de termos de manutenção
   const checarTermosManutencao = (texto) => {
@@ -329,7 +405,40 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       .then(res => res.json())
       .then(data => setVeiculosConfig(data))
       .catch(err => console.error('Erro ao buscar veículos:', err));
+
+    fetch(`/api/departamentos`)
+      .then(res => res.json())
+      .then(data => setDepartamentos(data))
+      .catch(err => console.error('Erro ao buscar departamentos:', err));
+
+    fetch(`/api/requisitantes`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setRequisitantesList(data);
+      })
+      .catch(err => console.error('Erro ao buscar requisitantes:', err));
+
+    fetch(`/api/servicos-kits`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setServicosKits(data);
+        else if (data && Array.isArray(data.kits)) setServicosKits(data.kits);
+        else setServicosKits([]);
+      })
+      .catch(err => console.error('Erro ao buscar kits:', err));
   }, []);
+
+  const kitVinculado = useMemo(() => {
+    if (!os || !Array.isArray(servicosKits) || servicosKits.length === 0) return null;
+    let kitCorrespondente = null;
+    if (os.kitId) {
+      kitCorrespondente = servicosKits.find(k => String(k.id) === String(os.kitId));
+    }
+    if (!kitCorrespondente && os.kitNome) {
+      kitCorrespondente = servicosKits.find(k => k.nome === os.kitNome);
+    }
+    return kitCorrespondente;
+  }, [os, servicosKits]);
 
   const kmInicializadoRef = useRef(false);
 
@@ -436,15 +545,15 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
 
     setServicosExecutados([...servicosExecutados, {
       data: new Date().toISOString().split('T')[0],
-      horaInicio: '',
-      horaFim1: '',
-      horaInicio2: '',
-      horaFim: '',
+      tipoTurno: 'INTEGRAL',
+      horaInicio: '07:30',
+      horaFim1: '11:30',
+      horaInicio2: '13:00',
+      horaFim: '16:20',
       descricao: '',
       isSaved: false,
-      mostrarSegundoPeriodo: false,
       maoDeObra: [
-        { matricula: matriculaResp, nome: os.tecnicoResponsavel || os.executor || '', funcao: 'Executor', horas: '' }
+        { matricula: matriculaResp, nome: os.tecnicoResponsavel || os.executor || '', funcao: 'Executor', horas: '7.33' }
       ],
       pecasUtilizadas: pecasIniciais,
       veiculosUtilizados: []
@@ -455,44 +564,23 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
     const newS = [...servicosExecutados];
     newS[index][field] = value;
     
-    // Auto-cálculo de horas se os relógios estiverem preenchidos (suportando 4 relógios)
-    if (field === 'horaInicio' || field === 'horaFim1' || field === 'horaInicio2' || field === 'horaFim') {
-      const hIni = newS[index].horaInicio;
-      const hFim1 = newS[index].horaFim1;
-      const hIni2 = newS[index].horaInicio2;
-      const hFim = newS[index].horaFim;
+    // Auto-cálculo de horas se os relógios ou o tipoTurno forem alterados
+    if (['horaInicio', 'horaFim1', 'horaInicio2', 'horaFim', 'tipoTurno'].includes(field)) {
+      const s = newS[index];
+      const modo = s.tipoTurno || detectarModoTurno(s);
+      const { horasDecimais } = calcularHorasTrabalhadas(
+        s.horaInicio,
+        s.horaFim1,
+        s.horaInicio2,
+        s.horaFim,
+        modo
+      );
 
-      let totalMinutes = 0;
-
-      if (hIni && hFim1) {
-        const [h1, m1] = hIni.split(':').map(Number);
-        const [h2, m2] = hFim1.split(':').map(Number);
-        const m = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (m > 0) totalMinutes += m;
-      }
-
-      if (hIni2 && hFim) {
-        const [h3, m3] = hIni2.split(':').map(Number);
-        const [h4, m4] = hFim.split(':').map(Number);
-        const m = (h4 * 60 + m4) - (h3 * 60 + m3);
-        if (m > 0) totalMinutes += m;
-      }
-
-      if (!hFim1 && !hIni2 && hIni && hFim) {
-        const [h1, m1] = hIni.split(':').map(Number);
-        const [h4, m4] = hFim.split(':').map(Number);
-        const m = (h4 * 60 + m4) - (h1 * 60 + m1);
-        if (m > 0) totalMinutes = m;
-      }
-
-      if (totalMinutes > 0) {
-        const hoursNum = (totalMinutes / 60).toFixed(1).replace('.0', '');
-        if (newS[index].maoDeObra) {
-          newS[index].maoDeObra = newS[index].maoDeObra.map(mao => ({
-            ...mao,
-            horas: hoursNum
-          }));
-        }
+      if (horasDecimais > 0 && newS[index].maoDeObra) {
+        newS[index].maoDeObra = newS[index].maoDeObra.map(mao => ({
+          ...mao,
+          horas: String(horasDecimais)
+        }));
       }
     }
     
@@ -503,32 +591,17 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
 
   const handleAddMaoDeObraSessao = (servicoIndex, funcaoTipo = 'Ajudante') => {
     const newS = [...servicosExecutados];
-    let autoHoras = '';
     const s = newS[servicoIndex];
-    let totalMinutes = 0;
+    const modo = s.tipoTurno || detectarModoTurno(s);
+    const { horasDecimais } = calcularHorasTrabalhadas(
+      s.horaInicio,
+      s.horaFim1,
+      s.horaInicio2,
+      s.horaFim,
+      modo
+    );
 
-    if (s.horaInicio && s.horaFim1) {
-      const [h1, m1] = s.horaInicio.split(':').map(Number);
-      const [h2, m2] = s.horaFim1.split(':').map(Number);
-      const m = (h2 * 60 + m2) - (h1 * 60 + m1);
-      if (m > 0) totalMinutes += m;
-    }
-
-    if (s.horaInicio2 && s.horaFim) {
-      const [h3, m3] = s.horaInicio2.split(':').map(Number);
-      const [h4, m4] = s.horaFim.split(':').map(Number);
-      const m = (h4 * 60 + m4) - (h3 * 60 + m3);
-      if (m > 0) totalMinutes += m;
-    }
-
-    if (!s.horaFim1 && !s.horaInicio2 && s.horaInicio && s.horaFim) {
-      const [h1, m1] = s.horaInicio.split(':').map(Number);
-      const [h4, m4] = s.horaFim.split(':').map(Number);
-      const m = (h4 * 60 + m4) - (h1 * 60 + m1);
-      if (m > 0) totalMinutes = m;
-    }
-
-    if (totalMinutes > 0) autoHoras = (totalMinutes / 60).toFixed(1).replace('.0', '');
+    const autoHoras = horasDecimais > 0 ? String(horasDecimais) : '';
 
     newS[servicoIndex].maoDeObra.push({ matricula: '', nome: '', funcao: funcaoTipo, horas: autoHoras });
     setServicosExecutados(newS);
@@ -552,11 +625,59 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
     setServicosExecutados(newS);
   };
 
-  const handleAddPecaSessao = (servicoIndex) => {
+  const handleAddPecaSessao = (servicoIndex, tipo = 'ESTOQUE') => {
     const newS = [...servicosExecutados];
     newS[servicoIndex].pecasUtilizadas = newS[servicoIndex].pecasUtilizadas || [];
-    newS[servicoIndex].pecasUtilizadas.push({ codigo: '', descricao: '', quantidade: 1, valor_unitario: 0 });
+    const isExterna = tipo === 'EXTERNA';
+    newS[servicoIndex].pecasUtilizadas.push({
+      tipo: isExterna ? 'EXTERNA' : 'ESTOQUE',
+      codigo: isExterna ? 'EXTERNO' : '',
+      descricao: '',
+      quantidade: 1,
+      valor_unitario: 0,
+      fotoNota: ''
+    });
     setServicosExecutados(newS);
+  };
+
+  const handleUploadFotoPeca = (servicoIndex, pecaIndex, e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new window.Image();
+      img.src = ev.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 1000;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height *= MAX_DIM / width;
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width *= MAX_DIM / height;
+            height = MAX_DIM;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+
+        const newS = [...servicosExecutados];
+        newS[servicoIndex].pecasUtilizadas[pecaIndex].fotoNota = dataUrl;
+        setServicosExecutados(newS);
+      };
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleUpdatePecaSessao = (servicoIndex, pecaIndex, field, value) => {
@@ -567,12 +688,16 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       if (prod) {
         newS[servicoIndex].pecasUtilizadas[pecaIndex].codigo = prod.codigo;
         newS[servicoIndex].pecasUtilizadas[pecaIndex].valor_unitario = parseFloat(prod.valor_unitario) || 0;
+        newS[servicoIndex].pecasUtilizadas[pecaIndex].tipo = 'ESTOQUE';
+        newS[servicoIndex].pecasUtilizadas[pecaIndex].unidade = prod.unidade || 'UN';
       }
     } else if (field === 'codigo') {
       const prod = produtosEstoque.find(p => p.codigo === value);
       if (prod) {
         newS[servicoIndex].pecasUtilizadas[pecaIndex].descricao = prod.descricao;
         newS[servicoIndex].pecasUtilizadas[pecaIndex].valor_unitario = parseFloat(prod.valor_unitario) || 0;
+        newS[servicoIndex].pecasUtilizadas[pecaIndex].tipo = 'ESTOQUE';
+        newS[servicoIndex].pecasUtilizadas[pecaIndex].unidade = prod.unidade || 'UN';
       }
     }
     setServicosExecutados(newS);
@@ -675,22 +800,10 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
       const veiculoCadastrado = veiculosConfig.find(vc => vc.placa === os.centroCusto);
       const isManutencaoVeiculo = !!veiculoCadastrado || !!isGeradorOS;
 
-      if (isManutencaoVeiculo && kmManutencao !== '' && veiculoCadastrado?.kmAtual) {
-        const isHorimetro = veiculoCadastrado.tipoMedicao === 'Horas';
-        const unidadeMedicao = isHorimetro ? 'Horas' : 'KM';
-        const validacaoKm = validarAntiRetrocessoKM(kmManutencao, veiculoCadastrado.kmAtual, unidadeMedicao);
-        if (validacaoKm.retrocedeu) {
-          const confirmar = window.confirm(
-            `ℹ️ REGISTRO DE ODÔMETRO:\n\n` +
-            `O valor informado (${formatarNumeroBR(kmManutencao)} ${unidadeMedicao}) é menor que o odômetro atual da frota (${formatarNumeroBR(veiculoCadastrado.kmAtual)} ${unidadeMedicao}).\n\n` +
-            `Se esta O.S. for referente a um serviço ou dia anterior, este valor será gravado com sucesso nesta O.S. sem alterar o KM atual do veículo no cadastro.\n\n` +
-            `Deseja confirmar e salvar?`
-          );
-          if (!confirmar) {
-            setIsSubmitting(false);
-            return;
-          }
-        }
+      if (isManutencaoVeiculo && erroRetrocesso) {
+        alert("Corrija o KM / Horímetro antes de salvar. Não é permitido retroceder o valor da frota.");
+        setIsSubmitting(false);
+        return;
       }
 
       let statusFinal = EM_ANDAMENTO;
@@ -769,6 +882,7 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                   data: s.data,
                   codigo: p.codigo || (prodRef ? prodRef.codigo : (p.tipo === 'EXTERNA' ? 'EXTERNO' : '')),
                   descricao: p.descricao || (prodRef ? prodRef.descricao : ''),
+                  unidade: p.unidade || (prodRef ? prodRef.unidade : ''),
                   quantidade: qNum,
                   valor_unitario: vUnit,
                   tipo: p.tipo || (p.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
@@ -898,10 +1012,22 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             <button 
               type="button" 
               onClick={() => setIsEditandoCabecalho(!isEditandoCabecalho)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: '1px solid var(--cor-destaque)', color: 'var(--cor-destaque)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                backgroundColor: isEditandoCabecalho ? '#10b981' : 'transparent', 
+                border: '1px solid ' + (isEditandoCabecalho ? '#10b981' : 'var(--cor-destaque)'), 
+                color: isEditandoCabecalho ? 'white' : 'var(--cor-destaque)', 
+                padding: '4px 10px', 
+                borderRadius: '6px', 
+                fontSize: '0.8rem', 
+                cursor: 'pointer', 
+                fontWeight: 600 
+              }}
               title="Editar dados iniciais da O.S."
             >
-              <Pencil size={14} /> {isEditandoCabecalho ? 'Cancelar Edição' : 'Editar Cabeçalho'}
+              {isEditandoCabecalho ? <><Save size={14} /> Salvar</> : <><Pencil size={14} /> Editar Cabeçalho</>}
             </button>
           )}
         </div>
@@ -911,23 +1037,23 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             <>
               <div className={styles.inputGroup}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Requisitante</label>
-                <input type="text" className={styles.inputField} value={formData.requisitante} onChange={e => setFormData({...formData, requisitante: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }} />
+                <input type="text" className={styles.inputField} value={formData.requisitante} onChange={e => setFormData({...formData, requisitante: e.target.value.toUpperCase()})} list="requisitantes-lista" />
               </div>
               <div className={styles.inputGroup}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Setor</label>
-                <input type="text" className={styles.inputField} value={formData.setor} onChange={e => setFormData({...formData, setor: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }} />
+                <input type="text" className={styles.inputField} value={formData.setor} onChange={e => setFormData({...formData, setor: e.target.value.toUpperCase()})} list="setores-lista" />
               </div>
               <div className={styles.inputGroup}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Centro de Custo (Alvo)</label>
-                <input type="text" className={styles.inputField} value={formData.centroCusto} onChange={e => setFormData({...formData, centroCusto: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }} />
+                <input type="text" className={styles.inputField} value={formData.centroCusto} onChange={e => setFormData({...formData, centroCusto: e.target.value.toUpperCase()})} list="veiculos-placa" />
               </div>
               <div className={styles.inputGroup}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Prazo Original</label>
-                <input type="date" className={styles.inputField} value={formData.prazo} onChange={e => setFormData({...formData, prazo: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }} />
+                <input type="date" className={styles.inputField} value={formData.prazo} onChange={e => setFormData({...formData, prazo: e.target.value})} />
               </div>
               <div className={styles.inputGroup}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Complexidade</label>
-                <select className={styles.inputField} value={formData.complexidade} onChange={e => setFormData({...formData, complexidade: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }}>
+                <select className={styles.inputField} value={formData.complexidade} onChange={e => setFormData({...formData, complexidade: e.target.value})}>
                   <option value="BAIXA">BAIXA</option>
                   <option value="NORMAL">NORMAL</option>
                   <option value="ALTA">ALTA</option>
@@ -936,13 +1062,33 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
               </div>
               <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--cor-texto-secundario)', marginBottom: '4px', display: 'block' }}>Descrição do Problema (Abertura)</label>
-                <textarea className={styles.inputField} rows={2} value={formData.descricaoProblema} onChange={e => setFormData({...formData, descricaoProblema: e.target.value})} style={{ padding: '6px', fontSize: '0.85rem' }} />
+                <textarea className={styles.inputField} rows={2} value={formData.descricaoProblema} onChange={e => setFormData({...formData, descricaoProblema: e.target.value.toUpperCase()})} />
               </div>
+              <datalist id="setores-lista">
+                {departamentos.map((dep, idx) => (
+                  <option key={idx} value={dep.descricao} />
+                ))}
+              </datalist>
+              <datalist id="requisitantes-lista">
+                {requisitantesList.map((req, idx) => (
+                  <option key={idx} value={req} />
+                ))}
+              </datalist>
+              <datalist id="veiculos-placa">
+                {veiculosConfig.map((v, idx) => (
+                  <option key={idx} value={v.placa}>{v.modelo}</option>
+                ))}
+              </datalist>
             </>
           ) : (
             <>
               <div><strong>Requisitante:</strong> <div className={styles.summaryItemValue}>{os.requisitante}</div></div>
               <div><strong>Aberto por:</strong> <div className={styles.summaryItemValue}>{os.abertoPor || 'Desconhecido'}</div></div>
+              {os.dataHoraFechamentoOficial ? (
+                <div><strong>Preenchido no Sistema:</strong> <div className={styles.summaryItemValue}>{new Date(os.dataHoraFechamentoOficial).toLocaleString('pt-BR')}</div></div>
+              ) : os.dataHoraPreenchimentoSistema ? (
+                <div><strong>Preenchido no Sistema:</strong> <div className={styles.summaryItemValue}>{new Date(os.dataHoraPreenchimentoSistema).toLocaleString('pt-BR')}</div></div>
+              ) : null}
               <div><strong>Setor:</strong> <div className={styles.summaryItemValue}>{os.setor}</div></div>
               <div><strong>Centro de Custo:</strong> <div className={styles.summaryItemValue}>{os.centroCusto || '-'}</div></div>
               <div><strong>Prazo Original:</strong> <div className={styles.summaryItemValue}>{os.prazo ? os.prazo.split('-').reverse().join('/') : 'Não definido'}</div></div>
@@ -990,6 +1136,39 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             );
           })()}
 
+          {/* CARD DE REFERÊNCIA DO KIT */}
+          {kitVinculado && (
+            <div style={{
+              marginBottom: '20px',
+              marginTop: '16px',
+              padding: '16px',
+              backgroundColor: 'rgba(255, 107, 0, 0.08)',
+              border: '1px solid var(--cor-destaque)',
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={18} color="var(--cor-destaque)" />
+                <span style={{ fontWeight: '800', color: 'var(--cor-destaque)', textTransform: 'uppercase', fontSize: '0.9rem' }}>
+                  Receita Padrão do Kit Vinculado: {kitVinculado.nome}
+                </span>
+              </div>
+              {kitVinculado.descricaoPadrao && (
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--cor-texto-secundario)' }}>{kitVinculado.descricaoPadrao}</p>
+              )}
+              <div style={{ marginTop: '8px' }}>
+                <strong style={{ fontSize: '0.8rem', display: 'block', marginBottom: '6px' }}>Peças Previstas para este serviço:</strong>
+                <ul style={{ margin: 0, paddingLeft: '24px', fontSize: '0.8rem', color: 'var(--cor-texto-principal)' }}>
+                  {(kitVinculado.pecas || []).map((p, idx) => (
+                    <li key={idx} style={{ marginBottom: '4px' }}><strong>{p.quantidade} {p.unidade}</strong> - {p.codigo ? `[${p.codigo}] ` : ''}{p.descricao}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* DIÁRIO DE BORDO UNIFICADO POR TURNO */}
           <div className={styles.sectionHeader} style={{ marginTop: '16px', marginBottom: '12px' }}>
             <h3><Wrench size={16} className={styles.sectionHeaderIcon} /> Diário de Bordo / Apontamentos por Turno</h3>
@@ -1019,11 +1198,19 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                           </span>
                           <span className={styles.badgeHorarioModern}>
                             <Clock size={13} />
-                            {serv.horaInicio2 || (serv.horaFim1 && serv.horaFim && serv.horaFim1 !== serv.horaFim) ? (
-                              `${serv.horaInicio || '--:--'} às ${serv.horaFim1 || '--:--'} | ${serv.horaInicio2 || '--:--'} às ${serv.horaFim || '--:--'}`
-                            ) : (
-                              `${serv.horaInicio || '--:--'} às ${serv.horaFim || serv.horaFim1 || '--:--'}`
-                            )}
+                            {(() => {
+                              const modo = serv.tipoTurno || detectarModoTurno(serv);
+                              if (modo === 'MANHA') {
+                                return `Manhã: ${serv.horaInicio || '--:--'} às ${serv.horaFim1 || '--:--'}`;
+                              }
+                              if (modo === 'TARDE') {
+                                return `Tarde: ${serv.horaInicio2 || '--:--'} às ${serv.horaFim || '--:--'}`;
+                              }
+                              if (modo === 'CONTINUO') {
+                                return `Turno Único: ${serv.horaInicio || '--:--'} às ${serv.horaFim || '--:--'}`;
+                              }
+                              return `${serv.horaInicio || '--:--'} às ${serv.horaFim1 || '--:--'} | ${serv.horaInicio2 || '--:--'} às ${serv.horaFim || '--:--'}`;
+                            })()}
                             {calcularHorasServico(serv) && (
                               <span className={styles.badgeHorasDestaque}>({calcularHorasServico(serv)})</span>
                             )}
@@ -1128,7 +1315,9 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                               return (
                                 <div key={pIdx} className={styles.cardPecaModern}>
                                   <div className={styles.pecaLeft}>
-                                    <span className={styles.pecaQtd}>{peca.quantidade}x</span>
+                                    <span className={styles.pecaQtd} title={obterBadgeInfo(peca.unidade).label}>
+                                      {obterBadgeInfo(peca.unidade).icone} {peca.quantidade} {obterRotuloUnidade(peca.unidade)}
+                                    </span>
                                     {isExterna ? (
                                       <span className={styles.badgeOrigemExterna}>
                                         <Camera size={11} /> Compra Externa
@@ -1194,68 +1383,199 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <div className={styles.periodoCard} style={{ flex: '1 1 240px' }}>
-                            <span className={styles.periodoTag}>1º Período:</span>
-                            <div className={styles.campoHora} style={{ flex: 1 }}>
-                              <label>Entrada</label>
-                              <input type="time" value={serv.horaInicio || ''} onChange={e => handleUpdateServico(servIdx, 'horaInicio', e.target.value)} style={{ width: '100%' }} />
-                            </div>
-                            <div className={styles.campoHora} style={{ flex: 1 }}>
-                              <label>Saída Almoço</label>
-                              <input type="time" value={serv.horaFim1 || ''} onChange={e => handleUpdateServico(servIdx, 'horaFim1', e.target.value)} style={{ width: '100%' }} />
-                            </div>
-                          </div>
+                        {/* Linha de Horários com Seletor de Período (Dia Todo / Só Manhã / Só Tarde / Contínuo) */}
+                        {(() => {
+                          const modo = serv.tipoTurno || detectarModoTurno(serv);
+                          const { horasDecimais, textoFormatado } = calcularHorasTrabalhadas(
+                            serv.horaInicio,
+                            serv.horaFim1,
+                            serv.horaInicio2,
+                            serv.horaFim,
+                            modo
+                          );
 
-                          {serv.mostrarSegundoPeriodo ? (
-                            <div className={styles.periodoCard} style={{ flex: '1 1 240px', position: 'relative' }}>
-                              <span className={styles.periodoTag}>2º Período:</span>
-                              <div className={styles.campoHora} style={{ flex: 1 }}>
-                                <label>Volta Almoço</label>
-                                <input type="time" value={serv.horaInicio2 || ''} onChange={e => handleUpdateServico(servIdx, 'horaInicio2', e.target.value)} style={{ width: '100%' }} />
+                          return (
+                            <div className={styles.horariosCardLinha}>
+                              {/* Seletor de Período */}
+                              <div className={styles.tipoTurnoSelector}>
+                                <button
+                                  type="button"
+                                  className={`${styles.btnTipoTurno} ${modo === 'INTEGRAL' ? styles.btnTipoTurnoActive : ''}`}
+                                  onClick={() => {
+                                    handleUpdateServico(servIdx, 'tipoTurno', 'INTEGRAL');
+                                    if (!serv.horaInicio) handleUpdateServico(servIdx, 'horaInicio', '07:30');
+                                    if (!serv.horaFim1) handleUpdateServico(servIdx, 'horaFim1', '11:30');
+                                    if (!serv.horaInicio2) handleUpdateServico(servIdx, 'horaInicio2', '13:00');
+                                    if (!serv.horaFim) handleUpdateServico(servIdx, 'horaFim', '16:20');
+                                  }}
+                                  title="Dia todo com pausa para almoço (Manhã + Tarde)"
+                                >
+                                  Dia Todo (Almoço)
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles.btnTipoTurno} ${modo === 'MANHA' ? styles.btnTipoTurnoActive : ''}`}
+                                  onClick={() => {
+                                    handleUpdateServico(servIdx, 'tipoTurno', 'MANHA');
+                                    if (!serv.horaInicio) handleUpdateServico(servIdx, 'horaInicio', '07:30');
+                                    if (!serv.horaFim1) handleUpdateServico(servIdx, 'horaFim1', '11:30');
+                                  }}
+                                  title="Atendimento realizado apenas pela manhã"
+                                >
+                                  Só Manhã
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles.btnTipoTurno} ${modo === 'TARDE' ? styles.btnTipoTurnoActive : ''}`}
+                                  onClick={() => {
+                                    handleUpdateServico(servIdx, 'tipoTurno', 'TARDE');
+                                    if (!serv.horaInicio2) handleUpdateServico(servIdx, 'horaInicio2', '13:00');
+                                    if (!serv.horaFim) handleUpdateServico(servIdx, 'horaFim', '16:20');
+                                  }}
+                                  title="Atendimento realizado apenas pela tarde"
+                                >
+                                  Só Tarde
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles.btnTipoTurno} ${modo === 'CONTINUO' ? styles.btnTipoTurnoActive : ''}`}
+                                  onClick={() => {
+                                    handleUpdateServico(servIdx, 'tipoTurno', 'CONTINUO');
+                                    if (!serv.horaInicio) handleUpdateServico(servIdx, 'horaInicio', '07:00');
+                                    if (!serv.horaFim) handleUpdateServico(servIdx, 'horaFim', '13:00');
+                                  }}
+                                  title="Atendimento em turno único sem almoço"
+                                >
+                                  Contínuo
+                                </button>
                               </div>
-                              <div className={styles.campoHora} style={{ flex: 1 }}>
-                                <label>Saída Final</label>
-                                <input type="time" value={serv.horaFim || ''} onChange={e => handleUpdateServico(servIdx, 'horaFim', e.target.value)} style={{ width: '100%' }} />
+
+                              {/* Campos de Horário de acordo com o modo selecionado */}
+                              {modo === 'INTEGRAL' && (
+                                <>
+                                  <div className={styles.horarioItem}>
+                                    <span className={styles.horarioSubLabel}>Manhã:</span>
+                                    <input
+                                      type="time"
+                                      className={styles.input}
+                                      style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                      value={serv.horaInicio || '07:30'}
+                                      onChange={(e) => handleUpdateServico(servIdx, 'horaInicio', e.target.value)}
+                                      title="Horário de Entrada (Manhã)"
+                                    />
+                                    <span className={styles.horarioAte}>até</span>
+                                    <input
+                                      type="time"
+                                      className={styles.input}
+                                      style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                      value={serv.horaFim1 || '11:30'}
+                                      onChange={(e) => handleUpdateServico(servIdx, 'horaFim1', e.target.value)}
+                                      title="Saída para Almoço"
+                                    />
+                                  </div>
+
+                                  <span className={styles.horarioDivisor}>|</span>
+
+                                  <div className={styles.horarioItem}>
+                                    <span className={styles.horarioSubLabel}>Tarde:</span>
+                                    <input
+                                      type="time"
+                                      className={styles.input}
+                                      style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                      value={serv.horaInicio2 || '13:00'}
+                                      onChange={(e) => handleUpdateServico(servIdx, 'horaInicio2', e.target.value)}
+                                      title="Retorno do Almoço"
+                                    />
+                                    <span className={styles.horarioAte}>até</span>
+                                    <input
+                                      type="time"
+                                      className={styles.input}
+                                      style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                      value={serv.horaFim || '16:20'}
+                                      onChange={(e) => handleUpdateServico(servIdx, 'horaFim', e.target.value)}
+                                      title="Saída Final (Tarde)"
+                                    />
+                                  </div>
+                                </>
+                              )}
+
+                              {modo === 'MANHA' && (
+                                <div className={styles.horarioItem}>
+                                  <span className={styles.horarioSubLabel}>Turno da Manhã:</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaInicio || '07:30'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaInicio', e.target.value)}
+                                    title="Entrada Manhã"
+                                  />
+                                  <span className={styles.horarioAte}>até</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaFim1 || '11:30'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaFim1', e.target.value)}
+                                    title="Término do Atendimento da Manhã"
+                                  />
+                                </div>
+                              )}
+
+                              {modo === 'TARDE' && (
+                                <div className={styles.horarioItem}>
+                                  <span className={styles.horarioSubLabel}>Turno da Tarde:</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaInicio2 || '13:00'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaInicio2', e.target.value)}
+                                    title="Início Tarde"
+                                  />
+                                  <span className={styles.horarioAte}>até</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaFim || '16:20'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaFim', e.target.value)}
+                                    title="Término do Atendimento da Tarde"
+                                  />
+                                </div>
+                              )}
+
+                              {modo === 'CONTINUO' && (
+                                <div className={styles.horarioItem}>
+                                  <span className={styles.horarioSubLabel}>Período Único:</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaInicio || '07:00'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaInicio', e.target.value)}
+                                    title="Horário de Início"
+                                  />
+                                  <span className={styles.horarioAte}>até</span>
+                                  <input
+                                    type="time"
+                                    className={styles.input}
+                                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: 'auto' }}
+                                    value={serv.horaFim || '13:00'}
+                                    onChange={(e) => handleUpdateServico(servIdx, 'horaFim', e.target.value)}
+                                    title="Horário de Término"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Badge de Horas Trabalhadas Calculadas */}
+                              <div className={styles.badgeHorasDia} title="Total de Horas Trabalhadas no período">
+                                <Clock size={14} />
+                                <span>Total Efetivo: {textoFormatado}</span>
                               </div>
-                              <button 
-                                type="button" 
-                                className={styles.btnDelLine} 
-                                onClick={() => {
-                                  handleUpdateServico(servIdx, 'horaInicio2', '');
-                                  handleUpdateServico(servIdx, 'horaFim', '');
-                                  handleUpdateServico(servIdx, 'mostrarSegundoPeriodo', false);
-                                }}
-                                style={{ alignSelf: 'flex-end', marginBottom: '4px' }}
-                                title="Remover 2º Período"
-                              >
-                                <Trash2 size={18} />
-                              </button>
                             </div>
-                          ) : (
-                            <button 
-                              type="button" 
-                              onClick={() => handleUpdateServico(servIdx, 'mostrarSegundoPeriodo', true)} 
-                              style={{ 
-                                flex: '1 1 240px', 
-                                border: '1px dashed var(--cor-destaque)', 
-                                backgroundColor: 'rgba(255, 107, 0, 0.05)', 
-                                color: 'var(--cor-destaque)', 
-                                borderRadius: '8px', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                gap: '8px',
-                                padding: '10px',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <Plus size={18} /> Adicionar 2º Período
-                            </button>
-                          )}
-                        </div>
+                          );
+                        })()}
                       </div>
                       
                       <div style={{ marginBottom: '12px' }}>
@@ -1300,21 +1620,185 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
 
                       {/* PEÇAS CONSUMIDAS NO TURNO (EDIÇÃO) */}
                       <div className={styles.subSectionBox} style={{ marginTop: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                           <label className={styles.label}><Package size={14}/> Peças Consumidas / Aplicadas</label>
-                          <button type="button" onClick={() => handleAddPecaSessao(servIdx)} style={{ background: 'transparent', border: 'none', color: 'var(--cor-destaque)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Plus size={14} /> Peça Utilizada
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => handleAddPecaSessao(servIdx, 'ESTOQUE')} 
+                              className={styles.btnAddPecaEstoque}
+                              title="Adicionar Peça do Estoque da Empresa"
+                            >
+                              <Plus size={13} /> + Peça Estoque
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => handleAddPecaSessao(servIdx, 'EXTERNA')} 
+                              className={styles.btnAddPecaExterna}
+                              title="Adicionar Peça Externa (com Foto de Cupom / Nota Fiscal)"
+                            >
+                              <Camera size={13} /> + Peça Externa (com NF)
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ display: 'grid', gap: '6px' }}>
-                          {(serv.pecasUtilizadas || []).map((peca, pecaIdx) => (
-                            <div key={pecaIdx} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 30px', gap: '8px', alignItems: 'center' }}>
-                              <input type="text" placeholder="Buscar peça..." value={peca.descricao} onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'descricao', e.target.value)} list="produtos-estoque" className={styles.input} />
-                              <input type="number" placeholder="Qtd" value={peca.quantidade} onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'quantidade', e.target.value)} className={styles.input} />
-                              <button type="button" onClick={() => handleRemovePecaSessao(servIdx, pecaIdx)} className={styles.btnDelLine} title="Remover peça"><Trash2 size={16}/></button>
-                            </div>
-                          ))}
-                        </div>
+
+                        {(!serv.pecasUtilizadas || serv.pecasUtilizadas.length === 0) ? (
+                          <div className={styles.itemVazio} style={{ padding: '8px', textAlign: 'center', color: 'var(--cor-texto-secundario)', fontSize: '0.75rem' }}>
+                            Nenhuma peça consumida neste turno. Use os botões acima para adicionar.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gap: '8px' }}>
+                            {serv.pecasUtilizadas.map((peca, pecaIdx) => {
+                              const isExterna = peca.tipo === 'EXTERNA' || peca.codigo === 'EXTERNO';
+
+                              return (
+                                <div 
+                                  key={pecaIdx} 
+                                  className={styles.linhaPecaEdicao}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    backgroundColor: 'var(--cor-fundo-sutil)',
+                                    border: isExterna ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid var(--cor-borda-cartao)'
+                                  }}
+                                >
+                                  {/* Badge de Origem */}
+                                  <div style={{ flexShrink: 0 }}>
+                                    {isExterna ? (
+                                      <span className={styles.badgeOrigemExterna} title="Peça adquirida fora com comprovante fiscal">
+                                        <Camera size={11} /> Compra Externa
+                                      </span>
+                                    ) : (
+                                      <span className={styles.badgeOrigemEstoque} title="Peça requisitada do estoque Omie">
+                                        <Package size={11} /> Estoque
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Campo de Descrição */}
+                                  <div style={{ flex: 1, minWidth: '150px' }}>
+                                    {isExterna ? (
+                                      <input 
+                                        type="text" 
+                                        placeholder="Nome da peça externa comprada..." 
+                                        value={peca.descricao} 
+                                        onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'descricao', e.target.value.toUpperCase())} 
+                                        className={styles.input} 
+                                      />
+                                    ) : (
+                                      <input 
+                                        type="text" 
+                                        placeholder="Buscar peça no estoque..." 
+                                        value={peca.descricao} 
+                                        onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'descricao', e.target.value)} 
+                                        list="produtos-estoque" 
+                                        className={styles.input} 
+                                      />
+                                    )}
+                                  </div>
+
+                                  {/* Campo de Quantidade */}
+                                  <div style={{ width: '80px', flexShrink: 0 }}>
+                                    <input 
+                                      type="number" 
+                                      placeholder="Qtd" 
+                                      value={peca.quantidade} 
+                                      onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'quantidade', e.target.value)} 
+                                      className={styles.input} 
+                                      style={{ textAlign: 'center' }}
+                                      step="any"
+                                    />
+                                  </div>
+                                  <div style={{ marginLeft: '4px', marginRight: '8px', fontSize: '0.8rem', color: 'var(--cor-texto-secundario)', alignSelf: 'center' }} title={obterBadgeInfo(peca.unidade).label}>
+                                    {obterBadgeInfo(peca.unidade).icone} {obterRotuloUnidade(peca.unidade)}
+                                  </div>
+
+                                  {/* Campo de Valor Unitário (para Externa) */}
+                                  {isExterna ? (
+                                    <div style={{ width: '110px', flexShrink: 0 }}>
+                                      <input 
+                                        type="number" 
+                                        placeholder="R$ Valor Un." 
+                                        value={peca.valor_unitario !== undefined ? peca.valor_unitario : ''} 
+                                        onChange={e => handleUpdatePecaSessao(servIdx, pecaIdx, 'valor_unitario', e.target.value)} 
+                                        className={styles.input} 
+                                        style={{ textAlign: 'right', fontWeight: '600' }}
+                                        step="0.01"
+                                        title="Valor unitário da peça externa"
+                                      />
+                                    </div>
+                                  ) : (
+                                    peca.valor_unitario > 0 && (
+                                      <div style={{ width: '90px', flexShrink: 0, textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: 'var(--cor-texto-secundario)' }} title="Valor unitário do estoque Omie">
+                                        R$ {Number(peca.valor_unitario).toFixed(2)}
+                                      </div>
+                                    )
+                                  )}
+
+                                  {/* Área da Foto / Comprovante NF */}
+                                  <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    {isExterna ? (
+                                      peca.fotoNota ? (
+                                        <div className={styles.fotoNotaContainer}>
+                                          <img
+                                            src={peca.fotoNota}
+                                            alt="NF"
+                                            className={styles.miniaturaFotoNota}
+                                            onClick={() => setFotoVisualizando(peca.fotoNota)}
+                                            title="Clique para ver a foto da NF"
+                                          />
+                                          <button
+                                            type="button"
+                                            className={styles.btnVerNotaModal}
+                                            onClick={() => setFotoVisualizando(peca.fotoNota)}
+                                            title="Visualizar Nota Fiscal"
+                                            style={{ padding: '4px 6px' }}
+                                          >
+                                            <Eye size={12} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUpdatePecaSessao(servIdx, pecaIdx, 'fotoNota', '')}
+                                            className={styles.btnDelLine}
+                                            title="Remover foto"
+                                            style={{ padding: '4px' }}
+                                          >
+                                            <Trash2 size={13} color="var(--cor-erro)" />
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <label className={styles.btnFotoNotaAnexo} title="Anexar foto da Nota Fiscal ou Cupom">
+                                          <Camera size={13} />
+                                          <span>Anexar NF</span>
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => handleUploadFotoPeca(servIdx, pecaIdx, e)}
+                                          />
+                                        </label>
+                                      )
+                                    ) : null}
+                                  </div>
+
+                                  {/* Botão de Remover Peça */}
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleRemovePecaSessao(servIdx, pecaIdx)} 
+                                    className={styles.btnDelLine} 
+                                    title="Remover peça"
+                                  >
+                                    <Trash2 size={16}/>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       {/* VEÍCULOS DE DESLOCAMENTO (EDIÇÃO) */}
@@ -1398,7 +1882,6 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
             const isHorimetro = (veiculoCadastrado && veiculoCadastrado.tipoMedicao === 'Horas') || !!isGeradorOS;
             const labelBase = isHorimetro ? 'Horímetro Atual (Fechamento da O.S.)' : 'KM Atual (Fechamento da O.S.)';
             const ultimoRegistro = veiculoCadastrado ? veiculoCadastrado.kmAtual : null;
-            const validacaoKm = ultimoRegistro ? validarAntiRetrocessoKM(kmManutencao, ultimoRegistro, isHorimetro ? 'Horas' : 'KM') : { valido: true, retrocedeu: false };
 
             return (
               <div className={styles.veiculoManutencaoContainer}>
@@ -1413,34 +1896,14 @@ const FormularioServicoOS = ({ os, onClose, onUpdateOS }) => {
                   )}
                 </div>
                 <div className={styles.veiculoManutencaoBody}>
-                  <div className={`${styles.formGroup} ${styles.maxWidth400}`}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <label className={`${styles.label} ${styles.labelVeiculoManutencao}`} style={{ margin: 0 }}>{labelBase}</label>
-                      {kmManutencao && (
-                        <span style={{ fontSize: '0.85rem', fontWeight: '800', color: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : 'var(--cor-destaque)' }}>
-                          👀 {formatarOdometroDisplay(kmManutencao, isHorimetro ? 'Horas' : 'KM')}
-                        </span>
-                      )}
-                    </div>
-                    <input 
-                      type="number" 
-                      step="0.1"
-                      className={`${styles.input} ${styles.inputVeiculoManutencao}`} 
-                      value={kmManutencao} 
-                      onChange={(e) => setKmManutencao(e.target.value)} 
-                      placeholder={isHorimetro ? "Ex: 1250" : "Ex: 45000"}
-                      style={{ 
-                        fontWeight: '800', 
-                        color: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : 'var(--cor-destaque)',
-                        borderColor: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : undefined 
-                      }}
+                  <div style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                    <InputOdometroInteligente 
+                      veiculo={veiculoCadastrado}
+                      value={kmManutencao}
+                      onChange={setKmManutencao}
+                      onError={setErroRetrocesso}
+                      label={labelBase}
                     />
-                    {validacaoKm.retrocedeu && (
-                      <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--cor-erro, #ef4444)', borderRadius: '6px', padding: '6px 10px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--cor-erro, #ef4444)', fontSize: '0.8rem', fontWeight: '700' }}>
-                        <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-                        <span>{validacaoKm.mensagem}</span>
-                      </div>
-                    )}
                   </div>
 
                   {isHorimetro && (

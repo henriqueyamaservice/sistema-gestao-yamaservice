@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   Clock, 
@@ -17,6 +17,9 @@ import {
   Eye
 } from 'lucide-react';
 import styles from './ModalEdicaoDiaTotem.module.css';
+import { obterRotuloUnidade, permiteDecimais } from '../../../../../utils/classificadorUnidades';
+import { formatarNumeroBR } from '../../../../../utils/formatadorOdometro';
+import { detectarModoTurno, calcularHorasTrabalhadas, formatarHorariosTurno } from '../index';
 
 const ModalEdicaoDiaTotem = ({
   diaIndex = 0,
@@ -28,6 +31,16 @@ const ModalEdicaoDiaTotem = ({
   veiculosConfig = [],
   calcularHorasTurno
 }) => {
+  const currentUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('almoxarifado_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+  const isAdmin = currentUser?.role === 'admin';
+
   const [turno, setTurno] = useState(() => JSON.parse(JSON.stringify(turnoInicial)));
   const [activePecaSearch, setActivePecaSearch] = useState({ pecaIdx: null, query: '' });
   const [fotoVisualizandoModal, setFotoVisualizandoModal] = useState(null);
@@ -35,7 +48,7 @@ const ModalEdicaoDiaTotem = ({
   const handleChange = (campo, valor) => {
     setTurno(prev => {
       const tAtualizado = { ...prev, [campo]: valor };
-      if (['horaInicio', 'horaFim1', 'horaInicio2', 'horaFim'].includes(campo)) {
+      if (['horaInicio', 'horaFim1', 'horaInicio2', 'horaFim', 'tipoTurno'].includes(campo)) {
         const horasCalc = calcularHorasTurno(tAtualizado);
         if (parseFloat(horasCalc) > 0) {
           tAtualizado.maoDeObra = (tAtualizado.maoDeObra || []).map(m => ({
@@ -45,6 +58,48 @@ const ModalEdicaoDiaTotem = ({
         }
       }
       return tAtualizado;
+    });
+  };
+
+  // Troca atômica de Modo de Turno com limpeza dos horários não utilizados
+  const handleTrocarTipoTurno = (novoModo) => {
+    setTurno(prev => {
+      let novoTurno = { ...prev, tipoTurno: novoModo };
+
+      if (novoModo === 'MANHA') {
+        novoTurno.horaInicio = prev.horaInicio || '07:30';
+        novoTurno.horaFim1 = prev.horaFim1 || '11:30';
+        novoTurno.horaInicio2 = '';
+        novoTurno.horaFim = '';
+      } else if (novoModo === 'TARDE') {
+        novoTurno.horaInicio = '';
+        novoTurno.horaFim1 = '';
+        novoTurno.horaInicio2 = prev.horaInicio2 || '13:00';
+        novoTurno.horaFim = (prev.horaFim && prev.horaFim !== '11:30') ? prev.horaFim : '16:20';
+      } else if (novoModo === 'CONTINUO') {
+        novoTurno.horaInicio = prev.horaInicio || '07:00';
+        novoTurno.horaFim1 = '';
+        novoTurno.horaInicio2 = '';
+        novoTurno.horaFim = (prev.horaFim && prev.horaFim !== '11:30') ? prev.horaFim : '13:00';
+      } else {
+        // INTEGRAL
+        novoTurno.horaInicio = prev.horaInicio || '07:30';
+        novoTurno.horaFim1 = prev.horaFim1 || '11:30';
+        novoTurno.horaInicio2 = prev.horaInicio2 || '13:00';
+        novoTurno.horaFim = prev.horaFim || '16:20';
+      }
+
+      if (typeof calcularHorasTurno === 'function') {
+        const horasCalc = calcularHorasTurno(novoTurno);
+        if (parseFloat(horasCalc) > 0) {
+          novoTurno.maoDeObra = (novoTurno.maoDeObra || []).map(m => ({
+            ...m,
+            horas: horasCalc
+          }));
+        }
+      }
+
+      return novoTurno;
     });
   };
 
@@ -87,17 +142,50 @@ const ModalEdicaoDiaTotem = ({
   };
 
   // Peças
+  const produtosFiltrados = useMemo(() => {
+    if (activePecaSearch.pecaIdx === null) return [];
+    const q = (activePecaSearch.query || '').trim().toLowerCase();
+    if (!q) return (produtosEstoque || []).slice(0, 20);
+
+    const termos = q.split(/\s+/).filter(Boolean);
+    return (produtosEstoque || []).filter(p => {
+      const desc = (p.descricao || '').toLowerCase();
+      const cod = (p.codigo || '').toLowerCase();
+      return termos.every(t => desc.includes(t) || cod.includes(t));
+    }).slice(0, 25);
+  }, [produtosEstoque, activePecaSearch.pecaIdx, activePecaSearch.query]);
+
+  // Fechar dropdown de peças ao clicar fora
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (activePecaSearch.pecaIdx !== null && !e.target.closest(`.${styles.buscaPecaWrapper}`)) {
+        setActivePecaSearch({ pecaIdx: null, query: '' });
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [activePecaSearch.pecaIdx]);
+
   const handleAddPeca = () => {
-    setTurno(prev => ({
-      ...prev,
-      pecasUtilizadas: [...(prev.pecasUtilizadas || []), { codigo: '', descricao: '', quantidade: 1, valor_unitario: 0, tipo: 'ESTOQUE' }]
-    }));
+    setTurno(prev => {
+      const novaLista = [...(prev.pecasUtilizadas || []), { codigo: '', descricao: '', quantidade: 1, unidade: 'UN', valor_unitario: 0, tipo: 'ESTOQUE' }];
+      return { ...prev, pecasUtilizadas: novaLista };
+    });
+    setTimeout(() => {
+      setTurno(curr => {
+        const lastIdx = (curr.pecasUtilizadas || []).length - 1;
+        if (lastIdx >= 0) {
+          setActivePecaSearch({ pecaIdx: lastIdx, query: '' });
+        }
+        return curr;
+      });
+    }, 50);
   };
 
   const handleAddPecaExterna = () => {
     setTurno(prev => ({
       ...prev,
-      pecasUtilizadas: [...(prev.pecasUtilizadas || []), { codigo: 'EXTERNO', descricao: '', quantidade: 1, valor_unitario: '', tipo: 'EXTERNA', fotoNota: '' }]
+      pecasUtilizadas: [...(prev.pecasUtilizadas || []), { codigo: 'EXTERNO', descricao: '', quantidade: 1, unidade: 'UN', valor_unitario: '', tipo: 'EXTERNA', fotoNota: '' }]
     }));
   };
 
@@ -106,11 +194,16 @@ const ModalEdicaoDiaTotem = ({
     const itemAtual = { ...list[idx], [campo]: valor };
 
     if (campo === 'descricao' && itemAtual.tipo !== 'EXTERNA') {
-      const prod = (produtosEstoque || []).find(p => p.descricao === valor || p.codigo === valor);
+      const valLower = (valor || '').trim().toLowerCase();
+      const prod = (produtosEstoque || []).find(p => 
+        (p.descricao || '').toLowerCase() === valLower || 
+        (p.codigo || '').toLowerCase() === valLower
+      );
       if (prod) {
         itemAtual.codigo = prod.codigo || '';
         itemAtual.descricao = prod.descricao || valor;
-        itemAtual.valor_unitario = prod.valor_unitario || prod.preco_venda || prod.preco_unitario || 0;
+        itemAtual.unidade = prod.unidade || 'UN';
+        itemAtual.valor_unitario = Number(prod.valor_unitario || prod.preco_venda || prod.preco_unitario || prod.preco || 0);
         itemAtual.tipo = 'ESTOQUE';
       }
     }
@@ -161,7 +254,9 @@ const ModalEdicaoDiaTotem = ({
       ...list[idx],
       codigo: prod.codigo || '',
       descricao: prod.descricao || '',
-      valor_unitario: prod.valor_unitario || prod.preco || 0
+      unidade: prod.unidade || 'UN',
+      valor_unitario: Number(prod.valor_unitario || prod.preco_venda || prod.preco_unitario || prod.preco || 0),
+      tipo: 'ESTOQUE'
     };
     setTurno(prev => ({ ...prev, pecasUtilizadas: list }));
     setActivePecaSearch({ pecaIdx: null, query: '' });
@@ -234,13 +329,36 @@ const ModalEdicaoDiaTotem = ({
       return;
     }
 
-    const temDoisPeriodos = Boolean(turno.horaInicio2 || turno.temSegundoPeriodo);
+    const modo = turno.tipoTurno || detectarModoTurno(turno);
+    let horaInicioTratada = '';
+    let horaFim1Tratada = '';
+    let horaInicio2Tratada = '';
+    let horaFimTratada = '';
+
+    if (modo === 'MANHA') {
+      horaInicioTratada = turno.horaInicio || '07:30';
+      horaFim1Tratada = turno.horaFim1 || turno.horaFim || '11:30';
+    } else if (modo === 'TARDE') {
+      horaInicio2Tratada = turno.horaInicio2 || turno.horaInicio || '13:00';
+      horaFimTratada = turno.horaFim || '16:20';
+    } else if (modo === 'CONTINUO') {
+      horaInicioTratada = turno.horaInicio || '07:00';
+      horaFimTratada = turno.horaFim || '13:00';
+    } else {
+      // INTEGRAL
+      horaInicioTratada = turno.horaInicio || '07:30';
+      horaFim1Tratada = turno.horaFim1 || '11:30';
+      horaInicio2Tratada = turno.horaInicio2 || '13:00';
+      horaFimTratada = turno.horaFim || '16:20';
+    }
+
     const turnoNormalizado = {
       ...turno,
-      horaInicio: turno.horaInicio || '',
-      horaFim1: temDoisPeriodos ? (turno.horaFim1 || '') : '',
-      horaInicio2: temDoisPeriodos ? (turno.horaInicio2 || '') : '',
-      horaFim: temDoisPeriodos ? (turno.horaFim || '') : (turno.horaFim || turno.horaFim1 || '')
+      tipoTurno: modo,
+      horaInicio: horaInicioTratada,
+      horaFim1: horaFim1Tratada,
+      horaInicio2: horaInicio2Tratada,
+      horaFim: horaFimTratada
     };
 
     onSalvar(diaIndex, turnoNormalizado);
@@ -264,125 +382,239 @@ const ModalEdicaoDiaTotem = ({
         <form onSubmit={handleConfirmar} className={styles.modalBody}>
           
           {/* 1. HORÁRIOS & DATA */}
-          <div className={styles.secaoCard}>
-            <div className={styles.secaoTitulo}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={18} color="var(--cor-destaque)" />
-                <span>1. Data & Horários de Trabalho</span>
-              </div>
-              <div className={styles.displayHorasModal}>
-                <Clock size={16} />
-                <span>{calcularHorasTurno(turno)} horas calculadas</span>
-              </div>
-            </div>
+          {(() => {
+            const modo = turno?.tipoTurno || detectarModoTurno(turno);
+            const { horasDecimais, textoFormatado } = calcularHorasTrabalhadas(
+              turno?.horaInicio,
+              turno?.horaFim1,
+              turno?.horaInicio2,
+              turno?.horaFim,
+              modo
+            );
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--cor-texto-principal)' }}>
-                Data do Dia #{diaIndex + 1}:
-              </label>
-              <input
-                type="date"
-                className={styles.inputField}
-                style={{ width: 'auto', padding: '6px 12px' }}
-                value={turno.data || ''}
-                onChange={e => handleChange('data', e.target.value)}
-              />
-            </div>
-
-            <div className={styles.gridHorarios}>
-              {/* 1º Período */}
-              <div className={styles.periodoCardMini}>
-                <div className={styles.periodoCardMiniHeader}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f97316' }}>
-                    <Sunrise size={16} />
-                    {turno.horaInicio2 || turno.temSegundoPeriodo ? '1º Período (Entrada & Almoço)' : '1º Período (Entrada & Saída)'}
-                  </span>
-                </div>
-                <div className={styles.inputsRowHoras}>
-                  <div className={styles.campoHoraMini}>
-                    <label>Entrada</label>
-                    <input
-                      type="time"
-                      className={styles.inputField}
-                      value={turno.horaInicio || ''}
-                      onChange={e => handleChange('horaInicio', e.target.value)}
-                    />
+            return (
+              <div className={styles.secaoCard}>
+                <div className={styles.secaoTitulo}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={18} color="var(--cor-destaque)" />
+                    <span>1. Data & Horários de Trabalho</span>
                   </div>
-                  <div className={styles.campoHoraMini}>
-                    <label>{turno.horaInicio2 || turno.temSegundoPeriodo ? 'Saída Almoço' : 'Saída'}</label>
-                    <input
-                      type="time"
-                      className={styles.inputField}
-                      value={turno.horaFim1 || (!turno.horaInicio2 && !turno.temSegundoPeriodo ? turno.horaFim : '') || ''}
-                      onChange={e => {
-                        const val = e.target.value;
-                        if (turno.horaInicio2 || turno.temSegundoPeriodo) {
-                          handleChange('horaFim1', val);
-                        } else {
-                          handleChange('horaFim1', val);
-                          handleChange('horaFim', val);
-                        }
-                      }}
-                    />
+                  <div className={styles.displayHorasModal} title="Horas líquidas de trabalho">
+                    <Clock size={16} />
+                    <span>Total Efetivo: {textoFormatado} ({horasDecimais}h)</span>
                   </div>
                 </div>
-              </div>
 
-              {/* 2º Período (Se ativo) */}
-              {(turno.horaInicio2 || turno.temSegundoPeriodo) ? (
-                <div className={styles.periodoCardMini}>
-                  <div className={styles.periodoCardMiniHeader}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3b82f6' }}>
-                      <Sunset size={16} />
-                      2º Período (Retorno & Final)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleChange('horaInicio2', '');
-                        handleChange('temSegundoPeriodo', false);
-                      }}
-                      className={styles.btnRemoverMini}
-                      title="Remover 2º Período"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className={styles.inputsRowHoras}>
-                    <div className={styles.campoHoraMini}>
-                      <label>Retorno Almoço</label>
-                      <input
-                        type="time"
-                        className={styles.inputField}
-                        value={turno.horaInicio2 || ''}
-                        onChange={e => handleChange('horaInicio2', e.target.value)}
-                      />
-                    </div>
-                    <div className={styles.campoHoraMini}>
-                      <label>Saída Final</label>
-                      <input
-                        type="time"
-                        className={styles.inputField}
-                        value={turno.horaFim || ''}
-                        onChange={e => handleChange('horaFim', e.target.value)}
-                      />
-                    </div>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--cor-texto-principal)' }}>
+                    Data do Dia #{diaIndex + 1}:
+                  </label>
+                  <input
+                    type="date"
+                    className={styles.inputField}
+                    style={{ width: 'auto', padding: '6px 12px' }}
+                    value={turno.data || ''}
+                    onChange={e => handleChange('data', e.target.value)}
+                  />
                 </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+                {/* Seletor de Período */}
+                <div className={styles.tipoTurnoSelector} style={{ marginTop: '10px' }}>
                   <button
                     type="button"
-                    onClick={() => handleChange('temSegundoPeriodo', true)}
-                    className={styles.btnAdicionarMini}
-                    style={{ width: '100%', padding: '12px', justifyContent: 'center' }}
+                    className={`${styles.btnTipoTurno} ${modo === 'INTEGRAL' ? styles.btnTipoTurnoActive : ''}`}
+                    onClick={() => handleTrocarTipoTurno('INTEGRAL')}
+                    title="Dia todo com pausa para almoço (Manhã + Tarde)"
                   >
-                    <Plus size={16} /> Adicionar 2º Período (Tarde)
+                    Dia Todo (Almoço)
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btnTipoTurno} ${modo === 'MANHA' ? styles.btnTipoTurnoActive : ''}`}
+                    onClick={() => handleTrocarTipoTurno('MANHA')}
+                    title="Atendimento realizado apenas pela manhã"
+                  >
+                    Só Manhã
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btnTipoTurno} ${modo === 'TARDE' ? styles.btnTipoTurnoActive : ''}`}
+                    onClick={() => handleTrocarTipoTurno('TARDE')}
+                    title="Atendimento realizado apenas pela tarde"
+                  >
+                    Só Tarde
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btnTipoTurno} ${modo === 'CONTINUO' ? styles.btnTipoTurnoActive : ''}`}
+                    onClick={() => handleTrocarTipoTurno('CONTINUO')}
+                    title="Atendimento em turno único sem almoço"
+                  >
+                    Contínuo
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
+
+                <div className={styles.gridHorarios} style={{ marginTop: '10px' }}>
+                  {modo === 'INTEGRAL' && (
+                    <>
+                      {/* 1º Período */}
+                      <div className={styles.periodoCardMini}>
+                        <div className={styles.periodoCardMiniHeader}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f97316' }}>
+                            <Sunrise size={16} />
+                            1º Período (Entrada & Almoço)
+                          </span>
+                        </div>
+                        <div className={styles.inputsRowHoras}>
+                          <div className={styles.campoHoraMini}>
+                            <label>Entrada</label>
+                            <input
+                              type="time"
+                              className={styles.inputField}
+                              value={turno.horaInicio || '07:30'}
+                              onChange={e => handleChange('horaInicio', e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.campoHoraMini}>
+                            <label>Saída Almoço</label>
+                            <input
+                              type="time"
+                              className={styles.inputField}
+                              value={turno.horaFim1 || '11:30'}
+                              onChange={e => handleChange('horaFim1', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 2º Período */}
+                      <div className={styles.periodoCardMini}>
+                        <div className={styles.periodoCardMiniHeader}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3b82f6' }}>
+                            <Sunset size={16} />
+                            2º Período (Retorno & Final)
+                          </span>
+                        </div>
+                        <div className={styles.inputsRowHoras}>
+                          <div className={styles.campoHoraMini}>
+                            <label>Retorno Almoço</label>
+                            <input
+                              type="time"
+                              className={styles.inputField}
+                              value={turno.horaInicio2 || '13:00'}
+                              onChange={e => handleChange('horaInicio2', e.target.value)}
+                            />
+                          </div>
+                          <div className={styles.campoHoraMini}>
+                            <label>Saída Final</label>
+                            <input
+                              type="time"
+                              className={styles.inputField}
+                              value={turno.horaFim || '16:20'}
+                              onChange={e => handleChange('horaFim', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {modo === 'MANHA' && (
+                    <div className={styles.periodoCardMini} style={{ gridColumn: '1 / -1' }}>
+                      <div className={styles.periodoCardMiniHeader}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f97316' }}>
+                          <Sunrise size={16} />
+                          Turno Único da Manhã
+                        </span>
+                      </div>
+                      <div className={styles.inputsRowHoras}>
+                        <div className={styles.campoHoraMini}>
+                          <label>Entrada</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaInicio || '07:30'}
+                            onChange={e => handleChange('horaInicio', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.campoHoraMini}>
+                          <label>Término Manhã</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaFim1 || '11:30'}
+                            onChange={e => handleChange('horaFim1', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {modo === 'TARDE' && (
+                    <div className={styles.periodoCardMini} style={{ gridColumn: '1 / -1' }}>
+                      <div className={styles.periodoCardMiniHeader}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#3b82f6' }}>
+                          <Sunset size={16} />
+                          Turno Único da Tarde
+                        </span>
+                      </div>
+                      <div className={styles.inputsRowHoras}>
+                        <div className={styles.campoHoraMini}>
+                          <label>Início Tarde</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaInicio2 || '13:00'}
+                            onChange={e => handleChange('horaInicio2', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.campoHoraMini}>
+                          <label>Saída Final</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaFim || '16:20'}
+                            onChange={e => handleChange('horaFim', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {modo === 'CONTINUO' && (
+                    <div className={styles.periodoCardMini} style={{ gridColumn: '1 / -1' }}>
+                      <div className={styles.periodoCardMiniHeader}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981' }}>
+                          <Clock size={16} />
+                          Atendimento Contínuo (Sem Almoço)
+                        </span>
+                      </div>
+                      <div className={styles.inputsRowHoras}>
+                        <div className={styles.campoHoraMini}>
+                          <label>Início do Serviço</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaInicio || '07:00'}
+                            onChange={e => handleChange('horaInicio', e.target.value)}
+                          />
+                        </div>
+                        <div className={styles.campoHoraMini}>
+                          <label>Término do Serviço</label>
+                          <input
+                            type="time"
+                            className={styles.inputField}
+                            value={turno.horaFim || '13:00'}
+                            onChange={e => handleChange('horaFim', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* 2. DESCRIÇÃO DO SERVIÇO */}
           <div className={styles.secaoCard}>
@@ -516,7 +748,13 @@ const ModalEdicaoDiaTotem = ({
                 <span>Confirmado: Este serviço foi realizado apenas com mão de obra, sem peças.</span>
               </div>
             ) : (
-              <table className={styles.tabelaMini}>
+              <table 
+                className={styles.tabelaMini}
+                style={{ 
+                  marginBottom: activePecaSearch.pecaIdx !== null ? '180px' : '0px',
+                  transition: 'margin-bottom 0.25s ease'
+                }}
+              >
                 <thead>
                   <tr>
                     <th style={{ width: '95px', textAlign: 'center' }}>Tipo</th>
@@ -537,9 +775,13 @@ const ModalEdicaoDiaTotem = ({
                   ) : (
                     turno.pecasUtilizadas.map((p, pIdx) => {
                       const isExterna = p.tipo === 'EXTERNA' || p.codigo === 'EXTERNO';
+                      const isLinhaAtiva = activePecaSearch.pecaIdx === pIdx;
 
                       return (
-                        <tr key={pIdx}>
+                        <tr 
+                          key={pIdx}
+                          style={isLinhaAtiva ? { position: 'relative', zIndex: 1000 } : undefined}
+                        >
                           <td style={{ textAlign: 'center' }}>
                             {isExterna ? (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', padding: '2px 5px', borderRadius: '4px', backgroundColor: 'rgba(217, 119, 6, 0.15)', color: '#d97706', border: '1px solid rgba(217, 119, 6, 0.4)' }}>
@@ -551,7 +793,7 @@ const ModalEdicaoDiaTotem = ({
                               </span>
                             )}
                           </td>
-                          <td>
+                          <td style={isLinhaAtiva ? { position: 'relative', zIndex: 1000 } : undefined}>
                             {isExterna ? (
                               <input
                                 type="text"
@@ -561,27 +803,65 @@ const ModalEdicaoDiaTotem = ({
                                 onChange={e => handlePecaChange(pIdx, 'descricao', e.target.value)}
                               />
                             ) : (
-                              <input
-                                type="text"
-                                className={styles.inputField}
-                                list="listaProdutosTotem"
-                                placeholder="Buscar peça no estoque..."
-                                value={p.descricao || ''}
-                                onChange={e => handlePecaChange(pIdx, 'descricao', e.target.value)}
-                              />
+                              <div className={styles.buscaPecaWrapper}>
+                                <input
+                                  type="text"
+                                  className={styles.inputField}
+                                  placeholder="Buscar peça por nome ou código..."
+                                  value={activePecaSearch.pecaIdx === pIdx ? activePecaSearch.query : (p.descricao || '')}
+                                  onFocus={() => setActivePecaSearch({ pecaIdx: pIdx, query: p.descricao || '' })}
+                                  onChange={e => {
+                                    const val = e.target.value;
+                                    setActivePecaSearch({ pecaIdx: pIdx, query: val });
+                                    handlePecaChange(pIdx, 'descricao', val);
+                                  }}
+                                  autoComplete="off"
+                                />
+                                {activePecaSearch.pecaIdx === pIdx && produtosFiltrados.length > 0 && (
+                                  <ul className={styles.dropdownPecasLista}>
+                                    {produtosFiltrados.map((prod, fIdx) => (
+                                      <li
+                                        key={prod.codigo || fIdx}
+                                        className={styles.itemPecaOpcao}
+                                        onMouseDown={(e) => {
+                                          e.preventDefault();
+                                          handleSelectProduto(pIdx, prod);
+                                        }}
+                                      >
+                                        <div className={styles.pecaInfoText}>
+                                          <span className={styles.pecaDescricaoText}>{prod.descricao}</span>
+                                          <span className={styles.pecaCodigoText}>
+                                            {prod.codigo ? `[${prod.codigo}] ` : ''}{prod.unidade ? `• Unidade: ${prod.unidade}` : ''}
+                                          </span>
+                                        </div>
+                                        {isAdmin && prod.valor_unitario > 0 && (
+                                          <span className={styles.pecaPrecoBadge}>
+                                            R$ {formatarNumeroBR(prod.valor_unitario, 2)}
+                                          </span>
+                                        )}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
                             )}
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <input
-                              type="number"
-                              min="0.01"
-                              step="any"
-                              className={styles.inputField}
-                              style={{ textAlign: 'center', fontWeight: '700' }}
-                              value={p.quantidade !== undefined && p.quantidade !== null ? p.quantidade : ''}
-                              onChange={e => handlePecaChange(pIdx, 'quantidade', e.target.value)}
-                              onWheel={e => e.target.blur()}
-                            />
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                              <input
+                                type="number"
+                                min={permiteDecimais(p.unidade) ? "0.01" : "1"}
+                                step={permiteDecimais(p.unidade) ? "0.01" : "1"}
+                                className={styles.inputField}
+                                style={{ textAlign: 'center', fontWeight: '700', width: '52px' }}
+                                value={p.quantidade !== undefined && p.quantidade !== null ? p.quantidade : ''}
+                                onChange={e => handlePecaChange(pIdx, 'quantidade', e.target.value)}
+                                onWheel={e => e.target.blur()}
+                              />
+                              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--cor-destaque)', minWidth: '18px' }} title={p.unidade ? `Unidade: ${p.unidade}` : 'Unidade'}>
+                                {obterRotuloUnidade(p.unidade)}
+                              </span>
+                            </div>
                           </td>
                           <td style={{ textAlign: 'right' }}>
                             {isExterna ? (
@@ -597,8 +877,11 @@ const ModalEdicaoDiaTotem = ({
                                 onWheel={e => e.target.blur()}
                               />
                             ) : (
-                              <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--cor-texto-secundario)', paddingRight: '6px' }}>
-                                {p.valor_unitario ? `R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : '—'}
+                              <span
+                                style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--cor-texto-secundario)', paddingRight: '6px' }}
+                                title={isAdmin ? `Valor unitário: R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : "Valor confidencial do estoque"}
+                              >
+                                {isAdmin ? (p.valor_unitario ? `R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : '—') : '—'}
                               </span>
                             )}
                           </td>
@@ -734,7 +1017,7 @@ const ModalEdicaoDiaTotem = ({
                             className={styles.inputField}
                             placeholder="KM Inicial"
                             value={v.kmInicial || ''}
-                            onChange={e => handleVeiculoChange(vIdx, 'kmInicial', e.target.value)}
+                            onChange={e => handleVeiculoChange(vIdx, 'kmInicial', e.target.value.replace(/,/g, ''))}
                             title="KM Inicial (editável para O.S. antigas)"
                             style={{ fontWeight: '700' }}
                           />
@@ -744,7 +1027,7 @@ const ModalEdicaoDiaTotem = ({
                             type="number"
                             className={styles.inputField}
                             value={v.kmFinal || ''}
-                            onChange={e => handleVeiculoChange(vIdx, 'kmFinal', e.target.value)}
+                            onChange={e => handleVeiculoChange(vIdx, 'kmFinal', e.target.value.replace(/,/g, ''))}
                           />
                         </td>
                         <td style={{ fontWeight: '700', color: 'var(--cor-destaque)' }}>{v.km ? `${v.km} km` : '-'}</td>

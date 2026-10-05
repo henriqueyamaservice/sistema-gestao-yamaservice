@@ -1,0 +1,212 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  width: 550px;
+  max-width: 95%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cor-fundo-secundario);
+}
+
+.header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cor-destaque);
+  font-size: 1.2rem;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.body {
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--cor-fundo-cartao);
+}
+
+.dropzone {
+  border: 2px dashed var(--cor-destaque);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--cor-fundo-sutil);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropzone:hover {
+  background: var(--cor-fundo-sutil-forte);
+  border-color: var(--cor-destaque-hover);
+}
+
+.dropzone p {
+  margin: 0;
+  color: var(--cor-texto-principal);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.dropzone span {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cor-fundo-secundario);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.fileName {
+  flex: 1;
+  font-weight: 500;
+  color: var(--cor-texto-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.removeFile {
+  background: none;
+  border: none;
+  color: var(--cor-erro);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.removeFile:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.processingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 30px 0;
+  color: var(--cor-destaque);
+}
+
+.processingText {
+  font-weight: bold;
+  font-size: 1.1rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.footer {
+  padding: 16px 24px;
+  background: var(--cor-fundo-secundario);
+  border-top: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btnCancel {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background: var(--cor-fundo-sutil);
+}
+
+.btnSubmit {
+  background: var(--cor-destaque);
+  border: none;
+  color: var(--cor-texto-inverso);
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(255, 107, 0, 0.25);
+}
+
+.btnSubmit:hover:not(:disabled) {
+  background: var(--cor-destaque-hover);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.4);
+}
+
+.btnSubmit:disabled {
+  background: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+  box-shadow: none;
+}

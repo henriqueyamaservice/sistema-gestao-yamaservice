@@ -144,7 +144,7 @@ router.get('/os', async (req, res) => {
         ? dados.servicosExecutados
         : (osTurnos.length > 0 ? osTurnos : []);
 
-      // Fallback: se consumiveis está vazio mas existem peças nos turnos
+      // Fallback e Enriquecimento: se consumiveis está vazio mas existem peças nos turnos
       if ((!consumiveisTratados || consumiveisTratados.length === 0) && turnosFinais.length > 0) {
         const extraidos = [];
         turnosFinais.forEach(t => {
@@ -174,6 +174,20 @@ router.get('/os', async (req, res) => {
         if (extraidos.length > 0) {
           consumiveisTratados = extraidos;
         }
+      }
+
+      // Sincronização inversa: se turnosFinais tem apenas 1 turno e suas pecasUtilizadas estão vazias, mas consumiveisTratados tem itens, popula o turno
+      const totalPecasEmTurnos = turnosFinais.reduce((acc, t) => acc + (t.pecasUtilizadas || []).length, 0);
+      if (totalPecasEmTurnos === 0 && consumiveisTratados && consumiveisTratados.length > 0 && turnosFinais.length > 0) {
+        turnosFinais[0].pecasUtilizadas = consumiveisTratados.map(c => ({
+          codigo: c.codigo || '',
+          descricao: c.descricao || '',
+          quantidade: parseFloat(c.quantidade) || 1,
+          unidade: c.unidade || 'UN',
+          valor_unitario: parseFloat(c.valor_unitario) || 0,
+          tipo: c.tipo || (c.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
+          fotoNota: c.fotoNota || ''
+        }));
       }
 
       const dataFormatadaFallback = row.data_criacao ? new Date(row.data_criacao).toISOString().slice(0, 10) : '';
@@ -230,7 +244,7 @@ router.get('/os/proximo-codigo', async (req, res) => {
     let proximoNumero = 1;
     if (rows.length > 0) {
       const numeros = rows.map(r => {
-        const numStr = (r.numero_os || '').split('-')[0];
+        const numStr = (r.numero_os || '').replace(/^#/, '').split('-')[0];
         return parseInt(numStr, 10) || 0;
       });
       proximoNumero = Math.max(...numeros) + 1;
@@ -306,7 +320,7 @@ router.post('/os', async (req, res) => {
       }
     }
 
-    let finalCodigo = req.body.codigo;
+    let finalCodigo = req.body.codigo ? String(req.body.codigo).replace(/^#/, '').trim() : '';
     let inseridoSucesso = false;
     let tentativas = 0;
     const maxTentativas = 10;
@@ -320,7 +334,7 @@ router.post('/os', async (req, res) => {
         const rows = await db.all(`SELECT numero_os FROM ordens_servico WHERE numero_os LIKE ?`, [`%-${sufixo}`]);
         let proximoNumero = 1;
         if (rows.length > 0) {
-          const numeros = rows.map(r => parseInt((r.numero_os || '').split('-')[0], 10) || 0);
+          const numeros = rows.map(r => parseInt((r.numero_os || '').replace(/^#/, '').split('-')[0], 10) || 0);
           proximoNumero = Math.max(...numeros) + 1 + tentativas;
         }
         finalCodigo = `${proximoNumero.toString().padStart(2, '0')}-${sufixo}`;
@@ -447,6 +461,53 @@ router.put('/os/:codigo', async (req, res) => {
       return res.status(404).json({ message: `Ordem de Serviço ${codigo} não encontrada.` });
     }
 
+    // === Trava Global Anti-Retrocesso de KM ===
+    const veiculosNoDiarioReq = (updates.servicosExecutados || []).reduce((acc, s) => {
+      if (s.veiculosUtilizados && Array.isArray(s.veiculosUtilizados)) {
+        acc.push(...s.veiculosUtilizados);
+      }
+      return acc;
+    }, []);
+    const todosVeiculosNaOSReq = [...(updates.veiculos || []), ...veiculosNoDiarioReq];
+
+    for (const vOs of todosVeiculosNaOSReq) {
+      if (!vOs.placa) continue;
+      const vRow = await db.get(`SELECT * FROM frota_veiculos WHERE placa = ?`, [vOs.placa]);
+      if (vRow) {
+        let dadosVeiculo = {};
+        try { dadosVeiculo = JSON.parse(vRow.dados_json || '{}'); } catch (e) { /* ignore */ }
+        
+        const kmAtualBd = parseFloat(dadosVeiculo.kmAtual) || 0;
+        const kmInput = parseFloat(vOs.kmFinal) || parseFloat(vOs.kmInicial) || parseFloat(vOs.km) || 0;
+        
+        if (kmInput > 0 && kmInput < kmAtualBd) {
+          const diferenca = kmAtualBd - kmInput;
+          if (diferenca > 2000) {
+            return res.status(400).json({ 
+              message: `TRAVA DE SEGURANÇA: O odômetro/horímetro informado para a placa ${vOs.placa} (${kmInput}) é menor que o registro histórico do veículo (${kmAtualBd}). A O.S. não pode retroceder o painel nessa proporção (Diferença: ${diferenca}).` 
+            });
+          }
+        }
+      } else {
+        // Verifica se é gerador
+        const gRow = await db.get(`SELECT * FROM frota_geradores WHERE nome = ? OR codigo = ?`, [vOs.placa, vOs.placa]);
+        if (gRow) {
+          let dadosGerador = {};
+          try { dadosGerador = JSON.parse(gRow.dados_json || '{}'); } catch (e) { /* ignore */ }
+          const hAtualBd = parseFloat(dadosGerador.horimetroAtual) || 0;
+          const hInput = parseFloat(vOs.kmFinal) || parseFloat(vOs.kmInicial) || parseFloat(vOs.km) || 0;
+          if (hInput > 0 && hInput < hAtualBd) {
+            const diferenca = hAtualBd - hInput;
+            if (diferenca > 2000) {
+              return res.status(400).json({ 
+                message: `TRAVA DE SEGURANÇA: O horímetro informado para ${vOs.placa} (${hInput}) é menor que o registro histórico (${hAtualBd}). A O.S. não pode retroceder o painel nessa proporção (Diferença: ${diferenca}).` 
+              });
+            }
+          }
+        }
+      }
+    }
+
     let dadosAntigos = {};
     try { dadosAntigos = JSON.parse(row.dados_json || '{}'); } catch (e) { /* ignore */ }
     const prodMap = await obterMapProdutos(db);
@@ -489,12 +550,22 @@ router.put('/os/:codigo', async (req, res) => {
       });
     }
 
+    const agora = new Date().toISOString();
+
     const osAtualizada = { 
       ...dadosAntigos, 
       ...updates, 
       consumiveis: consumiveisAtualizados,
-      historicoEdicoes: historico
+      historicoEdicoes: historico,
+      dataHoraPreenchimentoSistema: agora
     };
+    
+    // Trava de Fechamento: Se a situação mudar para CONCLUIDO agora, carimba a data de fechamento
+    if (osAtualizada.situacao === 'CONCLUIDO' && dadosAntigos.situacao !== 'CONCLUIDO') {
+      osAtualizada.dataHoraFechamentoOficial = agora;
+    } else if (osAtualizada.situacao === 'CONCLUIDO' && dadosAntigos.situacao === 'CONCLUIDO') {
+      osAtualizada.dataHoraFechamentoOficial = dadosAntigos.dataHoraFechamentoOficial || agora;
+    }
     
     // Limpar campos temporários de edição para não inflar o JSON
     delete osAtualizada.editorResponsavel;
@@ -502,8 +573,6 @@ router.put('/os/:codigo', async (req, res) => {
 
     const osParaJson = { ...osAtualizada };
     const dadosJson = JSON.stringify(osParaJson);
-
-    const agora = new Date().toISOString();
 
     await db.run(
       `UPDATE ordens_servico 

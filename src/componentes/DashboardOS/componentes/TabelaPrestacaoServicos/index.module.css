@@ -1,0 +1,424 @@
+/* Card Principal no estilo TabelaOS */
+.card {
+  background-color: var(--cor-fundo-cartao);
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cor-fundo-sutil-forte);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.badgeContador {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.btnNovo {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(255, 107, 0, 0.2);
+}
+
+.btnNovo:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+/* KPIs / Resumo no estilo TabelaOS */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpiCard {
+  background-color: var(--cor-fundo-secundario, #111827);
+  border: 1px solid var(--cor-borda-cartao, #374151);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.kpiCard:hover {
+  border-color: var(--cor-destaque, #FF6B00);
+  transform: translateY(-2px);
+}
+
+.kpiIconBox {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpiInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpiValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal, #fff);
+  line-height: 1.2;
+}
+
+.kpiLabel {
+  font-size: 0.68rem;
+  color: var(--cor-texto-secundario, #9ca3af);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Barra de Pesquisa e Filtros no estilo TabelaOS */
+.searchBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  background-color: var(--cor-fundo-sutil);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.searchGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.searchGroupFixed {
+  flex: 0 1 auto;
+  min-width: 160px;
+}
+
+.searchGroupDate {
+  flex: 0 1 auto;
+  min-width: 130px;
+}
+
+.searchLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+}
+
+.searchInput {
+  padding: 7px 12px;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  outline: none;
+  transition: border-color 0.2s;
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  border-color: var(--cor-destaque);
+}
+
+.relativeContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 9px;
+  color: var(--cor-texto-secundario);
+}
+
+.searchInputIconPadding {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.clearFilterBtn {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.clearFilterBtn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Tabela no estilo TabelaOS */
+.tableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.table th,
+.table td {
+  padding: 6px 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-sutil-forte);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: var(--cor-fundo-sutil);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(255, 107, 0, 0.05);
+}
+
+.tableRow {
+  cursor: pointer;
+}
+
+.emptyState {
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+}
+
+.tdBold,
+.codigoCol {
+  font-weight: bold;
+}
+
+.granjaCol {
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+}
+
+.valorCol {
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+/* Badges no estilo TabelaOS */
+.badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.badgeSuccess {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badgeInfo {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.badgeDanger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.badgeWarning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Recursos / Badges de Tipos */
+.badgesRecursos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.miniBadge {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.miniBadgeHH {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.miniBadgeTRA {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.miniBadgeMAT {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.miniBadgeVEI {
+  background-color: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* Ações */
+.actionsCol {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+
+.actionBtn {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+}
+
+.truncateCell {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badges de Tipo de Manutenção */
+.badgeTipo {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.badgeTipoCorretiva {
+  background-color: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.badgeTipoPreventiva {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badgeTipoImplantacao {
+  background-color: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.badgeTipoPeriodico {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badgeTipoDefault {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+}
+

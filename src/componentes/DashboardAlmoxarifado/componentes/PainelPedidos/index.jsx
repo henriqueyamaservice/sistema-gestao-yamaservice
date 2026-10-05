@@ -13,6 +13,7 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
   // States do Modal de Separação
   const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
   const [vendedorNome, setVendedorNome] = useState('');
+  const [vendedorCodigo, setVendedorCodigo] = useState(null);
   const [localEstoqueEditado, setLocalEstoqueEditado] = useState('');
 
   // Controle de Bipagem
@@ -89,8 +90,30 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
 
   const handleAbrirModal = (pedido) => {
     setPedidoSelecionado(pedido);
-    setVendedorNome('');
-    setLocalEstoqueEditado(pedido.localEstoque || 'PADRAO - Local de Estoque Padrão');
+
+    // Obtém usuário logado para pré-preencher o vendedor automaticamente
+    const usuarioLogado = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('almoxarifado_user') || '{}');
+      } catch (e) {
+        return {};
+      }
+    })();
+    const nomeLogin = (usuarioLogado.nome || '').trim();
+    setVendedorNome(nomeLogin);
+
+    if (nomeLogin && vendedores.length > 0) {
+      const nomeUpper = nomeLogin.toUpperCase();
+      const match = vendedores.find(v =>
+        (v.nome && v.nome.trim().toUpperCase() === nomeUpper) ||
+        (v.nome_fantasia && v.nome_fantasia.trim().toUpperCase() === nomeUpper)
+      );
+      setVendedorCodigo(match ? (match.codigoVendedorOmie || match.codigo) : null);
+    } else {
+      setVendedorCodigo(null);
+    }
+
+    setLocalEstoqueEditado(pedido.localEstoque || '01 - Almoxarifado');
 
     // Inicializa contador de bipados zerado
     const contadoresIniciais = {};
@@ -192,6 +215,9 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           entregador: vendedorNome,
+          vendedor: vendedorNome,
+          vendedorCodigo: vendedorCodigo,
+          codigoVendedorOmie: vendedorCodigo,
           localEstoque: localEstoqueEditado,
           itensEntregues: itensBipados
         })
@@ -544,7 +570,17 @@ const PainelPedidos = ({ produtos, fetchProdutosGlobal, onVoltar, itensIniciais 
                   list="vendedores-modal"
                   placeholder="Seu nome..."
                   value={vendedorNome}
-                  onChange={(e) => setVendedorNome(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setVendedorNome(val);
+                    const valUpper = val.trim().toUpperCase();
+                    const match = vendedores.find(v =>
+                      (v.nome && v.nome.trim().toUpperCase() === valUpper) ||
+                      (v.nome_fantasia && v.nome_fantasia.trim().toUpperCase() === valUpper) ||
+                      String(v.codigo) === valUpper
+                    );
+                    setVendedorCodigo(match ? (match.codigoVendedorOmie || match.codigo) : null);
+                  }}
                 />
                 <datalist id="vendedores-modal">
                   {vendedores.filter(v => v.inativo !== 'S').map(v => (

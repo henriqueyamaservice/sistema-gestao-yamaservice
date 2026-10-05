@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import omieProdutosService from '../services/omieProdutosService.js';
+import { buscarHistoricoComprasOmie } from '../services/omieComprasService.js';
 import getDb from '../config/database.js';
 import { obterCadastro } from '../services/cadastrosSyncService.js';
 
@@ -45,36 +46,238 @@ router.get('/light', async (req, res) => {
 // Rota para pegar os produtos salvos da Omie (Completa)
 router.get('/', async (req, res) => {
   try {
-    const produtos = await getProdutosDb();
+    const db = await getDb();
+    let produtos = await getProdutosDb();
 
-    let requisicoes = [];
-    try {
-      const reqData = await obterCadastro('requisicoes', 'requisicoes.json');
-      if (Array.isArray(reqData)) {
-        requisicoes = reqData;
-      }
-    } catch (e) {
-      // Ignora se não existir
+    if (req.query.busca) {
+      const termoBusca = req.query.busca.toLowerCase();
+      produtos = produtos.filter(p => 
+        (p.codigo && String(p.codigo).toLowerCase().includes(termoBusca)) || 
+        (p.descricao && String(p.descricao).toLowerCase().includes(termoBusca)) ||
+        (p.ean && String(p.ean).toLowerCase().includes(termoBusca))
+      );
     }
 
-    // Calcula quantidade pedida por produto apenas para requisições do tipo 'reposicao'
-    const pedidaPorProduto = {};
-    requisicoes.forEach(r => {
-      if (r.tipo === 'reposicao') {
-        r.itens?.forEach(item => {
-          pedidaPorProduto[item.codigo] = (pedidaPorProduto[item.codigo] || 0) + Number(item.quantidade);
-        });
-      }
-    });
+    // Busca requisições ativas direto do MariaDB/MySQL
+    let requisicoesRows = [];
+    try {
+      requisicoesRows = await db.all(`SELECT id, status, status_compras, tipo, solicitante, dados_json, data_criacao FROM requisicoes`);
+    } catch (e) {
+      console.warn('Erro ao consultar requisicoes no banco para calculo de estoque:', e.message);
+    }
 
-    const produtosComStatus = produtos.map(p => ({
-      ...p,
-      quantidade_pedida: pedidaPorProduto[p.codigo] || 0
-    }));
+    // Calcula quantidade pedida por produto para requisições ativas de compras
+    // e mapeia o último recebimento físico no Almoxarifado
+    const pedidaPorProduto = {};
+    const infoPedidosPorProduto = {};
+    const infoUltimoRecebimentoPorProduto = {};
+
+    for (const row of requisicoesRows) {
+      const statusCompras = row.status_compras;
+      const statusGeral = row.status;
+      const tipo = row.tipo;
+
+      const isRequisicaoCompras = tipo === 'reposicao' || tipo === 'compra' || Boolean(statusCompras);
+      if (!isRequisicaoCompras) {
+        continue;
+      }
+
+      let dados = {};
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
+
+      const itens = dados.itens || [];
+      const dataCriacao = row.data_criacao || dados.dataRequisicao || dados.data;
+
+      // 1. Se já foi entregue fisicamente no Almoxarifado, registra no último recebimento
+      const isEntregue = statusCompras === 'entregue' || statusCompras === 'entregue_parcial' || Boolean(dados.recebimentoFisico);
+      if (isEntregue) {
+        const dataRec = dados.dataRecebimentoFisico || dados.recebimentoFisico?.data || row.atualizado_em || dataCriacao;
+        for (const item of itens) {
+          if (!item) continue;
+          const cod = item.codigo ? String(item.codigo).trim() : null;
+          const codProd = item.codigo_produto ? String(item.codigo_produto).trim() : null;
+          const qtd = Number(item.quantidade) || 0;
+          const recObj = {
+            reqId: row.id,
+            status_compras: statusCompras || 'entregue',
+            dataRecebimento: dataRec,
+            quantidadeRecebida: qtd,
+            isParcial: statusCompras === 'entregue_parcial'
+          };
+          if (cod && !infoUltimoRecebimentoPorProduto[cod]) {
+            infoUltimoRecebimentoPorProduto[cod] = recObj;
+          }
+          if (codProd && !infoUltimoRecebimentoPorProduto[codProd]) {
+            infoUltimoRecebimentoPorProduto[codProd] = recObj;
+          }
+        }
+        continue;
+      }
+
+      // 2. Se já foi cancelada ou rejeitada, não conta mais
+      if (
+        statusCompras === 'cancelado' || 
+        statusGeral === 'finalizado' || 
+        statusGeral === 'cancelado' || 
+        statusGeral === 'rejeitado'
+      ) {
+        continue;
+      }
+
+      // 3. Requisições em andamento no setor de Compras
+      for (const item of itens) {
+        if (!item) continue;
+        const cod = item.codigo ? String(item.codigo).trim() : null;
+        const codProd = item.codigo_produto ? String(item.codigo_produto).trim() : null;
+        const qtd = Number(item.quantidade) || 0;
+        if (qtd > 0) {
+          const infoObj = {
+            reqId: row.id,
+            status_compras: statusCompras || 'pendente_cotacao',
+            data: dataCriacao,
+            solicitante: dados.solicitante || row.solicitante || 'Almoxarifado'
+          };
+          if (cod) {
+            pedidaPorProduto[cod] = (pedidaPorProduto[cod] || 0) + qtd;
+            if (!infoPedidosPorProduto[cod]) infoPedidosPorProduto[cod] = infoObj;
+          }
+          if (codProd && codProd !== cod) {
+            pedidaPorProduto[codProd] = (pedidaPorProduto[codProd] || 0) + qtd;
+            if (!infoPedidosPorProduto[codProd]) infoPedidosPorProduto[codProd] = infoObj;
+          }
+        }
+      }
+    }
+
+    const produtosComStatus = produtos.map(p => {
+      const cod = p.codigo ? String(p.codigo).trim() : '';
+      const codProd = p.codigo_produto ? String(p.codigo_produto).trim() : '';
+      const qtdPedida = (cod && pedidaPorProduto[cod]) || (codProd && pedidaPorProduto[codProd]) || 0;
+      const pedidoInfo = (cod && infoPedidosPorProduto[cod]) || (codProd && infoPedidosPorProduto[codProd]) || null;
+      const ultimoRecebimento = (cod && infoUltimoRecebimentoPorProduto[cod]) || (codProd && infoUltimoRecebimentoPorProduto[codProd]) || null;
+      return {
+        ...p,
+        quantidade_pedida: qtdPedida,
+        em_compra: qtdPedida > 0,
+        pedido_compras_info: pedidoInfo,
+        ultimo_recebimento_info: ultimoRecebimento
+      };
+    });
 
     res.json(produtosComStatus);
   } catch (error) {
     res.status(500).json({ message: 'Erro interno ao ler os produtos', error: error.message });
+  }
+});
+
+// Rota para buscar os dados reais da ÚLTIMA COMPRA de um produto (referência para Concorrência/Compras)
+router.get('/:codigo/ultima-compra', async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    const db = await getDb();
+
+    // 1. Busca todas as requisições entregues ou com recebimento físico concluído
+    const rows = await db.all(`
+      SELECT id, status, status_compras, atualizado_em, dados_json 
+      FROM requisicoes 
+      ORDER BY id DESC
+    `);
+
+    let ultimaCompra = null;
+
+    for (const row of rows) {
+      let dados = {};
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
+
+      const statusCompras = dados.status_compras || '';
+      const isEntregueOuConcluido = 
+        statusCompras === 'entregue' || 
+        statusCompras === 'entregue_parcial' || 
+        statusCompras === 'concluido' ||
+        Boolean(dados.recebimentoFisico);
+
+      if (!isEntregueOuConcluido) continue;
+
+      // Procura o item dentro da NF-e vinculada, pedidos_omie, mapeamento fiscal ou itens
+      const nota = dados.pedidos_omie?.find(p => p.nota_fiscal_vinculada)?.nota_fiscal_vinculada || dados.nota_fiscal_vinculada;
+      const itensNota = nota?.itens || [];
+      const itensReq = dados.itens || dados.pedidos_omie?.[0]?.itens || [];
+      const maps = dados.mapeamento_nfe || {};
+
+      let itemAchado = null;
+      let valorUnit = null;
+      let qtdComprada = null;
+
+      // 1º Testa na NF-e vinculada (considerando se a chave do mapeamento aponta para este produto)
+      for (const i of itensNota) {
+        const codNota = String(i.codigo || i.codigo_item || '').trim();
+        const codMapeado = maps[codNota] || codNota;
+        if (codMapeado === String(codigo).trim() || codNota === String(codigo).trim()) {
+          itemAchado = i;
+          valorUnit = Number(i.valorUnitario || i.valor_unitario || 0);
+          qtdComprada = Number(i.quantidade || 0);
+          break;
+        }
+      }
+
+      // 2º Testa nos itens da requisição direta (por codigo, codigo_produto ou id)
+      if (!itemAchado) {
+        for (const i of itensReq) {
+          const codItem = String(i.codigo || i.codigo_item || i.codigo_produto || '').trim();
+          if (codItem === String(codigo).trim()) {
+            itemAchado = i;
+            const cotacaoVencedora = i.cotacoes?.find(c => c.selecionada || c.vencedora) || i.cotacoes?.[0];
+            valorUnit = Number(i.valor_unitario || i.valorUnitario || cotacaoVencedora?.valorUnitario || 0);
+            qtdComprada = Number(i.quantidade || 0);
+            break;
+          }
+        }
+      }
+
+      if (itemAchado && valorUnit && valorUnit > 0) {
+        // Encontra o fornecedor
+        const fornId = dados.pedidos_omie?.[0]?.fornecedorId || 
+                       itemAchado.cotacoes?.[0]?.fornecedorId || 
+                       dados.itens?.[0]?.cotacoes?.[0]?.fornecedorId;
+
+        let fornNome = nota?.emitente?.nome || dados.fornecedor || null;
+        let fornCnpj = nota?.emitente?.cnpj_cpf || null;
+
+        if (!fornNome && fornId) {
+          const fornecedores = await obterCadastro('fornecedores', 'fornecedores.json');
+          const f = (fornecedores || []).find(x => String(x.codigo_cliente_omie) === String(fornId));
+          if (f) {
+            fornNome = f.nome_fantasia || f.razao_social;
+            fornCnpj = f.cnpj_cpf;
+          }
+        }
+
+        const dataCompra = dados.dataRecebimentoFisico || 
+                           dados.recebimentoFisico?.data || 
+                           nota?.dataEmissao || 
+                           row.atualizado_em || 
+                           dados.dataCriacao;
+
+        ultimaCompra = {
+          requisicaoId: row.id,
+          numeroOS: dados.numeroOS || null,
+          dataCompra,
+          fornecedorId: fornId || null,
+          fornecedorNome: fornNome || 'Fornecedor Cadastrado',
+          fornecedorCnpj: fornCnpj,
+          valorUnitario: valorUnit,
+          quantidade: qtdComprada,
+          chaveAcessoNfe: nota?.chaveAcesso || null
+        };
+        break; // Como rows está em ORDER BY id DESC, o primeiro achado é o mais recente!
+      }
+    }
+
+    // Apenas retorna se realmente houver entrada/compra anterior registrada no sistema
+    res.json({ ultimaCompra });
+  } catch (error) {
+    console.error('Erro ao buscar última compra:', error);
+    res.status(500).json({ message: 'Erro ao buscar última compra', error: error.message });
   }
 });
 
@@ -93,31 +296,113 @@ router.get('/:codigo/sugestao-precos', async (req, res) => {
 
     const precoBase = produto.valor_unitario || 100; // se não tiver, usa 100 como fallback
 
-    // Ler fornecedores para sortear 3
+    // Ler fornecedores cadastrados
     let fornecedores = await obterCadastro('fornecedores', 'fornecedores.json');
     if (!Array.isArray(fornecedores)) fornecedores = [];
 
-    // Embaralha e pega 3
-    const shuffledFornecedores = [...fornecedores].sort(() => 0.5 - Math.random());
-    const selectedFornecedores = shuffledFornecedores.slice(0, 3);
+    // 1. Busca todas as compras anteriores deste produto no EntradaEstoque (requisições entregues/concluídas)
+    const db = await getDb();
+    const rows = await db.all(`SELECT id, atualizado_em, dados_json FROM requisicoes ORDER BY id DESC`);
 
-    // Gera as sugestões
-    const sugestoes = selectedFornecedores.map(f => {
-      // Variação de -5% a +10%
-      const variacao = (Math.random() * 0.15) - 0.05;
-      const valorSugerido = (precoBase * (1 + variacao)).toFixed(2);
-      // Previsão de dias de 3 a 15
-      const previsaoDias = Math.floor(Math.random() * 13) + 3;
+    const comprasReais = [];
+    const fornecedoresJaAdicionados = new Set();
 
-      return {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
-        fornecedorId: f.codigo_cliente_omie.toString(),
-        valorUnitario: valorSugerido,
-        previsaoDias: previsaoDias.toString()
-      };
-    });
+    for (const r of rows) {
+      try {
+        const dados = JSON.parse(r.dados_json || '{}');
+        const st = dados.status_compras || '';
+        const isEntregueOuConcluido = 
+          st === 'entregue' || 
+          st === 'entregue_parcial' || 
+          st === 'concluido' || 
+          Boolean(dados.recebimentoFisico);
 
-    res.json(sugestoes);
+        if (!isEntregueOuConcluido) continue;
+
+        const nota = dados.pedidos_omie?.find(p => p.nota_fiscal_vinculada)?.nota_fiscal_vinculada || dados.nota_fiscal_vinculada;
+        const itensNota = nota?.itens || [];
+        const itensReq = dados.itens || dados.pedidos_omie?.[0]?.itens || [];
+        const maps = dados.mapeamento_nfe || {};
+
+        let itemAchado = null;
+        let valorUnit = null;
+
+        // 1º Testa na NF-e vinculada
+        for (const i of itensNota) {
+          const codNota = String(i.codigo || i.codigo_item || '').trim();
+          const codMapeado = maps[codNota] || codNota;
+          if (codMapeado === String(codigo).trim() || codNota === String(codigo).trim()) {
+            itemAchado = i;
+            valorUnit = Number(i.valorUnitario || i.valor_unitario || 0);
+            break;
+          }
+        }
+
+        // 2º Testa nos itens da requisição direta
+        if (!itemAchado) {
+          for (const i of itensReq) {
+            const codItem = String(i.codigo || i.codigo_item || i.codigo_produto || '').trim();
+            if (codItem === String(codigo).trim()) {
+              itemAchado = i;
+              const cotVenc = i.cotacoes?.find(c => c.selecionada || c.vencedora) || i.cotacoes?.[0];
+              valorUnit = Number(i.valor_unitario || i.valorUnitario || cotVenc?.valorUnitario || 0);
+              break;
+            }
+          }
+        }
+
+        if (itemAchado && valorUnit && valorUnit > 0) {
+          const fornId = dados.pedidos_omie?.[0]?.fornecedorId || 
+                         itemAchado.cotacoes?.[0]?.fornecedorId || 
+                         dados.itens?.[0]?.cotacoes?.[0]?.fornecedorId;
+
+          if (fornId && !fornecedoresJaAdicionados.has(String(fornId))) {
+            fornecedoresJaAdicionados.add(String(fornId));
+
+            const dataCompra = dados.dataRecebimentoFisico || 
+                               dados.recebimentoFisico?.data || 
+                               nota?.dataEmissao || 
+                               r.atualizado_em || 
+                               dados.dataCriacao;
+
+            comprasReais.push({
+              id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+              fornecedorId: String(fornId),
+              valorUnitario: Number(valorUnit).toFixed(2),
+              previsaoDias: '5',
+              dataCompra: dataCompra || null,
+              isUltimaCompra: true
+            });
+
+            // Limite de 5 a 6 fornecedores históricos mais recentes
+            if (comprasReais.length >= 6) break;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Se não encontrou compras suficientes no EntradaEstoque local, consulta a API oficial da Omie (PesquisarPedCompra)
+    if (comprasReais.length < 6) {
+      const limiteRestante = 6 - comprasReais.length;
+      const comprasOmieApi = await buscarHistoricoComprasOmie(codigo, limiteRestante);
+      
+      for (const c of comprasOmieApi) {
+        if (!fornecedoresJaAdicionados.has(String(c.fornecedorId))) {
+          fornecedoresJaAdicionados.add(String(c.fornecedorId));
+          comprasReais.push(c);
+          if (comprasReais.length >= 6) break;
+        }
+      }
+    }
+
+    // Se encontramos fornecedores reais (seja no EntradaEstoque ou na API da Omie), retornamos eles!
+    if (comprasReais.length > 0) {
+      return res.json(comprasReais);
+    }
+
+    // Se o produto nunca foi comprado nem no Almoxarifado nem na Omie, retorna array vazio
+    // para não inventar empresas aleatórias (o comprador escolhe os fornecedores certos)
+    res.json([]);
 
   } catch (error) {
     res.status(500).json({ message: 'Erro ao gerar sugestão de preços', error: error.message });

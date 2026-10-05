@@ -1,16 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, Save, Printer, Search, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  ArrowLeft, ArrowUpRight, Save, Printer, Search, Plus, Trash2, ShoppingCart, 
+  MapPin, Tag, Calendar, AlertTriangle, CheckCircle2, Clock, Box 
+} from 'lucide-react';
 import styles from './NovaRequisicao.module.css';
+import { 
+  obterBadgeInfo, 
+  obterRotuloUnidade, 
+  permiteDecimais, 
+  formatarQuantidade, 
+  formatarQuantidadeComUnidade 
+} from '../../../../utils/classificadorUnidades';
+
+// Helpers para extração robusta de metadados do cadastro de produtos
+const extrairEndereco = (prod) => {
+  if (!prod) return '-';
+  const c = prod.caracteristicas || [];
+  const end = c.find(x => {
+    const n = (x.cNomeCaract || x.nome || '').toUpperCase();
+    return n === 'ENDEREÇO' || n === 'ENDERECO' || n === 'LOCALIZAÇÃO' || n === 'LOCALIZACAO';
+  });
+  if (end) return end.cConteudo || end.conteudo || '-';
+
+  const corredor = c.find(x => (x.cNomeCaract || x.nome)?.toUpperCase() === 'CORREDOR');
+  const prateleira = c.find(x => (x.cNomeCaract || x.nome)?.toUpperCase() === 'PRATELEIRA');
+  if (corredor || prateleira) {
+    const cVal = corredor?.cConteudo || corredor?.conteudo || '-';
+    const pVal = prateleira?.cConteudo || prateleira?.conteudo || '-';
+    return `Corr: ${cVal} / Prat: ${pVal}`;
+  }
+
+  return prod.endereco || prod.localizacao || '-';
+};
+
+const extrairMarca = (prod) => {
+  if (!prod) return '-';
+  const c = prod.caracteristicas || [];
+  const m = c.find(x => (x.cNomeCaract || x.nome)?.toUpperCase() === 'MARCA');
+  if (m) return m.cConteudo || m.conteudo || '-';
+  return prod.marca || '-';
+};
+
+const extrairValidadeData = (prod) => {
+  if (!prod) return null;
+  if (prod.lotes && prod.lotes.length > 0) {
+    const lotesAtivos = prod.lotes.filter(l => (Number(l.quantidade) || 0) > 0);
+    const lotesParaOrdenar = lotesAtivos.length > 0 ? lotesAtivos : prod.lotes;
+    const loteMaisAntigo = [...lotesParaOrdenar].sort((a, b) => new Date(a.validade) - new Date(b.validade))[0];
+    return loteMaisAntigo?.validade || null;
+  }
+  return prod.data_validade || prod.validade || null;
+};
+
+const renderValidadeBadge = (dataString) => {
+  if (!dataString) return <span style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.8rem' }}>-</span>;
+
+  const dataVal = new Date(dataString);
+  const utcDate = new Date(dataVal.getTime() + dataVal.getTimezoneOffset() * 60000);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const limiteProximo = new Date();
+  limiteProximo.setDate(limiteProximo.getDate() + 30);
+
+  let corBase = '#10b981';
+  let bgBase = 'rgba(16, 185, 129, 0.1)';
+  let borderBase = 'rgba(16, 185, 129, 0.25)';
+  let Icone = CheckCircle2;
+
+  if (utcDate < hoje) {
+    corBase = '#ef4444';
+    bgBase = 'rgba(239, 68, 68, 0.1)';
+    borderBase = 'rgba(239, 68, 68, 0.25)';
+    Icone = AlertTriangle;
+  } else if (utcDate <= limiteProximo) {
+    corBase = '#f59e0b';
+    bgBase = 'rgba(245, 158, 11, 0.1)';
+    borderBase = 'rgba(245, 158, 11, 0.25)';
+    Icone = Clock;
+  }
+
+  return (
+    <span style={{
+      fontSize: '0.75rem', fontWeight: '600',
+      color: corBase, backgroundColor: bgBase,
+      padding: '2px 7px', borderRadius: '5px',
+      display: 'inline-flex', alignItems: 'center', gap: '4px',
+      whiteSpace: 'nowrap', border: `1px solid ${borderBase}`
+    }}>
+      <Icone size={12} />
+      <span>{utcDate.toLocaleDateString('pt-BR')}</span>
+    </span>
+  );
+};
 
 const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', onVoltar }) => {
+  const usuarioLogado = React.useMemo(() => {
+    try {
+      const u = localStorage.getItem('almoxarifado_user');
+      return u ? JSON.parse(u) : {};
+    } catch (e) {
+      return {};
+    }
+  }, []);
+
   const [termoBusca, setTermoBusca] = useState('');
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [quantidadeItem, setQuantidadeItem] = useState(1);
   const [itensCarrinho, setItensCarrinho] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [vendedores, setVendedores] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [projetos, setProjetos] = useState([]);
   const [locaisEstoque, setLocaisEstoque] = useState([]);
+
+  const buscaInputRef = useRef(null);
+  const qtdInputRef = useRef(null);
 
   // Estados do Modal de Cadastro Rápido
   const [modalCadastro, setModalCadastro] = useState({ aberto: false, tipo: null, titulo: '', campoTarget: '' });
@@ -29,6 +134,35 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
       }
     };
     fetchClientes();
+
+    const fetchVendedores = async () => {
+      try {
+        const res = await fetch('/api/vendedores');
+        if (res.ok) {
+          const listaVends = await res.json();
+          setVendedores(listaVends);
+
+          const nomeLogin = (usuarioLogado.nome || '').trim().toUpperCase();
+          if (nomeLogin) {
+            const match = listaVends.find(v => {
+              const vNome = (v.nome || '').trim().toUpperCase();
+              const vFant = (v.nome_fantasia || '').trim().toUpperCase();
+              return vNome === nomeLogin || vFant === nomeLogin || vNome.startsWith(nomeLogin) || nomeLogin.startsWith(vNome);
+            });
+            if (match) {
+              setFormulario(prev => ({
+                ...prev,
+                vendedor: prev.vendedor || match.nome,
+                codigoVendedorOmie: match.codigoVendedorOmie || match.codigo || null
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar vendedores:', err);
+      }
+    };
+    fetchVendedores();
 
     const fetchDepartamentos = async () => {
       try {
@@ -49,7 +183,11 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
 
         if (resProj.ok) {
           const projs = await resProj.json();
-          listaCombinada = projs.map(p => ({ codigo: p.codigo, nome: p.nome }));
+          listaCombinada = projs.map(p => ({
+            codigo: p.codigo,
+            nome: p.nome,
+            codigoOmie: p.codigo
+          }));
         }
 
         if (resOs.ok) {
@@ -58,7 +196,20 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
             const veiculosStr = os.veiculos?.map(v => v.placa).filter(Boolean).join(', ');
             const infoVeiculos = veiculosStr ? ` (${veiculosStr})` : '';
             const labelOs = `${os.codigo}${infoVeiculos}`;
-            listaCombinada.unshift({ codigo: os.codigo, nome: labelOs });
+            
+            // Tenta casar a OS com algum projeto já existente na Omie
+            const osLimpa = String(os.codigo).replace(/\D/g, '');
+            const matchOmie = listaCombinada.find(p => {
+              const pLimpo = String(p.nome).replace(/\D/g, '');
+              return (pLimpo && pLimpo === osLimpa) || p.nome === os.codigo;
+            });
+
+            listaCombinada.unshift({
+              codigo: os.codigo,
+              nome: labelOs,
+              codigoOmie: matchOmie ? matchOmie.codigoOmie : null,
+              osCodigo: os.codigo
+            });
           });
         }
 
@@ -80,18 +231,27 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         codigo: p.codigo,
         descricao: p.descricao,
         valor_unitario: p.valor_unitario,
-        quantidade: Math.max(1, (p.estoque_minimo || 0) - (p.quantidade_estoque || 0))
+        quantidade: Math.max(1, (p.estoque_minimo || 0) - (p.quantidade_estoque || 0)),
+        unidade: p.unidade || 'UN',
+        endereco: extrairEndereco(p),
+        marca: extrairMarca(p),
+        validade: extrairValidadeData(p)
       }));
       setItensCarrinho(itensFormatados);
     }
-  }, [itensIniciais]);
+  }, [itensIniciais, usuarioLogado.nome]);
 
   const [formulario, setFormulario] = useState({
     dataLancamento: new Date().toISOString().split('T')[0],
     localEstoque: '01 - Almoxarifado',
     centroCusto: 'GRANJA',
     contatoCliente: '',
-    numeroOS: ''
+    codigoClienteOmie: null,
+    vendedor: usuarioLogado.nome || '',
+    entregador: usuarioLogado.nome || '',
+    codigoVendedorOmie: null,
+    numeroOS: '',
+    codigoProjetoOmie: null
   });
 
   const [loading, setLoading] = useState(false);
@@ -113,7 +273,6 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   const handleSelecionarProduto = (prod) => {
     if (prod.lotes && prod.lotes.length > 0) {
       const loteMaisAntigo = [...prod.lotes].sort((a, b) => new Date(a.validade) - new Date(b.validade))[0];
-      // Ajuste de fuso horário para bater o dia exato
       const dataVal = new Date(loteMaisAntigo.validade);
       const utcDate = new Date(dataVal.getTime() + dataVal.getTimezoneOffset() * 60000);
       alert(`⚠️ ALERTA FEFO ⚠️\n\nEste produto possui múltiplos lotes. Para evitar perdas, pegue OBRIGATORIAMENTE os itens do LOTE:\n\n👉 LOTE: ${loteMaisAntigo.numero}\n⏳ VENCE EM: ${utcDate.toLocaleDateString('pt-BR')}`);
@@ -121,12 +280,87 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     setProdutoSelecionado(prod);
     setTermoBusca('');
     setQuantidadeItem(1);
+    setTimeout(() => {
+      if (qtdInputRef.current) {
+        qtdInputRef.current.focus();
+        qtdInputRef.current.select();
+      }
+    }, 100);
+  };
+
+  const handleKeyDownBusca = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const termo = termoBusca.trim().toLowerCase();
+      if (!termo) return;
+
+      const exato = produtos.find(p =>
+        (p.codigo || '').toLowerCase() === termo ||
+        (p.ean || '').toLowerCase() === termo ||
+        p.lotes?.some(l => (l.ean || '').toLowerCase() === termo)
+      );
+
+      if (exato) {
+        handleSelecionarProduto(exato);
+        return;
+      }
+
+      if (produtosFiltrados.length === 1) {
+        handleSelecionarProduto(produtosFiltrados[0]);
+      }
+    }
   };
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     if (name === 'localEstoque' || name === 'centroCusto' || name === 'dataLancamento') {
       setFormulario(prev => ({ ...prev, [name]: value }));
+    } else if (name === 'contatoCliente') {
+      const valUpper = value.toUpperCase();
+      const match = clientes.find(c =>
+        (c.razao_social && c.razao_social.trim().toUpperCase() === valUpper.trim()) ||
+        (c.nome_fantasia && c.nome_fantasia.trim().toUpperCase() === valUpper.trim()) ||
+        String(c.codigo_cliente_omie) === valUpper.trim()
+      );
+      setFormulario(prev => ({
+        ...prev,
+        contatoCliente: valUpper,
+        codigoClienteOmie: match ? match.codigo_cliente_omie : (prev.codigoClienteOmie || null)
+      }));
+    } else if (name === 'vendedor') {
+      const valUpper = value.toUpperCase();
+      const match = vendedores.find(v =>
+        (v.nome && v.nome.trim().toUpperCase() === valUpper.trim()) ||
+        (v.nome_fantasia && v.nome_fantasia.trim().toUpperCase() === valUpper.trim()) ||
+        String(v.codigo) === valUpper.trim()
+      );
+      setFormulario(prev => ({
+        ...prev,
+        vendedor: valUpper,
+        entregador: valUpper,
+        codigoVendedorOmie: match ? (match.codigoVendedorOmie || match.codigo || null) : prev.codigoVendedorOmie
+      }));
+    } else if (name === 'numeroOS') {
+      const valUpper = value.toUpperCase();
+      const valLimpo = valUpper.replace(/\D/g, '');
+      const match = projetos.find(p => {
+        const pNomeUpper = (p.nome || '').toUpperCase();
+        const pNomeLimpo = pNomeUpper.replace(/\D/g, '');
+        return (
+          pNomeUpper === valUpper ||
+          (p.osCodigo && p.osCodigo.toUpperCase() === valUpper) ||
+          (valLimpo && pNomeLimpo === valLimpo) ||
+          pNomeUpper.startsWith(valUpper) ||
+          valUpper.startsWith(pNomeUpper) ||
+          String(p.codigo) === valUpper
+        );
+      });
+
+      setFormulario(prev => ({
+        ...prev,
+        numeroOS: valUpper,
+        codigoProjetoOmie: match?.codigoOmie || (match && typeof match.codigo === 'number' ? match.codigo : null) || prev.codigoProjetoOmie || null
+      }));
     } else {
       setFormulario(prev => ({ ...prev, [name]: value.toUpperCase() }));
     }
@@ -145,7 +379,13 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   };
 
   const handleAdicionarLista = () => {
-    if (!produtoSelecionado || quantidadeItem <= 0) return;
+    const qtdNum = parseFloat(String(quantidadeItem).replace(',', '.'));
+    if (!produtoSelecionado || isNaN(qtdNum) || qtdNum <= 0) return;
+
+    const endereco = extrairEndereco(produtoSelecionado);
+    const marca = extrairMarca(produtoSelecionado);
+    const validadeData = extrairValidadeData(produtoSelecionado);
+    const unidade = produtoSelecionado.unidade || 'UN';
 
     // Verifica se já existe o item, se sim, soma a qtd
     const itemExistente = itensCarrinho.find(i => i.codigo === produtoSelecionado.codigo);
@@ -153,7 +393,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     if (itemExistente) {
       setItensCarrinho(itensCarrinho.map(i =>
         i.codigo === produtoSelecionado.codigo
-          ? { ...i, quantidade: Number(i.quantidade) + Number(quantidadeItem) }
+          ? { ...i, quantidade: Number(i.quantidade) + qtdNum }
           : i
       ));
     } else {
@@ -161,13 +401,22 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         codigo: produtoSelecionado.codigo,
         descricao: produtoSelecionado.descricao,
         valor_unitario: produtoSelecionado.valor_unitario,
-        quantidade: Number(quantidadeItem)
+        quantidade: qtdNum,
+        unidade,
+        endereco,
+        marca,
+        validade: validadeData
       }]);
     }
 
     // Limpa a seleção para bipar o próximo
     setProdutoSelecionado(null);
     setQuantidadeItem(1);
+    setTimeout(() => {
+      if (buscaInputRef.current) {
+        buscaInputRef.current.focus();
+      }
+    }, 100);
   };
 
   const handleRemoverItem = (codigo) => {
@@ -183,13 +432,23 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     setLoading(true);
     setMensagem(null);
 
+    const vendedorFinal = (formulario.vendedor || usuarioLogado.nome || 'ALMOXARIFADO').trim().toUpperCase();
+
     const payload = {
       cfop: '5.949',
       icms: '40',
-      origem: 'Padrao Empresa',
+      origem: 'balcao_almoxarifado',
+      status: tipoInicial === 'reposicao' ? 'pendente' : 'finalizado',
       tipo: tipoInicial,
       ...formulario,
-      itens: itensCarrinho
+      vendedor: vendedorFinal,
+      entregador: vendedorFinal,
+      itens: itensCarrinho.map(item => ({
+        ...item,
+        status: tipoInicial === 'reposicao' ? 'aguardando_cotacao' : 'entregue',
+        quantidade_entregue: Number(item.quantidade),
+        devolvido: 0
+      }))
     };
 
     try {
@@ -258,14 +517,14 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                 <table class="recibo-itens">
                   <thead>
                     <tr>
-                      <th style="text-align: left; width: 30px;">Qtd</th>
+                      <th style="text-align: left; width: 45px;">Qtd</th>
                       <th style="text-align: left;">Produto</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${req.itens?.map(item => `
                       <tr>
-                        <td style="padding-right: 4px;">${item.quantidade}</td>
+                        <td style="padding-right: 4px; font-weight: bold;">${formatarQuantidadeComUnidade(item.quantidade, item.unidade)}</td>
                         <td><div style="font-weight:bold;">${item.codigo}</div><div style="font-size: 8px; line-height: 1.1;">${item.descricao}</div></td>
                       </tr>
                     `).join('')}
@@ -273,7 +532,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                 </table>
 
                 <div class="recibo-divider"></div>
-                <p style="text-align: right; margin: 4px 0;"><strong>Total de Itens: ${totalItens}</strong></p>
+                <p style="text-align: right; margin: 4px 0;"><strong>Total de Itens: ${req.itens?.length || totalItens}</strong></p>
                 
                 <div class="recibo-divider"></div>
                 <p class="recibo-via">VIA DO ALMOXARIFADO</p>
@@ -302,14 +561,14 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                 <table class="recibo-itens">
                   <thead>
                     <tr>
-                      <th style="text-align: left; width: 30px;">Qtd</th>
+                      <th style="text-align: left; width: 45px;">Qtd</th>
                       <th style="text-align: left;">Produto</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${req.itens?.map(item => `
                       <tr>
-                        <td style="padding-right: 4px;">${item.quantidade}</td>
+                        <td style="padding-right: 4px; font-weight: bold;">${formatarQuantidadeComUnidade(item.quantidade, item.unidade)}</td>
                         <td><div style="font-weight:bold;">${item.codigo}</div><div style="font-size: 8px; line-height: 1.1;">${item.descricao}</div></td>
                       </tr>
                     `).join('')}
@@ -334,7 +593,13 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
       }
 
       setItensCarrinho([]);
-      setFormulario({ ...formulario, contatoCliente: '', vendedor: '', numeroOS: '' });
+      setFormulario(prev => ({
+        ...prev,
+        contatoCliente: '',
+        numeroOS: '',
+        codigoClienteOmie: null,
+        codigoProjetoOmie: null
+      }));
 
       setTimeout(() => {
         if (onVoltar) onVoltar();
@@ -350,7 +615,13 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {onVoltar && (
+            <button type="button" onClick={onVoltar} className={styles.btnVoltar} title="Voltar para a fila de pedidos">
+              <ArrowLeft size={18} />
+              <span>Voltar</span>
+            </button>
+          )}
           <div style={{ color: 'var(--cor-destaque)', background: 'rgba(249, 115, 22, 0.1)', padding: '8px', borderRadius: '12px', display: 'flex' }}>
             {tipoInicial === 'reposicao' ? <ShoppingCart size={24} /> : <ArrowUpRight size={24} />}
           </div>
@@ -430,12 +701,38 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                   value={formulario.contatoCliente}
                   onChange={handleChangeForm}
                 />
-                  <datalist id="lista-clientes">
+                <datalist id="lista-clientes">
                   {clientes.map(c => (
-                    <option key={c.codigo_cliente_omie} value={c.razao_social || c.nome_fantasia} />
+                    <option
+                      key={c.codigo_cliente_omie}
+                      value={c.razao_social}
+                    >
+                      {c.nome_fantasia && c.nome_fantasia !== c.razao_social ? `${c.nome_fantasia} (${c.razao_social})` : c.razao_social}
+                    </option>
                   ))}
                 </datalist>
               </div>
+
+              <div className={styles.formGroup}>
+                <label>Vendedor / Estoquista (Login)</label>
+                <input
+                  id="input-vendedor"
+                  type="text"
+                  name="vendedor"
+                  list="lista-vendedores"
+                  placeholder="Selecione ou confirme o vendedor..."
+                  value={formulario.vendedor}
+                  onChange={handleChangeForm}
+                />
+                <datalist id="lista-vendedores">
+                  {vendedores.filter(v => v.inativo !== 'S').map(v => (
+                    <option key={v.codigo} value={v.nome}>
+                      {v.nome_fantasia && v.nome_fantasia !== v.nome ? `${v.nome_fantasia} (${v.nome})` : v.nome}
+                    </option>
+                  ))}
+                </datalist>
+              </div>
+
               <div className={styles.formGroup}>
                 <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   Nº O.S / Projeto
@@ -473,29 +770,105 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                   <div className={styles.inputIcon}>
                     <Search size={18} />
                     <input
+                      ref={buscaInputRef}
                       type="text"
-                      placeholder="Bipe o código ou digite o nome do produto..."
+                      placeholder="Bipe o código de barras ou digite o nome..."
                       value={termoBusca}
                       onChange={(e) => setTermoBusca(e.target.value)}
+                      onKeyDown={handleKeyDownBusca}
+                      autoFocus
                     />
                   </div>
                   {produtosFiltrados.length > 0 && (
                     <ul className={styles.listaResultados}>
-                      {produtosFiltrados.map(p => (
-                        <li key={p.codigo_produto} onClick={() => handleSelecionarProduto(p)}>
-                          <strong>{p.codigo}</strong> - {p.descricao}
-                        </li>
-                      ))}
+                      {produtosFiltrados.map(p => {
+                        const b = obterBadgeInfo(p.unidade);
+                        const end = extrairEndereco(p);
+                        const mrc = extrairMarca(p);
+                        const valData = extrairValidadeData(p);
+
+                        return (
+                          <li key={p.codigo_produto || p.codigo} onClick={() => handleSelecionarProduto(p)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                              <div>
+                                <strong style={{ color: 'var(--cor-destaque)' }}>{p.codigo}</strong>
+                                <span style={{ margin: '0 6px', color: 'var(--cor-texto-secundario)' }}>—</span>
+                                <strong style={{ color: 'var(--cor-texto-principal)' }}>{p.descricao}</strong>
+                              </div>
+                              <span style={{
+                                fontSize: '0.68rem', fontWeight: 'bold',
+                                color: b.cor, backgroundColor: b.bg,
+                                border: `1px solid ${b.border}`,
+                                padding: '1px 6px', borderRadius: '4px',
+                                display: 'inline-flex', alignItems: 'center', gap: '3px'
+                              }}>
+                                <span>{b.icone}</span> {b.label}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '14px', fontSize: '0.78rem', color: 'var(--cor-texto-secundario)', marginTop: '2px', flexWrap: 'wrap' }}>
+                              <span>📍 <strong>Endereço:</strong> <span style={{ color: '#60a5fa' }}>{end}</span></span>
+                              <span>🏷️ <strong>Marca:</strong> <span style={{ color: '#c084fc' }}>{mrc}</span></span>
+                              <span>⏳ <strong>Validade:</strong> {valData ? new Date(valData).toLocaleDateString('pt-BR') : '-'}</span>
+                              <span>📦 <strong>Estoque:</strong> <strong style={{ color: p.quantidade_estoque <= 0 ? 'var(--cor-erro)' : 'var(--cor-sucesso)' }}>{formatarQuantidadeComUnidade(p.quantidade_estoque, p.unidade)}</strong></span>
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
               ) : (
                 <div className={styles.produtoSelecionado}>
                   <div className={styles.prodInfo}>
-                    <span className={styles.prodCode}>{produtoSelecionado.codigo}</span>
-                    <span className={styles.prodName} title={produtoSelecionado.descricao}>{produtoSelecionado.descricao}</span>
+                    <div className={styles.prodHeader}>
+                      <span className={styles.prodCode}>{produtoSelecionado.codigo}</span>
+                      <span className={styles.prodName}>{produtoSelecionado.descricao}</span>
+                      {(() => {
+                        const b = obterBadgeInfo(produtoSelecionado.unidade);
+                        return (
+                          <span style={{
+                            fontSize: '0.72rem', fontWeight: 'bold',
+                            color: b.cor, backgroundColor: b.bg,
+                            border: `1px solid ${b.border}`,
+                            padding: '2px 8px', borderRadius: '5px',
+                            display: 'inline-flex', alignItems: 'center', gap: '4px'
+                          }}>
+                            <span>{b.icone}</span> {b.label}
+                          </span>
+                        );
+                      })()}
+                    </div>
+
+                    <div className={styles.prodMetadados}>
+                      <span className={`${styles.metaChip} ${styles.metaChipEndereco}`} title="Localização física no almoxarifado">
+                        <MapPin size={13} />
+                        <span>Endereço:</span>
+                        <strong>{extrairEndereco(produtoSelecionado)}</strong>
+                      </span>
+
+                      <span className={`${styles.metaChip} ${styles.metaChipMarca}`} title="Marca / Fabricante">
+                        <Tag size={13} />
+                        <span>Marca:</span>
+                        <strong>{extrairMarca(produtoSelecionado)}</strong>
+                      </span>
+
+                      <span className={styles.metaChip} title="Data de Validade / Lote">
+                        <Calendar size={13} />
+                        <span>Validade:</span>
+                        {renderValidadeBadge(extrairValidadeData(produtoSelecionado))}
+                      </span>
+
+                      <span className={styles.metaChip} title="Saldo disponível no estoque">
+                        <Box size={13} />
+                        <span>Estoque:</span>
+                        <strong style={{ color: produtoSelecionado.quantidade_estoque <= 0 ? 'var(--cor-erro)' : 'var(--cor-sucesso)' }}>
+                          {formatarQuantidadeComUnidade(produtoSelecionado.quantidade_estoque, produtoSelecionado.unidade)}
+                        </strong>
+                      </span>
+                    </div>
                   </div>
-                  <button className={styles.btnLimparProd} onClick={() => setProdutoSelecionado(null)}>
+
+                  <button className={styles.btnLimparProd} onClick={() => { setProdutoSelecionado(null); setTimeout(() => buscaInputRef.current?.focus(), 50); }}>
                     Trocar
                   </button>
                 </div>
@@ -503,12 +876,22 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
             </div>
 
             <div className={styles.qtdWrapper}>
-              <label>Qtd</label>
+              <label>
+                Qtd ({produtoSelecionado ? obterRotuloUnidade(produtoSelecionado.unidade) : 'un'})
+              </label>
               <input
+                ref={qtdInputRef}
                 type="number"
-                min="1"
+                min={permiteDecimais(produtoSelecionado?.unidade) ? "0.01" : "1"}
+                step={permiteDecimais(produtoSelecionado?.unidade) ? "0.01" : "1"}
                 value={quantidadeItem}
                 onChange={(e) => setQuantidadeItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAdicionarLista();
+                  }
+                }}
                 disabled={!produtoSelecionado}
               />
             </div>
@@ -516,7 +899,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
             <button
               className={styles.btnAdicionarLista}
               onClick={handleAdicionarLista}
-              disabled={!produtoSelecionado || quantidadeItem <= 0}
+              disabled={!produtoSelecionado || Number(quantidadeItem) <= 0}
             >
               <Plus size={20} /> Adicionar
             </button>
@@ -538,17 +921,53 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                   <tr>
                     <th>Código</th>
                     <th>Descrição</th>
-                    <th>Qtd</th>
-                    <th>Ações</th>
+                    <th>Endereço</th>
+                    <th>Marca</th>
+                    <th>Validade</th>
+                    <th style={{ textAlign: 'right' }}>Qtd</th>
+                    <th style={{ textAlign: 'center' }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {itensCarrinho.map((item) => (
                     <tr key={item.codigo}>
-                      <td>{item.codigo}</td>
-                      <td>{item.descricao}</td>
-                      <td className={styles.tdQtd}>{item.quantidade}</td>
                       <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <strong style={{ color: 'var(--cor-texto-principal)' }}>{item.codigo}</strong>
+                          {(() => {
+                            const b = obterBadgeInfo(item.unidade);
+                            return (
+                              <span style={{
+                                fontSize: '0.65rem', fontWeight: 'bold',
+                                color: b.cor, backgroundColor: b.bg,
+                                padding: '1px 5px', borderRadius: '4px',
+                                display: 'inline-flex', alignItems: 'center', gap: '2px',
+                                width: 'fit-content'
+                              }}>
+                                {b.icone} {b.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      </td>
+                      <td>{item.descricao}</td>
+                      <td className={styles.colEndereco}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={12} color="#3b82f6" /> {item.endereco || '-'}
+                        </span>
+                      </td>
+                      <td className={styles.colMarca}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Tag size={12} color="#a855f7" /> {item.marca || '-'}
+                        </span>
+                      </td>
+                      <td className={styles.colValidade}>
+                        {renderValidadeBadge(item.validade)}
+                      </td>
+                      <td className={styles.tdQtd} style={{ textAlign: 'right' }}>
+                        {formatarQuantidadeComUnidade(item.quantidade, item.unidade)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
                         <button className={styles.btnRemover} onClick={() => handleRemoverItem(item.codigo)} title="Remover item">
                           <Trash2 size={16} />
                         </button>

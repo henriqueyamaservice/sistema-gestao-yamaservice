@@ -214,6 +214,60 @@
   font-size: 0.85rem;
 }
 
+.ultimaCompraCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--cor-fundo-sutil);
+  border: 1px dashed var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.ultimaCompraInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-principal);
+}
+
+.ultimaCompraTag {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--cor-sucesso);
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btnUsarUltimaCompra {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-destaque);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnUsarUltimaCompra:hover {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border-color: var(--cor-destaque);
+}
+
 .btnAcaoPequeno {
   background: transparent;
   border: 1px solid var(--cor-borda-cartao);

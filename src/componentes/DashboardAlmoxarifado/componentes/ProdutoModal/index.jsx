@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Save, Plus, Copy, Ban, Paperclip, Clock, ListTodo, Trash2, Image as ImageIcon, Search, Edit2, Check } from 'lucide-react';
 import styles from './ProdutoModal.module.css';
+import { obterBadgeInfo, formatarQuantidadeComUnidade, formatarQuantidade, obterRotuloUnidade } from '../../../../utils/classificadorUnidades';
 
 const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
   const [activeTab, setActiveTab] = useState('caracteristicas');
@@ -53,14 +54,9 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
   };
 
-  const getUnidade = (un) => {
-    if (un === 'UN') return 'Unidade (UN)';
-    if (un === 'CX') return 'Caixa (CX)';
-    if (un === 'KG') return 'Quilograma (KG)';
-    if (un === 'M') return 'Metro (M)';
-    if (un === 'PC') return 'Peça (PC)';
-    if (un === 'PC') return 'Peça (PC)';
-    return un || 'Unidade (UN)';
+  const getUnidadeDescricao = (un) => {
+    const badge = obterBadgeInfo(un);
+    return `${badge.icone} ${un || 'UN'} — ${badge.label}`;
   };
 
   const handleSave = async () => {
@@ -108,7 +104,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        
+
         {/* Header do Modal */}
         <div className={styles.modalHeader}>
           <h2>Produtos</h2>
@@ -118,13 +114,13 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
         </div>
 
         <div className={styles.modalBody}>
-          
+
           {/* Coluna Esquerda/Centro (Informações) */}
           <div className={styles.mainInfo}>
-            
+
             {/* Bloco Superior (Dados Básicos) */}
             <div className={styles.topSection}>
-              
+
               {/* Imagem Placeholder */}
               <div className={styles.imageBox}>
                 <div className={styles.imagePlaceholder}>
@@ -137,15 +133,15 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                     </>
                   )}
                 </div>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  style={{ display: 'none' }} 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  onChange={handleImageUpload}
                 />
-                <button 
-                  className={styles.btnAlterarImagem} 
+                <button
+                  className={styles.btnAlterarImagem}
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
                 >
@@ -155,7 +151,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
 
               {/* Campos do Produto */}
               <div className={styles.fieldsGrid}>
-                
+
                 <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Descrição do Produto</label>
                   <input type="text" value={produto.descricao || ''} readOnly />
@@ -186,8 +182,8 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Unidade</label>
-                  <input type="text" value={getUnidade(produto.unidade)} readOnly />
+                  <label>Unidade / Tipo de Medida</label>
+                  <input type="text" value={getUnidadeDescricao(produto.unidade)} readOnly />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -222,7 +218,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                 {activeTab === 'estoque' && (
                   <div className={styles.tabEstoque}>
                     <p className={styles.tabInfo}>Abaixo um resumo das informações de estoque deste produto.</p>
-                    
+
                     <table className={styles.tabelaGenerica}>
                       <thead>
                         <tr>
@@ -276,7 +272,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                                 <td className={styles.textRight}><strong>{lote.quantidade}</strong> {produto.unidade}</td>
                                 <td className={styles.textRight} style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
                                   {new Date(lote.validade).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                                  <button 
+                                  <button
                                     title="Editar data de validade deste lote"
                                     onClick={() => handleEditLoteDate(lote.numero, lote.validade)}
                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cor-destaque)', padding: '4px' }}
@@ -292,16 +288,16 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                     )}
                   </div>
                 )}
-                
+
                 {activeTab === 'caracteristicas' && (
                   <div className={styles.tabCaracteristicas}>
                     <div className={styles.tabHeaderRow}>
-                      <p className={styles.tabInfo}>Estas são as características deste produto<br/><small>Clique duas vezes para alterar o conteúdo de qualquer característica.</small></p>
+                      <p className={styles.tabInfo}>Estas são as características deste produto<br /><small>Clique duas vezes para alterar o conteúdo de qualquer característica.</small></p>
                       <button className={styles.btnIncluirCarac} onClick={() => setShowSubModal(true)}>
                         <Plus size={16} /> Incluir uma nova característica
                       </button>
                     </div>
-                    
+
                     <table className={styles.tabelaGenerica}>
                       <thead>
                         <tr>
@@ -357,10 +353,10 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                 Fechar <X size={18} />
               </button>
             </div>
-            
+
             <div className={styles.subModalBody}>
               <h4>Selecione uma característica da lista, ou crie uma nova aqui mesmo</h4>
-              
+
               <div className={styles.subModalGrid}>
                 <div className={styles.formGroupCustom}>
                   <label>Selecione a Característica</label>

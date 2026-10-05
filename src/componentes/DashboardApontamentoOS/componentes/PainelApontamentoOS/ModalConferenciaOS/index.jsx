@@ -16,10 +16,12 @@ import {
   CheckCheck,
   Wrench,
   Droplet,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 import styles from './ModalConferenciaOS.module.css';
 import { formatarOdometroDisplay } from '../../../../../utils/formatadorOdometro';
+import { formatarHorariosTurno } from '../index';
 
 const ModalConferenciaOS = ({
   os = {},
@@ -161,7 +163,7 @@ const ModalConferenciaOS = ({
                       <Calendar size={15} /> Dia #{idx + 1} - {formatarDataBR(t.data)}
                     </span>
                     <span className={styles.horasTag}>
-                      <Clock size={13} /> {calcularHorasTurno(t)} horas
+                      <Clock size={13} /> {calcularHorasTurno(t)}h ({formatarHorariosTurno(t)})
                     </span>
                   </div>
                   <button
@@ -250,10 +252,16 @@ const ModalConferenciaOS = ({
           <button
             type="button"
             className={styles.btnConfirmarFinal}
-            onClick={onConfirmar}
+            onClick={() => {
+              if (!salvando) onConfirmar();
+            }}
             disabled={salvando}
           >
-            <CheckCircle size={18} />
+            {salvando ? (
+              <Loader2 size={18} className={styles.spin} />
+            ) : (
+              <CheckCircle size={18} />
+            )}
             <span>{salvando ? 'Concluindo O.S...' : 'Confirmar & Concluir Definitivamente'}</span>
           </button>
         </div>

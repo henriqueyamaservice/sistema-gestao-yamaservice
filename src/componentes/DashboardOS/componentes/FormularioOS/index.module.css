@@ -237,9 +237,9 @@
   border-radius: 6px;
   margin-top: 4px;
   z-index: 50;
-  max-height: 220px;
+  max-height: 280px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .servicoTag {
@@ -386,4 +386,153 @@
 
 .relativeContainer {
   position: relative;
+}
+
+.headerTituloWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.badgeModalidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 107, 0, 0.12);
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badgeModalidadeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--cor-destaque);
+  box-shadow: 0 0 8px var(--cor-destaque);
+  display: inline-block;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+/* Kits de Serviços no Formulário de O.S. */
+.dropdownSectionHeader {
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-secundario);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kitItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.kitItemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.kitItemNome {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.kitItemSub {
+  font-size: 0.7rem;
+  color: var(--cor-texto-secundario);
+}
+
+.kitItemBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.kitItemBadge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
+  border: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap;
+}
+
+.kitItemRecomendadoBadge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background-color: rgba(255, 107, 0, 0.15);
+  color: var(--cor-destaque);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  white-space: nowrap;
+}
+
+.kitQuickChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(255, 107, 0, 0.1);
+  color: var(--cor-destaque);
+  border: 1px solid var(--cor-destaque);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.kitQuickChip:hover {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+}
+
+.dropdownAvisoVeiculo {
+  padding: 10px 14px;
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-secundario);
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

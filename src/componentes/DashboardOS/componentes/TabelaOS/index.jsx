@@ -31,6 +31,16 @@ import { CONCLUIDO, EM_ANDAMENTO, AGUARDANDO_INSUMO, CANCELADO, ATRIBUIDO_TECNIC
 import { parseMoeda } from '../../../../utils/parseMoeda';
 
 const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) => {
+  const currentUser = React.useMemo(() => {
+    try {
+      const saved = localStorage.getItem('almoxarifado_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+  const isAdmin = currentUser?.role === 'admin';
+
   const [termoBusca, setTermoBusca] = useState('');
   const [dataInicioBusca, setDataInicioBusca] = useState('');
   const [dataFimBusca, setDataFimBusca] = useState('');
@@ -38,6 +48,14 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
   const [situacaoFiltro, setSituacaoFiltro] = useState('');
   const [mostrarGrafico, setMostrarGrafico] = useState(true);
   const [mostrarCusto, setMostrarCusto] = useState(false);
+
+  // Filtra apenas Ordens de Serviço gerais (exclui Prestação de Serviços que possuem tabela própria)
+  const osListGeral = React.useMemo(() => {
+    return (osList || []).filter(os => {
+      const isPrestacao = os.tipo === 'PRESTACAO_SERVICO' || os.isPrestacaoServico === true || os.modalidade === 'PRESTACAO_SERVICO' || (Array.isArray(os.itensPrestacao) && os.itensPrestacao.length > 0);
+      return !isPrestacao;
+    });
+  }, [osList]);
 
   // Helper para renderizar badges de prioridade
   const renderPrioridadeBadge = (prioridade) => {
@@ -86,7 +104,7 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
   };
 
   // 1. Filtragem Geral (Termo de Busca, Datas e Situação)
-  const osFiltradasBase = osList.filter(os => {
+  const osFiltradasBase = osListGeral.filter(os => {
     let matchTermo = true;
     let matchData = true;
     let matchSituacao = true;
@@ -129,7 +147,7 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
 
   // 2. Extrair setores disponíveis dentro dos filtros ativos
   const setoresDisponiveis = Array.from(
-    new Set((setorFiltro ? osList : osFiltradasBase).map(os => os.setor).filter(Boolean))
+    new Set((setorFiltro ? osListGeral : osFiltradasBase).map(os => os.setor).filter(Boolean))
   ).sort();
 
   // 3. Métricas por Setor para Recharts (Respeita filtros de Data, Termo de Busca e Situação)
@@ -195,8 +213,8 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
 
   // 5. KPIs Dinâmicos baseados na seleção atual
   const osBaseKPI = setorFiltro
-    ? osList.filter(os => os.setor === setorFiltro)
-    : osList;
+    ? osListGeral.filter(os => os.setor === setorFiltro)
+    : osListGeral;
 
   const totalOSCount = osBaseKPI.length;
   const emAndamentoCount = osBaseKPI.filter(os => {
@@ -415,39 +433,41 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
           </div>
         </div>
 
-        {/* Card Adicional: Custo Total das Peças do Filtro */}
-        <div
-          className={styles.kpiCard}
-          style={{ borderColor: 'var(--cor-destaque)', backgroundColor: 'rgba(255, 107, 0, 0.05)', cursor: 'pointer' }}
-          title="Clique para ocultar/mostrar o valor do custo total"
-          onClick={() => setMostrarCusto(!mostrarCusto)}
-        >
-          <div className={styles.kpiIconBox} style={{ backgroundColor: 'var(--cor-destaque)', color: '#fff' }}>
-            <DollarSign size={22} />
+        {/* Card Adicional: Custo Total das Peças do Filtro (Exclusivo para Admin) */}
+        {isAdmin && (
+          <div
+            className={styles.kpiCard}
+            style={{ borderColor: 'var(--cor-destaque)', backgroundColor: 'rgba(255, 107, 0, 0.05)', cursor: 'pointer' }}
+            title="Clique para ocultar/mostrar o valor do custo total"
+            onClick={() => setMostrarCusto(!mostrarCusto)}
+          >
+            <div className={styles.kpiIconBox} style={{ backgroundColor: 'var(--cor-destaque)', color: '#fff' }}>
+              <DollarSign size={22} />
+            </div>
+            <div className={styles.kpiInfo}>
+              <span
+                className={styles.kpiValue}
+                style={{
+                  color: 'var(--cor-destaque)',
+                  fontSize: '1.25rem',
+                  filter: mostrarCusto ? 'none' : 'blur(6px)',
+                  transition: 'filter 0.3s ease',
+                  userSelect: mostrarCusto ? 'auto' : 'none'
+                }}
+              >
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoTotalPecas)}
+              </span>
+              <span className={styles.kpiLabel}>
+                Custo Total Peças
+                {setorFiltro && (
+                  <span style={{ display: 'block', fontSize: '0.55rem', color: 'var(--cor-destaque)', fontWeight: '600', marginTop: '1px', textTransform: 'uppercase', opacity: 0.9 }}>
+                    ({setorFiltro})
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
-          <div className={styles.kpiInfo}>
-            <span 
-              className={styles.kpiValue} 
-              style={{ 
-                color: 'var(--cor-destaque)', 
-                fontSize: '1.25rem',
-                filter: mostrarCusto ? 'none' : 'blur(6px)',
-                transition: 'filter 0.3s ease',
-                userSelect: mostrarCusto ? 'auto' : 'none'
-              }}
-            >
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoTotalPecas)}
-            </span>
-            <span className={styles.kpiLabel}>
-              Custo Total Peças
-              {setorFiltro && (
-                <span style={{ display: 'block', fontSize: '0.55rem', color: 'var(--cor-destaque)', fontWeight: '600', marginTop: '1px', textTransform: 'uppercase', opacity: 0.9 }}>
-                  ({setorFiltro})
-                </span>
-              )}
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Painel Gráfico Recharts / Distribuição por Setor */}
@@ -699,7 +719,7 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
                 <th>PRAZO</th>
                 <th>TIPO</th>
                 <th>SITUAÇÃO</th>
-                <th>CUSTO PEÇAS</th>
+                {isAdmin && <th>CUSTO PEÇAS</th>}
                 <th>DESCRIÇÃO DO SERVIÇO</th>
                 <th>AÇÕES</th>
               </tr>
@@ -718,10 +738,10 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
                   >
                     <td className={styles.tdBold}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
-                        <span>{os.codigo}</span>
+                         <span>{os.codigo}</span>
                         {(os.origemApontamento === 'COLABORADOR' || os.origemApontamento === 'TOTEM' || os.preenchidoNoTotem) && (
                           <span className={styles.badgeTotem} title="Apontamento realizado pelo Colaborador">
-                            <UserCheck size={11} /> Colaborador
+                            <UserCheck size={11} />
                           </span>
                         )}
                       </div>
@@ -736,11 +756,13 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
                     <td>{prazoFormatado}</td>
                     <td>{os.tipo}</td>
                     <td>{renderSituacaoBadge(os.situacao)}</td>
-                    <td style={{ fontWeight: '600', color: calcularCustoOS(os) > 0 ? 'var(--cor-destaque)' : 'var(--cor-texto-secundario)' }}>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                        calcularCustoOS(os)
-                      )}
-                    </td>
+                    {isAdmin && (
+                      <td style={{ fontWeight: '600', color: calcularCustoOS(os) > 0 ? 'var(--cor-destaque)' : 'var(--cor-texto-secundario)' }}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                          calcularCustoOS(os)
+                        )}
+                      </td>
+                    )}
                     <td className={styles.truncateDescricao} title={os.descricao}>
                       {os.descricao}
                     </td>
@@ -756,7 +778,7 @@ const TabelaOS = ({ osList = [], onRowClick, onPrint, onStart, onNovoClick }) =>
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); onPrint && onPrint({...os, somenteVerso: true}); }}
+                          onClick={(e) => { e.stopPropagation(); onPrint && onPrint({ ...os, somenteVerso: true }); }}
                           className={styles.printButton}
                           title="Imprimir Apenas Verso da O.S."
                         >

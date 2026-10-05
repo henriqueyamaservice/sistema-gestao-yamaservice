@@ -6,6 +6,7 @@ import NecessidadeCompras from './componentes/NecessidadeCompras';
 import MenuAlmoxarifado from './componentes/MenuAlmoxarifado';
 import ValidacaoProduto from './componentes/ValidacaoProduto';
 import Estoque from './componentes/Estoque';
+import { useNotification } from '../../contextos/NotificationContext';
 import styles from './DashboardAlmoxarifado.module.css';
 
 const DashboardAlmoxarifado = () => {
@@ -15,9 +16,11 @@ const DashboardAlmoxarifado = () => {
   const [view, setView] = useState('lista'); 
   const [itensParaRequisicao, setItensParaRequisicao] = useState([]);
 
-  const fetchProdutos = async () => {
+  const { socket } = useNotification() || {};
+
+  const fetchProdutos = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       setError(null);
       const response = await fetch('/api/produtos');
       
@@ -30,17 +33,31 @@ const DashboardAlmoxarifado = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProdutos();
-  }, []);
+    fetchProdutos(false);
 
-  useEffect(() => {
-    fetchProdutos();
-  }, []);
+    const handleAtualizacaoSilenciosa = () => {
+      fetchProdutos(true);
+    };
+
+    if (socket) {
+      socket.on('produtos_atualizados', handleAtualizacaoSilenciosa);
+      socket.on('estoque_atualizado', handleAtualizacaoSilenciosa);
+      socket.on('pedidos_pendentes_atualizados', handleAtualizacaoSilenciosa);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('produtos_atualizados', handleAtualizacaoSilenciosa);
+        socket.off('estoque_atualizado', handleAtualizacaoSilenciosa);
+        socket.off('pedidos_pendentes_atualizados', handleAtualizacaoSilenciosa);
+      }
+    };
+  }, [socket]);
 
   const renderContent = () => {
     if (view === 'recebimento') {

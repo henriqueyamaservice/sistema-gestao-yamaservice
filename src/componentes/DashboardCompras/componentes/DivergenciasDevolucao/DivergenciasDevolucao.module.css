@@ -176,10 +176,51 @@
 }
 
 .btnSecondary {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background: var(--cor-fundo-secundario, #f1f5f9);
+  color: var(--cor-texto-principal, #475569);
+  border: 1px solid var(--cor-borda-cartao, #cbd5e1);
 }
 .btnSecondary:hover {
-  background: #e2e8f0;
+  background: var(--cor-fundo-sutil, #e2e8f0);
+}
+
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 12px;
+}
+
+.tabBtn {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.tabBtnAtivo {
+  background: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+}
+
+.badgeContador {
+  background: rgba(0, 0, 0, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.78rem;
 }

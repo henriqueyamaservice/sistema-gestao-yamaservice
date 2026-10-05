@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Plus, Trash2, CheckCircle2, Send, RotateCcw, ShieldAlert, Wrench, ChevronRight, ChevronLeft, MessageSquare, ListTodo, Bot, User, Mic, Info, X } from 'lucide-react';
 import styles from './RequisicaoMobile.module.css';
 
@@ -223,12 +223,15 @@ const RequisicaoMobile = ({ produtos = [] }) => {
     setFormulario(prev => ({ ...prev, [name]: value }));
   };
 
-  const produtosFiltrados = termoBusca.length >= 2
-    ? produtos.filter(p =>
-      (p.descricao || '').toLowerCase().includes(termoBusca.toLowerCase()) ||
-      (p.codigo || '').toLowerCase().includes(termoBusca.toLowerCase())
-    ).slice(0, 5)
-    : [];
+  const produtosFiltrados = useMemo(() => {
+    if (!termoBusca || termoBusca.trim().length < 2) return [];
+    const termos = termoBusca.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return (produtos || []).filter(p => {
+      const desc = (p.descricao || '').toLowerCase();
+      const cod = (p.codigo || '').toLowerCase();
+      return termos.every(t => desc.includes(t) || cod.includes(t));
+    }).slice(0, 8);
+  }, [produtos, termoBusca]);
 
   const handleSelecionarProduto = (prod) => {
     setProdutoSelecionado(prod);
@@ -239,18 +242,28 @@ const RequisicaoMobile = ({ produtos = [] }) => {
   const handleAdicionarLista = () => {
     if (!produtoSelecionado || quantidadeItem <= 0) return;
 
+    const unitPrice = Number(produtoSelecionado.valor_unitario || produtoSelecionado.preco || produtoSelecionado.preco_venda || produtoSelecionado.preco_unitario || 0);
+    const unidadeItem = produtoSelecionado.unidade || 'UN';
     const itemExistente = itensCarrinho.find(i => i.codigo === produtoSelecionado.codigo);
+
     if (itemExistente) {
       setItensCarrinho(itensCarrinho.map(i =>
         i.codigo === produtoSelecionado.codigo
-          ? { ...i, quantidade: Number(i.quantidade) + Number(quantidadeItem) }
+          ? {
+              ...i,
+              quantidade: Number(i.quantidade) + Number(quantidadeItem),
+              unidade: i.unidade || unidadeItem,
+              valor_unitario: i.valor_unitario !== undefined ? i.valor_unitario : unitPrice
+            }
           : i
       ));
     } else {
       setItensCarrinho([...itensCarrinho, {
         codigo: produtoSelecionado.codigo,
         descricao: produtoSelecionado.descricao,
-        quantidade: Number(quantidadeItem)
+        quantidade: Number(quantidadeItem),
+        unidade: unidadeItem,
+        valor_unitario: unitPrice
       }]);
     }
     setProdutoSelecionado(null);

@@ -1,0 +1,694 @@
+/* Overlay e Container do Modal */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalContainer {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.modalHeader {
+  padding: 18px 24px;
+  background-color: var(--cor-fundo-secundario);
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIconBubble {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-erro, #ef4444);
+  flex-shrink: 0;
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeModoConsulta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.modalSubtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnClose {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnClose:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border-color: var(--cor-texto-secundario);
+}
+
+/* Banner Informativo de Regra de Negócio */
+.bannerRegraNegocio {
+  background-color: rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* Barra de Métricas Rápidas */
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 16px 24px 8px 24px;
+}
+
+.metricCard {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metricCard.critico {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.metricCard.atencao {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.metricIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metricIcon.critico {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--cor-erro, #ef4444);
+}
+
+.metricIcon.atencao {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.metricIcon.ok {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--cor-sucesso, #10b981);
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricValue {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  line-height: 1.1;
+}
+
+.metricLabel {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+/* Barra de Filtros e Busca */
+.filterToolbar {
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.tabsGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cor-fundo-secundario);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  color: var(--cor-texto-principal);
+}
+
+.tabBtn.active {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  box-shadow: 0 2px 6px rgba(255, 107, 0, 0.25);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 6px 12px;
+  min-width: 240px;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  color: var(--cor-texto-principal);
+  width: 100%;
+}
+
+.searchInput::placeholder {
+  color: var(--cor-texto-secundario);
+}
+
+/* Lista de Veículos com Scroll */
+.modalBody {
+  padding: 18px 24px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Card do Veículo */
+.veiculoCard {
+  background-color: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.veiculoCard.critico {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
+}
+
+.veiculoCard.atencao {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.veiculoIdentificacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.veiculoIconBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: var(--cor-fundo-sutil-forte);
+  border: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-destaque);
+  flex-shrink: 0;
+}
+
+.veiculoFotoBox {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-sutil-forte);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.veiculoFotoBox:hover {
+  transform: scale(1.06);
+  border-color: var(--cor-destaque);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.28);
+}
+
+.veiculoFotoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.veiculoFotoHoverBadge {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.veiculoFotoBox:hover .veiculoFotoHoverBadge {
+  opacity: 1;
+}
+
+.placaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.placaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.placaText {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--cor-texto-principal);
+  letter-spacing: 0.02em;
+}
+
+.tagTipo {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+}
+
+.modeloText {
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+}
+
+.odometroBadge {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.odometroLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+}
+
+.odometroValor {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--cor-destaque);
+}
+
+/* Grid de Metas (Óleo e Revisão) */
+.metasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.metaBox {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metaTitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.metaStatusPill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 6px;
+  background-color: var(--cor-fundo-sutil-forte);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.metaValores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* Rodapé do Card do Veículo: Status da O.S. */
+.cardFooterOS {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  flex-wrap: wrap;
+}
+
+.semOSBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: var(--cor-texto-secundario);
+  background-color: var(--cor-fundo-cartao);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--cor-borda-cartao);
+  font-weight: 600;
+}
+
+.comOSBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tagOSAberta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cor-sucesso, #10b981);
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.btnApontarOS {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnApontarOS:hover {
+  background-color: var(--cor-destaque-hover);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.3);
+}
+
+/* Footer do Modal */
+.modalFooter {
+  padding: 14px 24px;
+  background-color: var(--cor-fundo-secundario);
+  border-top: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnFecharModal {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnFecharModal:hover {
+  background-color: var(--cor-fundo-sutil);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--cor-texto-secundario);
+}
+
+.emptyStateTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  margin: 0;
+}
+
+/* Lightbox para ampliação de foto */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.lightboxContent {
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 16px;
+  max-width: 620px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lightboxHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+}
+
+.lightboxTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+}
+
+.btnCloseLightbox {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btnCloseLightbox:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border-color: var(--cor-texto-secundario);
+}
+
+.lightboxImgWrapper {
+  width: 100%;
+  max-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b0f19;
+  overflow: hidden;
+}
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}

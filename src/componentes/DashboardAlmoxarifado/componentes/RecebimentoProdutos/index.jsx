@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PackageOpen, Check, AlertCircle, ScanLine, ArrowLeft, Save, Plus, Minus, Sparkles } from 'lucide-react';
+import { 
+  PackageOpen, Check, AlertCircle, ScanLine, ArrowLeft, Save, Plus, Minus, 
+  Sparkles, RefreshCw, FileText, Barcode, CheckCircle2, Warehouse, Clock, 
+  AlertTriangle, Calendar, X, ShieldCheck 
+} from 'lucide-react';
+import ModalConfigCertificadoSefaz from '../../../DashboardRecebimentoFiscal/componentes/ModalConfigCertificadoSefaz';
+import { useNotification } from '../../../../contextos/NotificationContext';
 import styles from './RecebimentoProdutos.module.css';
+
+const formatarNomeLocal = (loc) => {
+  if (!loc) return '01 - Almoxarifado Central';
+  const cod = String(loc.codigo || loc.codigo_local_estoque || '').trim();
+  const desc = String(loc.descricao || '').trim();
+  if (!desc) return cod;
+  if (!cod) return desc;
+  if (desc.startsWith(cod)) return desc;
+  return `${cod} - ${desc}`;
+};
 
 const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
   const [pedidos, setPedidos] = useState([]);
@@ -8,6 +24,15 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
+  // Controle de Locais de Estoque Omie
+  const [listaLocaisEstoque, setListaLocaisEstoque] = useState([]);
+  const [localGeralPedido, setLocalGeralPedido] = useState('01');
+  const [locaisSelecionados, setLocaisSelecionados] = useState({});
+
+  // Controle da Nota Fiscal
+  const [chaveNfe, setChaveNfe] = useState('');
+  const [numeroNF, setNumeroNF] = useState('');
+
   // Controle da bipagem
   const [bipInput, setBipInput] = useState('');
   const [itensConferidos, setItensConferidos] = useState({});
@@ -17,45 +42,103 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
   const [multiplicador, setMultiplicador] = useState(1);
   const [modalVincular, setModalVincular] = useState({ isOpen: false, barcode: '' });
   const [vinculando, setVinculando] = useState(false);
+  const [modalCertificadoAberto, setModalCertificadoAberto] = useState(false);
   
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    fetchPedidos();
-  }, []);
+  const { socket, addToast } = useNotification() || {};
 
-  // Focar o input automaticamente quando um pedido for selecionado
-  useEffect(() => {
-    if (pedidoSelecionado && inputRef.current && !modalVincular.isOpen) {
-      inputRef.current.focus();
-    }
-  }, [pedidoSelecionado, mensagemBip, modalVincular.isOpen]); // Refoca após exibir mensagens ou fechar modal
-
-  const fetchPedidos = async () => {
+  const fetchPedidos = async (silencioso = false) => {
     try {
-      setLoading(true);
+      if (!silencioso) setLoading(true);
       const response = await fetch('/api/pedidos');
       if (!response.ok) throw new Error('Falha ao buscar pedidos');
       const data = await response.json();
-      setPedidos(data);
+      setPedidos(Array.isArray(data) ? data : []);
+      setError('');
     } catch (err) {
-      setError('Erro ao carregar pedidos pendentes. Verifique se o servidor está rodando.');
+      if (!silencioso) {
+        setError('Erro ao carregar pedidos pendentes. Verifique se o servidor está rodando.');
+      }
     } finally {
-      setLoading(false);
+      if (!silencioso) setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchPedidos();
+
+    // Ouvinte WebSocket em tempo real
+    if (socket) {
+      const handleAtualizacao = () => {
+        fetchPedidos(true);
+      };
+
+      const handleNovo = (dados) => {
+        fetchPedidos(true);
+        if (addToast) {
+          addToast(`Nova carga pronta para conferência: ${dados.fornecedor || dados.id}`, 'info');
+        }
+      };
+
+      socket.on('pedidos_pendentes_atualizados', handleAtualizacao);
+      socket.on('novo_pedido_recebimento', handleNovo);
+
+      return () => {
+        socket.off('pedidos_pendentes_atualizados', handleAtualizacao);
+        socket.off('novo_pedido_recebimento', handleNovo);
+      };
+    }
+  }, [socket]);
+
+  // Polling automático a cada 4 segundos caso a tela esteja aberta
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!pedidoSelecionado) {
+        fetchPedidos(true);
+      }
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [pedidoSelecionado]);
+
+  // Carregar locais de estoque da Omie
+  useEffect(() => {
+    const carregarLocais = async () => {
+      try {
+        const res = await fetch('/api/cadastros/locais-estoque');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setListaLocaisEstoque(data);
+          }
+        }
+      } catch (err) {
+        console.warn('Falha ao buscar locais de estoque:', err);
+      }
+    };
+    carregarLocais();
+  }, []);
+
   const selecionarPedido = (pedido) => {
     setPedidoSelecionado(pedido);
-    // Inicializa a contagem zerada para cada item
+    // Inicializa a contagem zerada para cada item e carrega locais de estoque
     const contagemInicial = {};
+    const locaisIniciais = {};
+    const localPadrao = pedido.codigo_local_estoque || pedido.localEstoque || pedido.itens?.[0]?.codigo_local_estoque || pedido.itens?.[0]?.localEstoque || '01';
+    setLocalGeralPedido(localPadrao);
+
     pedido.itens.forEach(item => {
       contagemInicial[item.codigo] = item.quantidadeRecebida || 0;
+      locaisIniciais[item.codigo] = item.codigo_local_estoque || item.localEstoque || localPadrao;
     });
     setItensConferidos(contagemInicial);
+    setLocaisSelecionados(locaisIniciais);
     setValidadesDigitadas({});
     setEansCapturados({});
     setMensagemBip(null);
+    setChaveNfe(pedido.chaveNfe || pedido.nota_fiscal_vinculada?.chaveAcesso || '');
+    setNumeroNF(pedido.numeroNF || pedido.numeroNfe || pedido.nota_fiscal || pedido.nota_fiscal_vinculada?.numero || pedido.nota_fiscal_vinculada?.numeroNF || '');
   };
 
   const voltarLista = () => {
@@ -63,13 +146,45 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
     setBipInput('');
     setMultiplicador(1);
     setValidadesDigitadas({});
+    setLocaisSelecionados({});
+    setLocalGeralPedido('01');
+    setChaveNfe('');
+    setNumeroNF('');
+  };
+
+  const handleChaveChange = (val) => {
+    const limpo = val.replace(/\D/g, '').slice(0, 44);
+    setChaveNfe(limpo);
+    if (limpo.length === 44) {
+      const numExtraido = String(parseInt(limpo.substring(25, 34), 10) || limpo.substring(25, 34));
+      if (!numeroNF) {
+        setNumeroNF(numExtraido);
+      }
+    }
   };
 
   const handleBipar = (e) => {
     e.preventDefault();
     if (!bipInput.trim()) return;
 
-    const codigoBipado = bipInput.trim();
+    const codigoBipado = bipInput.trim().replace(/\s+/g, '');
+
+    // 0. Se o operador bipar o código de barras da NF-e/DANFE (chave de 44 dígitos) no leitor:
+    if (codigoBipado.length === 44 && /^\d{44}$/.test(codigoBipado)) {
+      setChaveNfe(codigoBipado);
+      const numExtraido = String(parseInt(codigoBipado.substring(25, 34), 10) || codigoBipado.substring(25, 34));
+      if (!numeroNF) {
+        setNumeroNF(numExtraido);
+      }
+      setMensagemBip({ 
+        tipo: 'sucesso', 
+        texto: `Chave da DANFE (NF-e nº ${numExtraido}) detectada e vinculada!` 
+      });
+      setBipInput('');
+      setMultiplicador(1);
+      setTimeout(() => setMensagemBip(null), 3500);
+      return;
+    }
     
     // 1. Verifica se o item existe na nota (pelo código interno)
     let itemEncontrado = pedidoSelecionado.itens.find(i => i.codigo === codigoBipado);
@@ -97,7 +212,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
         [itemEncontrado.codigo]: codigoBipado
       }));
 
-      setMensagemBip({ tipo: 'sucesso', texto: `✅ ${multiplicador}x ${itemEncontrado.descricao} adicionado(s)!` });
+      setMensagemBip({ tipo: 'sucesso', texto: `${multiplicador}x ${itemEncontrado.descricao} adicionado(s)!` });
       
       setBipInput(''); // Limpa o input para o próximo bip
       setMultiplicador(1); // Reseta o multiplicador por segurança
@@ -134,7 +249,7 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
         ...itensConferidos,
         [codigoItem]: quantidadeAtual + 1 // sempre vincula adicionando 1 (o bip que causou o modal)
       });
-      setMensagemBip({ tipo: 'sucesso', texto: `✅ Código Vinculado! 1x ${itemEncontrado.descricao} adicionado(s)!` });
+      setMensagemBip({ tipo: 'sucesso', texto: `Código Vinculado! 1x ${itemEncontrado.descricao} adicionado(s)!` });
 
       // Captura o EAN novo para este produto (será atrelado ao Lote no backend)
       setEansCapturados(prev => ({
@@ -196,18 +311,34 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
           isParcial: !isCompletos,
           observacao: observacao,
           validades: validadesDigitadas,
-          eansCapturados: eansCapturados
+          eansCapturados: eansCapturados,
+          chaveNfe: chaveNfe.trim(),
+          numeroNF: numeroNF.trim(),
+          localEstoquePadrao: localGeralPedido,
+          locaisEstoque: locaisSelecionados
         })
       });
 
       if (!response.ok) throw new Error('Falha ao confirmar');
 
-      alert(isCompletos ? '✅ Recebimento finalizado com sucesso!' : '⚠️ Recebimento parcial registrado com sucesso!');
+      alert(isCompletos ? 'Recebimento finalizado com sucesso!' : 'Recebimento parcial registrado com sucesso!');
       setPedidoSelecionado(null);
       fetchPedidos(); // Atualiza a lista
+      if (fetchProdutosGlobal) fetchProdutosGlobal();
     } catch (err) {
       alert('Erro ao finalizar: ' + err.message);
     }
+  };
+
+  const handlePreencherTudo = () => {
+    if (!pedidoSelecionado || !pedidoSelecionado.itens) return;
+    const totalEsperado = {};
+    pedidoSelecionado.itens.forEach(item => {
+      totalEsperado[item.codigo] = item.quantidadeEsperada;
+    });
+    setItensConferidos(totalEsperado);
+    setMensagemBip({ tipo: 'sucesso', texto: 'Todos os itens foram preenchidos com 100% da quantidade esperada!' });
+    setTimeout(() => setMensagemBip(null), 3000);
   };
 
   // TELA DE LISTA DE PEDIDOS
@@ -222,9 +353,29 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
             <div>
               <h2>Recebimento de Mercadorias</h2>
               <p style={{ margin: '4px 0 0 0', color: 'var(--cor-texto-secundario)', fontSize: '0.9rem' }}>
-                Selecione um pedido pendente da Omie para conferir
+                Selecione uma ordem de entrega pendente para conferir as peças fisicamente
               </p>
             </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button 
+              type="button" 
+              onClick={() => setModalCertificadoAberto(true)} 
+              className={styles['btn-atualizar']}
+              title="Configurar Certificado Digital A1 (.pfx) da SEFAZ para busca e download de NF-e"
+            >
+              <ShieldCheck size={16} color="var(--cor-destaque)" />
+              <span>Certificado SEFAZ</span>
+            </button>
+            <button 
+              type="button" 
+              onClick={() => fetchPedidos(false)} 
+              className={styles['btn-atualizar']}
+              title="Atualizar lista em tempo real"
+            >
+              <RefreshCw size={16} className={loading ? styles['girando'] : ''} />
+              <span>Atualizar</span>
+            </button>
           </div>
         </header>
 
@@ -236,7 +387,10 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
           <div className={styles['empty-state']}>
             <Check size={48} color="var(--cor-sucesso)" />
             <h3>Tudo em dia!</h3>
-            <p>Nenhum pedido aguardando recebimento na Omie.</p>
+            <p>Nenhuma mercadoria aguardando conferência física no momento.</p>
+            <span style={{ fontSize: '0.85rem', color: 'var(--cor-texto-secundario)', marginTop: '8px', maxWidth: '500px', lineHeight: 1.4 }}>
+              As ordens de recebimento chegam a esta tela assim que o setor de Compras conclui a aprovação e o mapeamento dos itens (seja por faturamento CNPJ ou compra direta no CPF).
+            </span>
           </div>
         ) : (
           <div className={styles['table-container']}>
@@ -254,7 +408,14 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
               <tbody>
                 {pedidos.map(pedido => (
                   <tr key={pedido.id} onClick={() => selecionarPedido(pedido)}>
-                    <td className={styles['pedido-id']}>{pedido.id}</td>
+                    <td className={styles['pedido-id']}>
+                      {pedido.id}
+                      {(pedido.numeroNF || pedido.numeroNfe) && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--cor-destaque)', fontWeight: '600', marginTop: '2px' }}>
+                          NF-e: {pedido.numeroNF || pedido.numeroNfe}
+                        </div>
+                      )}
+                    </td>
                     <td className={styles['fornecedor']}>{pedido.fornecedor}</td>
                     <td>{new Date(pedido.dataEmissao).toLocaleDateString('pt-BR')}</td>
                     <td><span className={styles['badge-status']}>{pedido.status}</span></td>
@@ -289,19 +450,172 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
             </p>
           </div>
         </div>
-        <button 
-          className={styles['btn-finalizar']} 
-          onClick={finalizarRecebimento}
-          style={{ 
-            backgroundColor: itensCompletos ? 'var(--cor-sucesso)' : 'var(--cor-fundo-sutil-forte)',
-            color: itensCompletos ? 'var(--cor-texto-inverso)' : 'var(--cor-texto-principal)',
-            border: itensCompletos ? 'none' : '1px solid var(--cor-borda-cartao)'
-          }}
-        >
-          <Save size={18} />
-          {itensCompletos ? 'Concluir Recebimento' : 'Salvar Incompleto'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={handlePreencherTudo}
+            title="Preencher todos os itens com a quantidade esperada"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid var(--cor-destaque)',
+              background: 'transparent',
+              color: 'var(--cor-destaque)',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '0.85rem'
+            }}
+          >
+            <Check size={16} />
+            Conferir Tudo (100%)
+          </button>
+          <button 
+            className={styles['btn-finalizar']} 
+            onClick={finalizarRecebimento}
+            style={{ 
+              backgroundColor: itensCompletos ? 'var(--cor-sucesso)' : 'var(--cor-fundo-sutil-forte)',
+              color: itensCompletos ? 'var(--cor-texto-inverso)' : 'var(--cor-texto-principal)',
+              border: itensCompletos ? 'none' : '1px solid var(--cor-borda-cartao)'
+            }}
+          >
+            <Save size={18} />
+            {itensCompletos ? 'Concluir Recebimento' : 'Salvar Incompleto'}
+          </button>
+        </div>
       </header>
+
+      {/* BLOCO DE DADOS DA NOTA FISCAL (DANFE / CHAVE DE ACESSO) */}
+      <div className={styles['fiscal-card']}>
+        <div className={styles['fiscal-header']}>
+          <div className={styles['fiscal-icon']}>
+            <FileText size={22} color="var(--cor-destaque)" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--cor-texto-principal)' }}>
+                Dados da Nota Fiscal (DANFE)
+              </h3>
+              {chaveNfe.length === 44 ? (
+                <span className={styles['badge-fiscal-valida']}>
+                  <CheckCircle2 size={13} /> Chave Válida (44 dígitos)
+                </span>
+              ) : chaveNfe.length > 0 ? (
+                <span className={styles['badge-fiscal-parcial']}>
+                  <Clock size={13} /> Digitando ({chaveNfe.length}/44 dígitos)
+                </span>
+              ) : (
+                <span className={styles['badge-fiscal-pendente']}>
+                  <Clock size={13} /> Aguardando Chave da NF-e
+                </span>
+              )}
+            </div>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--cor-texto-secundario)', fontSize: '0.85rem' }}>
+              Bipe a chave impressa na DANFE com o leitor ou digite o número da nota fiscal
+            </p>
+          </div>
+        </div>
+
+        <div className={styles['fiscal-inputs-row']}>
+          <div className={styles['fiscal-input-group']} style={{ flex: 2, minWidth: '300px' }}>
+            <label className={styles['fiscal-label']}>
+              <Barcode size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
+              Chave de Acesso da NF-e (44 dígitos):
+            </label>
+            <input 
+              type="text"
+              className={styles['fiscal-input-chave']}
+              placeholder="Ex: 35260911500013000146550010003271001234567890 (Bipe com o leitor)"
+              value={chaveNfe}
+              onChange={(e) => handleChaveChange(e.target.value)}
+              maxLength={44}
+            />
+            <span className={styles['fiscal-hint']}>
+              {chaveNfe.length === 44 
+                ? 'Chave completa! O número da nota foi extraído automaticamente.' 
+                : 'Pode ser bipada diretamente com o leitor de código de barras no topo do DANFE.'}
+            </span>
+          </div>
+
+          <div className={styles['fiscal-input-group']} style={{ flex: 1, minWidth: '180px' }}>
+            <label className={styles['fiscal-label']}>
+              Nº da Nota Fiscal / Recibo:
+            </label>
+            <input 
+              type="text"
+              className={styles['fiscal-input-numero']}
+              placeholder="Ex: 327100543"
+              value={numeroNF}
+              onChange={(e) => setNumeroNF(e.target.value)}
+            />
+            <span className={styles['fiscal-hint']}>
+              Preenchido via chave ou digitação manual
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO DO LOCAL DE ESTOQUE OMIE (DESTINO) */}
+      <div className={styles['armazem-card']}>
+        <div className={styles['armazem-header']}>
+          <div className={styles['armazem-icon']}>
+            <Warehouse size={22} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--cor-texto-principal)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Local de Estoque Geral (Omie)
+              <span style={{ fontSize: '0.75rem', fontWeight: '700', background: 'rgba(34, 197, 94, 0.15)', color: 'var(--cor-sucesso)', padding: '2px 8px', borderRadius: '6px' }}>
+                Padrão da Carga
+              </span>
+            </h3>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--cor-texto-secundario)', fontSize: '0.85rem' }}>
+              Aplica a todos os itens da nota. Se a carga for mista, você pode ajustar o local individual de cada item na tabela abaixo.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles['armazem-select-wrapper']}>
+          <select
+            className={styles['armazem-select']}
+            value={localGeralPedido}
+            onChange={(e) => {
+              const novoLocal = e.target.value;
+              setLocalGeralPedido(novoLocal);
+              // Replica para todos os itens da carga
+              const novosLocais = {};
+              (pedidoSelecionado.itens || []).forEach(it => {
+                novosLocais[it.codigo] = novoLocal;
+              });
+              setLocaisSelecionados(novosLocais);
+            }}
+          >
+            {listaLocaisEstoque && listaLocaisEstoque.length > 0 ? (
+              listaLocaisEstoque.map(loc => {
+                const codVal = loc.codigo || loc.codigo_local_estoque;
+                const label = formatarNomeLocal(loc);
+                return (
+                  <option key={codVal} value={codVal}>
+                    {label}
+                  </option>
+                );
+              })
+            ) : (
+              <>
+                <option value="01">01 - Almoxarifado Central</option>
+                <option value="PADRAO">PADRAO - Local Padrão</option>
+                <option value="02">02 - Armazém Matéria Prima</option>
+                <option value="03">03 - Armazém Serragem</option>
+                <option value="04">04 - Armazém Cama de Frango</option>
+                <option value="05">05 - Insumos Construção Civil</option>
+                <option value="06">06 - Fábrica de Ração</option>
+                <option value="Posto de Combustivel">Posto de Combustível</option>
+              </>
+            )}
+          </select>
+        </div>
+      </div>
 
       {/* ÁREA DO LEITOR */}
       <div className={styles['scanner-area']}>
@@ -355,25 +669,43 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
         <table className={styles['conferencia-table']}>
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Código</th>
-              <th>Descrição do Produto</th>
-              <th className={styles['text-center']}>Validade (Lote)</th>
-              <th className={styles['text-center']}>Esperado</th>
-              <th className={styles['text-center']}>Contado (Bip)</th>
+              <th className={styles['th-status']}>Status</th>
+              <th className={styles['th-codigo']}>Código</th>
+              <th className={styles['th-desc']}>Descrição do Produto</th>
+              <th className={styles['th-local']}>Local Estoque (Item)</th>
+              <th className={styles['th-validade']}>Validade (Lote)</th>
+              <th className={styles['th-esperado']}>Esperado</th>
+              <th className={styles['th-contado']}>Contado (Bip)</th>
             </tr>
           </thead>
           <tbody>
             {pedidoSelecionado.itens.map(item => {
               const contado = itensConferidos[item.codigo] || 0;
               const esperado = item.quantidadeEsperada;
-              const completo = contado === esperado;
+              const completo = contado === esperado && esperado > 0;
               const excedente = contado > esperado;
+              const parcial = contado > 0 && contado < esperado;
 
               return (
                 <tr key={item.codigo} className={completo ? styles['row-completa'] : excedente ? styles['row-excedente'] : ''}>
                   <td className={styles['col-status']}>
-                    {completo ? '✅' : excedente ? '⚠️' : '⏳'}
+                    {completo ? (
+                      <span className={styles['status-badge-conferido']} title="Item 100% conferido">
+                        <CheckCircle2 size={13} /> Conferido
+                      </span>
+                    ) : excedente ? (
+                      <span className={styles['status-badge-excedente']} title="Quantidade contada excede o esperado">
+                        <AlertTriangle size={13} /> Excedente
+                      </span>
+                    ) : parcial ? (
+                      <span className={styles['status-badge-parcial']} title="Contagem parcial">
+                        <Clock size={13} /> Parcial
+                      </span>
+                    ) : (
+                      <span className={styles['status-badge-pendente']} title="Aguardando bipagem">
+                        <Clock size={13} /> Pendente
+                      </span>
+                    )}
                   </td>
                   <td>
                     {item.codigo.startsWith('NEW-') ? (
@@ -397,39 +729,90 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
                       <span className={styles['badge-codigo']}>{item.codigo}</span>
                     )}
                   </td>
-                  <td style={{ fontWeight: completo ? 500 : 'normal' }}>
-                    {item.descricao}
-                    {item.codigo.startsWith('NEW-') && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--cor-texto-secundario)', marginTop: '4px' }}>
-                        Bipe a embalagem física para registrar o EAN oficial
-                      </div>
-                    )}
+                  <td>
+                    <div className={styles['col-desc-wrapper']}>
+                      <span className={styles['desc-texto']}>{item.descricao}</span>
+                      {item.codigo.startsWith('NEW-') && (
+                        <span className={styles['desc-subtexto']}>
+                          Bipe a embalagem física para registrar o EAN oficial
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div 
+                      className={`${styles['local-select-box']} ${(locaisSelecionados[item.codigo] && locaisSelecionados[item.codigo] !== localGeralPedido) ? styles['local-personalizado'] : ''}`}
+                      title={(locaisSelecionados[item.codigo] && locaisSelecionados[item.codigo] !== localGeralPedido) ? "Item com local específico diferente do padrão da carga" : "Local de estoque do item"}
+                    >
+                      <Warehouse size={14} className={styles['local-icon']} />
+                      <select
+                        className={styles['tabela-select-local']}
+                        value={locaisSelecionados[item.codigo] || localGeralPedido || '01'}
+                        onChange={(e) => {
+                          const novoLocal = e.target.value;
+                          setLocaisSelecionados(prev => ({ ...prev, [item.codigo]: novoLocal }));
+                        }}
+                      >
+                        {listaLocaisEstoque && listaLocaisEstoque.length > 0 ? (
+                          listaLocaisEstoque.map(loc => {
+                            const codVal = loc.codigo || loc.codigo_local_estoque;
+                            const label = formatarNomeLocal(loc);
+                            return (
+                              <option key={codVal} value={codVal}>
+                                {label}
+                              </option>
+                            );
+                          })
+                        ) : (
+                          <>
+                            <option value="01">01 - Almoxarifado Central</option>
+                            <option value="PADRAO">PADRAO - Local Padrão</option>
+                            <option value="02">02 - Armazém Matéria Prima</option>
+                            <option value="03">03 - Armazém Serragem</option>
+                            <option value="04">04 - Armazém Cama de Frango</option>
+                            <option value="05">05 - Insumos Construção Civil</option>
+                            <option value="06">06 - Fábrica de Ração</option>
+                            <option value="Posto de Combustivel">Posto de Combustível</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
                   </td>
                   <td className={styles['text-center']}>
-                    <input 
-                      type="date"
-                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--cor-borda)' }}
-                      value={validadesDigitadas[item.codigo] || ''}
-                      onChange={(e) => setValidadesDigitadas({...validadesDigitadas, [item.codigo]: e.target.value})}
-                    />
+                    <div className={styles['validade-input-box']}>
+                      <Calendar size={13} className={styles['validade-icon']} />
+                      <input 
+                        type="date"
+                        className={styles['input-validade']}
+                        value={validadesDigitadas[item.codigo] || ''}
+                        onChange={(e) => setValidadesDigitadas({...validadesDigitadas, [item.codigo]: e.target.value})}
+                      />
+                    </div>
                   </td>
-                  <td className={styles['text-center']}>{esperado}</td>
-                  <td className={`${styles['text-center']} ${styles['col-contado']}`}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <td className={styles['text-center']}>
+                    <span className={styles['badge-esperado']}>{esperado}</span>
+                  </td>
+                  <td className={styles['text-center']}>
+                    <div className={styles['contador-wrapper']}>
                       <button 
+                        type="button"
                         onClick={() => handleContagemManual(item.codigo, -1)}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cor-texto-secundario)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        className={styles['btn-contador']}
                         title="Diminuir manualmente"
+                        disabled={contado <= 0}
                       >
-                        <Minus size={16} />
+                        <Minus size={14} />
                       </button>
-                      <span className={styles['numero-bipado']}>{contado}</span>
+                      <span className={`${styles['numero-bipado']} ${completo ? styles['numero-completo'] : excedente ? styles['numero-excedente'] : parcial ? styles['numero-parcial'] : styles['numero-pendente']}`}>
+                        {contado}
+                      </span>
                       <button 
+                        type="button"
                         onClick={() => handleContagemManual(item.codigo, 1)}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cor-destaque)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                        className={styles['btn-contador']}
                         title="Adicionar manualmente (sem código de barras)"
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </td>
@@ -448,7 +831,9 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ScanLine size={24} color="var(--cor-destaque)" /> Código Desconhecido
               </h2>
-              <button className={styles['btn-close']} onClick={() => setModalVincular({ isOpen: false, barcode: '' })}>✖</button>
+              <button className={styles['btn-close']} onClick={() => setModalVincular({ isOpen: false, barcode: '' })}>
+                <X size={18} />
+              </button>
             </div>
             
             <div style={{ padding: '20px' }}>
@@ -497,6 +882,13 @@ const RecebimentoProdutos = ({ produtos = [], fetchProdutosGlobal }) => {
           </div>
         </div>
       )}
+
+      {/* Modal de Configuração e Instalação de Certificado Digital da SEFAZ */}
+      <ModalConfigCertificadoSefaz
+        isOpen={modalCertificadoAberto}
+        onClose={() => setModalCertificadoAberto(false)}
+        onCertificadoAtualizado={() => fetchPedidos(true)}
+      />
     </div>
   );
 };

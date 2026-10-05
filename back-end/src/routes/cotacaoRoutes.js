@@ -41,8 +41,17 @@ router.get('/cotacao-externa/:token', async (req, res) => {
     if (!tokenObj) return res.status(404).json({ message: 'Link inválido ou não encontrado.' });
     if (tokenObj.status !== 'ativo') return res.status(403).json({ message: 'Este link já foi utilizado ou expirou.' });
 
-    const requisicoes = await getJsonData('requisicoes') || [];
-    const requisicao = requisicoes.find(r => r.id === tokenObj.requisicaoId);
+    const db = await getDb();
+    let requisicao = null;
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ?`, [tokenObj.requisicaoId]);
+    if (row) {
+      let dados = {};
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch (e) {}
+      requisicao = { id: row.id, ...dados };
+    } else {
+      const requisicoes = await getJsonData('requisicoes') || [];
+      requisicao = requisicoes.find(r => r.id === tokenObj.requisicaoId);
+    }
     if (!requisicao) return res.status(404).json({ message: 'Requisição não encontrada.' });
 
     // Busca fornecedor na omie_collections
@@ -88,15 +97,29 @@ router.post('/cotacao-externa/:token', async (req, res) => {
     const reqId = tokens[tokenIndex].requisicaoId;
     const fornId = tokens[tokenIndex].fornecedorId;
 
-    let requisicoes = await getJsonData('requisicoes') || [];
-    
-    const reqIndex = requisicoes.findIndex(r => r.id === reqId);
-    if (reqIndex !== -1) {
-      requisicoes[reqIndex].itens = requisicoes[reqIndex].itens.map(item => {
+    const db = await getDb();
+
+    // 1. Busca a requisição no MariaDB ou jsonDbService
+    let requisicao = null;
+    let isDbRow = false;
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ?`, [reqId]);
+    if (row) {
+      isDbRow = true;
+      let dados = {};
+      try { dados = JSON.parse(row.dados_json || '{}'); } catch (e) {}
+      requisicao = { id: row.id, ...dados };
+    } else {
+      let requisicoes = await getJsonData('requisicoes') || [];
+      const reqIndex = requisicoes.findIndex(r => r.id === reqId);
+      if (reqIndex !== -1) requisicao = requisicoes[reqIndex];
+    }
+
+    if (requisicao) {
+      requisicao.itens = (requisicao.itens || []).map(item => {
         const precoFornecedor = cotacoes[item.codigo];
         if (precoFornecedor) {
           const listaCotacoes = item.cotacoes || [];
-          const cotIndex = listaCotacoes.findIndex(c => c.fornecedorId == fornId);
+          const cotIndex = listaCotacoes.findIndex(c => String(c.fornecedorId) === String(fornId));
           const novaCotacao = {
             id: Date.now().toString(),
             fornecedorId: fornId,
@@ -121,7 +144,18 @@ router.post('/cotacao-externa/:token', async (req, res) => {
         }
         return item;
       });
-      await saveJsonData('requisicoes', requisicoes);
+
+      if (isDbRow) {
+        const dadosJson = JSON.stringify(requisicao);
+        await db.run(`UPDATE requisicoes SET dados_json = ? WHERE id = ?`, [dadosJson, reqId]);
+      } else {
+        let requisicoes = await getJsonData('requisicoes') || [];
+        const reqIndex = requisicoes.findIndex(r => r.id === reqId);
+        if (reqIndex !== -1) {
+          requisicoes[reqIndex] = requisicao;
+          await saveJsonData('requisicoes', requisicoes);
+        }
+      }
     }
 
     // "Queima" o token

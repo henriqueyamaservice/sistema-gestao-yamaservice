@@ -27,6 +27,9 @@ import {
 import styles from './DashboardApontamentoOS.module.css';
 import PainelApontamentoOS from './componentes/PainelApontamentoOS';
 import HeaderApontamentoOS from './componentes/HeaderApontamentoOS';
+import ModalVisualizadorRevisoesTotem from './componentes/ModalVisualizadorRevisoesTotem';
+import ModalGerenciadorKitsServicos from './componentes/ModalGerenciadorKitsServicos';
+import { calcularStatusRevisaoVeiculo } from '../../utils/statusRevisao';
 import { CONCLUIDO, CANCELADO, EM_ANDAMENTO, AGUARDANDO_INSUMO } from '../../utils/osStatus';
 
 const SETORES_CONFIG = [
@@ -82,6 +85,9 @@ const DashboardApontamentoOS = () => {
   const [mesSelecionado, setMesSelecionado] = useState('TODOS');
   const [dropdownMesAberto, setDropdownMesAberto] = useState(false);
   const [osSelecionada, setOsSelecionada] = useState(null);
+  const [modalRevisoesAberto, setModalRevisoesAberto] = useState(false);
+  const [servicosKits, setServicosKits] = useState([]);
+  const [modalKitsAberto, setModalKitsAberto] = useState(false);
 
   // Auxiliares
   const [produtosEstoque, setProdutosEstoque] = useState([]);
@@ -135,11 +141,12 @@ const DashboardApontamentoOS = () => {
       // Delay proposital de 8 segundos para exibir a animação completa de inicialização
       const delayPromise = isFirst ? new Promise(resolve => setTimeout(resolve, 8000)) : Promise.resolve();
 
-      const [ordens, produtos, forn, veics] = await Promise.all([
+      const [ordens, produtos, forn, veics, kits] = await Promise.all([
         safeFetchJson(`/api/os?_t=${now}`),
         safeFetchJson(`/api/produtos?_t=${now}`),
         safeFetchJson(`/api/fornecedores?_t=${now}`),
         safeFetchJson(`/api/veiculos?_t=${now}`),
+        safeFetchJson(`/api/servicos-kits?_t=${now}`),
         delayPromise
       ]);
 
@@ -156,6 +163,7 @@ const DashboardApontamentoOS = () => {
       if (Array.isArray(produtos)) setProdutosEstoque(produtos);
       if (Array.isArray(forn)) setFornecedores(forn);
       if (Array.isArray(veics)) setVeiculosConfig(veics);
+      if (Array.isArray(kits)) setServicosKits(kits);
     } catch (err) {
       console.error('Erro ao carregar dados do totem de apontamento:', err);
     } finally {
@@ -176,11 +184,34 @@ const DashboardApontamentoOS = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Agrupamento dos meses disponíveis nas Ordens de Serviço
+  // Filtragem Parcial (Setor e Busca) para que o menu de meses conte certo
+  const ordensFiltradasSemMes = useMemo(() => {
+    return ordensServico.filter(os => {
+      // Filtro por setor
+      if (setorSelecionado !== 'TODOS') {
+        const setorOS = (os.setor || '').toUpperCase();
+        if (!setorOS.includes(setorSelecionado)) return false;
+      }
+
+      // Filtro por termo de busca
+      if (!termoBusca || !termoBusca.trim()) return true;
+      const term = termoBusca.toLowerCase().trim();
+
+      const matchCodigo = (os.codigo || '').toString().toLowerCase().includes(term);
+      const matchAlvo = (os.centroCusto || '').toLowerCase().includes(term);
+      const matchDesc = (os.descricao || '').toLowerCase().includes(term);
+      const matchSolicitante = (os.requisitante || '').toLowerCase().includes(term);
+      const matchSetor = (os.setor || '').toLowerCase().includes(term);
+
+      return matchCodigo || matchAlvo || matchDesc || matchSolicitante || matchSetor;
+    });
+  }, [ordensServico, setorSelecionado, termoBusca]);
+
+  // Agrupamento dos meses disponíveis (Baseado nas ordens já filtradas por Setor/Busca)
   const mesesDisponiveis = useMemo(() => {
     const mapMeses = new Map();
 
-    ordensServico.forEach(os => {
+    ordensFiltradasSemMes.forEach(os => {
       const { mesAno, mes, ano } = extrairMesAnoOS(os);
       if (mesAno && mesAno !== 'OUTROS' && mes > 0 && ano > 0) {
         if (!mapMeses.has(mesAno)) {
@@ -198,39 +229,22 @@ const DashboardApontamentoOS = () => {
       }
     });
 
-    // Ordenação decrescente: Ano desc, Mês desc
     return Array.from(mapMeses.values()).sort((a, b) => {
       if (b.ano !== a.ano) return b.ano - a.ano;
       return b.mes - a.mes;
     });
-  }, [ordensServico]);
+  }, [ordensFiltradasSemMes]);
 
-  // Filtragem da Busca
-  const ordensFiltradas = ordensServico.filter(os => {
-    // Filtro por mês (MMAA)
-    if (mesSelecionado !== 'TODOS') {
-      const { mesAno } = extrairMesAnoOS(os);
-      if (mesAno !== mesSelecionado) return false;
-    }
-
-    // Filtro por setor
-    if (setorSelecionado !== 'TODOS') {
-      const setorOS = (os.setor || '').toUpperCase();
-      if (!setorOS.includes(setorSelecionado)) return false;
-    }
-
-    // Filtro por termo de busca
-    if (!termoBusca || !termoBusca.trim()) return true;
-    const term = termoBusca.toLowerCase().trim();
-
-    const matchCodigo = (os.codigo || '').toString().toLowerCase().includes(term);
-    const matchAlvo = (os.centroCusto || '').toLowerCase().includes(term);
-    const matchDesc = (os.descricao || '').toLowerCase().includes(term);
-    const matchSolicitante = (os.requisitante || '').toLowerCase().includes(term);
-    const matchSetor = (os.setor || '').toLowerCase().includes(term);
-
-    return matchCodigo || matchAlvo || matchDesc || matchSolicitante || matchSetor;
-  });
+  // Filtragem Final (Incluindo o Mês)
+  const ordensFiltradas = useMemo(() => {
+    return ordensFiltradasSemMes.filter(os => {
+      if (mesSelecionado !== 'TODOS') {
+        const { mesAno } = extrairMesAnoOS(os);
+        if (mesAno !== mesSelecionado) return false;
+      }
+      return true;
+    });
+  }, [ordensFiltradasSemMes, mesSelecionado]);
 
   const getSetorColor = (setor = '') => {
     const s = setor.toUpperCase();
@@ -244,6 +258,29 @@ const DashboardApontamentoOS = () => {
     return encontrado ? encontrado.rotulo : mesSelecionado;
   }, [mesSelecionado, mesesDisponiveis]);
 
+  // Mapa de alertas de revisão por placa de veículo para consulta ultrarrápida
+  const mapaAlertasRevisao = useMemo(() => {
+    const mapa = new Map();
+    (veiculosConfig || []).forEach(v => {
+      if (v && v.placa) {
+        const analise = calcularStatusRevisaoVeiculo(v);
+        mapa.set((v.placa || '').trim().toUpperCase(), analise);
+      }
+    });
+    return mapa;
+  }, [veiculosConfig]);
+
+  // Contadores globais de revisões para o botão do Header
+  const { totalRevisoesCriticas, totalRevisoesAtencao } = useMemo(() => {
+    let criticas = 0;
+    let atencao = 0;
+    mapaAlertasRevisao.forEach(analise => {
+      if (analise.critico) criticas++;
+      else if (analise.temAlerta) atencao++;
+    });
+    return { totalRevisoesCriticas: criticas, totalRevisoesAtencao: atencao };
+  }, [mapaAlertasRevisao]);
+
   return (
     <div className={styles.container}>
       {/* Header Estilo Organizador com Logo Yamaservice, Identidade, UserInfo, Busca e Ações */}
@@ -254,6 +291,11 @@ const DashboardApontamentoOS = () => {
         totalPendentes={ordensFiltradas.length}
         loading={loading}
         searchInputRef={searchInputRef}
+        totalRevisoesCriticas={totalRevisoesCriticas}
+        totalRevisoesAtencao={totalRevisoesAtencao}
+        onAbrirVisualizadorRevisoes={() => setModalRevisoesAberto(true)}
+        onAbrirGerenciadorKits={() => setModalKitsAberto(true)}
+        totalKits={servicosKits.length}
       />
 
       {/* Conteúdo Central */}
@@ -291,10 +333,7 @@ const DashboardApontamentoOS = () => {
                 <Calendar size={15} color="var(--cor-destaque)" />
                 <span className={styles.dropdownMesText}>{rotuloMesAtivo}</span>
                 <span className={styles.dropdownMesBadge}>
-                  {mesSelecionado === 'TODOS' 
-                    ? ordensServico.length 
-                    : (mesesDisponiveis.find(m => m.id === mesSelecionado)?.total || 0)
-                  }
+                  {ordensFiltradas.length}
                 </span>
                 <ChevronDown size={14} className={`${styles.chevronIcon} ${dropdownMesAberto ? styles.rotate : ''}`} />
               </button>
@@ -318,7 +357,7 @@ const DashboardApontamentoOS = () => {
                       {mesSelecionado === 'TODOS' ? <Check size={14} color="var(--cor-destaque)" /> : <div style={{ width: 14 }} />}
                       <span>Todos os Meses</span>
                     </div>
-                    <span className={styles.dropdownMesItemBadge}>{ordensServico.length}</span>
+                    <span className={styles.dropdownMesItemBadge}>{ordensFiltradasSemMes.length}</span>
                   </button>
 
                   <div className={styles.dropdownDivider} />
@@ -465,6 +504,19 @@ const DashboardApontamentoOS = () => {
               const isAtrasada = Boolean(os.prazo && hoje > os.prazo);
               const formatarDataCard = (d) => d ? d.split('-').reverse().join('/') : '';
 
+              // Checar alerta de revisão preventiva do veículo associado
+              const placaOS = (os.centroCusto || os.placaVeiculo || '').trim().toUpperCase();
+              let alertaRevisao = mapaAlertasRevisao.get(placaOS);
+              if (!alertaRevisao && os.veiculos && os.veiculos.length > 0) {
+                for (const v of os.veiculos) {
+                  const p = (v.placa || '').trim().toUpperCase();
+                  if (mapaAlertasRevisao.has(p)) {
+                    alertaRevisao = mapaAlertasRevisao.get(p);
+                    break;
+                  }
+                }
+              }
+
               return (
                 <div
                   key={os.id || os.codigo}
@@ -495,6 +547,18 @@ const DashboardApontamentoOS = () => {
                     <MapPin size={16} />
                     <span>{os.centroCusto || 'SEM LOCAL / ALVO'}</span>
                   </div>
+
+                  {alertaRevisao && alertaRevisao.temAlerta && (
+                    <div style={{ marginTop: '-2px', marginBottom: '2px' }}>
+                      <span 
+                        className={`${styles.badgeRevisaoAlertaCard} ${alertaRevisao.critico ? styles.badgeRevisaoVencida : styles.badgeRevisaoAtencao}`}
+                        title={alertaRevisao.alertaPrincipal?.detalhe || ''}
+                      >
+                        {alertaRevisao.critico ? <AlertTriangle size={12} /> : <Clock size={12} />}
+                        <span>{alertaRevisao.alertaPrincipal?.texto}</span>
+                      </span>
+                    </div>
+                  )}
 
                   <div className={styles.cardDescricao}>
                     {os.descricao || 'Sem descrição cadastrada.'}
@@ -538,6 +602,68 @@ const DashboardApontamentoOS = () => {
           }}
           produtosEstoque={produtosEstoque}
           fornecedores={fornecedores}
+          veiculosConfig={veiculosConfig}
+          servicosKits={servicosKits}
+        />
+      )}
+
+      {/* Modal Visualizador de Revisões da Frota */}
+      {modalRevisoesAberto && (
+        <ModalVisualizadorRevisoesTotem
+          veiculos={veiculosConfig}
+          ordensServico={ordensServico}
+          onClose={() => setModalRevisoesAberto(false)}
+          onSelecionarOS={(os) => setOsSelecionada(os)}
+        />
+      )}
+
+      {/* Modal Gerenciador de Kits de Serviços da Oficina */}
+      {modalKitsAberto && (
+        <ModalGerenciadorKitsServicos
+          kits={servicosKits}
+          onSalvarKit={async (kitSalvo) => {
+            try {
+              const res = await fetch(`/api/servicos-kits`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(kitSalvo)
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data && data.kits) {
+                  setServicosKits(data.kits);
+                } else {
+                  setServicosKits(prev => {
+                    const idx = prev.findIndex(k => k.id === kitSalvo.id);
+                    if (idx >= 0) {
+                      const copy = [...prev];
+                      copy[idx] = data.kit || kitSalvo;
+                      return copy;
+                    }
+                    return [data.kit || kitSalvo, ...prev];
+                  });
+                }
+              }
+            } catch (err) {
+              console.error('Erro ao salvar kit de serviço:', err);
+              throw err;
+            }
+          }}
+          onExcluirKit={async (kitId) => {
+            try {
+              const res = await fetch(`/api/servicos-kits/${encodeURIComponent(kitId)}`, {
+                method: 'DELETE'
+              });
+              if (res.ok) {
+                setServicosKits(prev => prev.filter(k => k.id !== kitId));
+              }
+            } catch (err) {
+              console.error('Erro ao excluir kit de serviço:', err);
+              throw err;
+            }
+          }}
+          onClose={() => setModalKitsAberto(false)}
+          produtosEstoque={produtosEstoque}
           veiculosConfig={veiculosConfig}
         />
       )}

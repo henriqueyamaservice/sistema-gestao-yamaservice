@@ -3,16 +3,130 @@ import {
   X, Save, CheckCircle, Plus, Trash2, Clock, User, Wrench, Package,
   Car, Fuel, ChevronRight, ChevronLeft, Check, FileText, Users, Calendar, AlertCircle,
   Sunrise, Sunset, Pencil, RefreshCw, Droplet, Camera, Eye, Image,
-  ShieldCheck, Sparkles, Zap, ArrowRight, AlertTriangle
+  ShieldCheck, Sparkles, Zap, ArrowRight, AlertTriangle, Loader2
 } from 'lucide-react';
 import styles from './PainelApontamentoOS.module.css';
 import ModalEdicaoDiaTotem from './ModalEdicaoDiaTotem';
 import ModalConferenciaOS from './ModalConferenciaOS';
+
 import { CONCLUIDO } from '../../../../utils/osStatus';
 import { formatarOdometroDisplay, formatarNumeroBR, validarAntiRetrocessoKM } from '../../../../utils/formatadorOdometro';
+import { obterRotuloUnidade, permiteDecimais, obterTipoUnidade } from '../../../../utils/classificadorUnidades';
+import { calcularStatusRevisaoVeiculo } from '../../../../utils/statusRevisao';
+import InputOdometroInteligente from '../../../DashboardOS/DashboardControleCombustivel/componentes/InputOdometroInteligente';
 
-const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], fornecedores = [], veiculosConfig = [] }) => {
+export const detectarModoTurno = (t) => {
+  if (t?.tipoTurno) return t.tipoTurno;
+  if (!t?.horaInicio && t?.horaInicio2) {
+    return 'TARDE';
+  }
+  if (t?.horaInicio && t?.horaFim1 && !t?.horaInicio2 && !t?.horaFim) {
+    return 'MANHA';
+  }
+  if (t?.horaInicio && t?.horaFim && !t?.horaFim1 && !t?.horaInicio2) {
+    return 'CONTINUO';
+  }
+  if (t?.horaInicio2 || (t?.horaFim1 && t?.horaFim && t?.horaFim1 !== t?.horaFim)) {
+    return 'INTEGRAL';
+  }
+  return 'INTEGRAL';
+};
+
+export const formatarHorariosTurno = (t) => {
+  if (!t) return '--:--';
+  const modo = t.tipoTurno || detectarModoTurno(t);
+
+  if (modo === 'MANHA') {
+    const inicio = t.horaInicio || '07:30';
+    const fim = t.horaFim1 || t.horaFim || '11:30';
+    return `${inicio} às ${fim}`;
+  }
+
+  if (modo === 'TARDE') {
+    const inicio = t.horaInicio2 || t.horaInicio || '13:00';
+    const fim = t.horaFim || '16:20';
+    return `${inicio} às ${fim}`;
+  }
+
+  if (modo === 'CONTINUO') {
+    const inicio = t.horaInicio || '07:00';
+    const fim = t.horaFim || '13:00';
+    return `${inicio} às ${fim}`;
+  }
+
+  // INTEGRAL (Manhã + Tarde)
+  const inicio1 = t.horaInicio || '07:30';
+  const fim1 = t.horaFim1 || '11:30';
+  const inicio2 = t.horaInicio2 || '13:00';
+  const fim2 = t.horaFim || '16:20';
+  return `${inicio1} às ${fim1} | ${inicio2} às ${fim2}`;
+};
+
+export const calcularHorasTrabalhadas = (horaInicio, horaAlmocoInicio, horaAlmocoFim, horaFim, tipoTurno = 'INTEGRAL') => {
+  const timeToMinutes = (timeStr) => {
+    if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  };
+
+  const t1 = timeToMinutes(horaInicio);
+  const t2 = timeToMinutes(horaAlmocoInicio);
+  const t3 = timeToMinutes(horaAlmocoFim);
+  const t4 = timeToMinutes(horaFim);
+
+  let minutosTotais = 0;
+
+  if (tipoTurno === 'MANHA') {
+    const fimManha = t2 !== null ? t2 : (t4 !== null ? t4 : null);
+    if (t1 !== null && fimManha !== null) {
+      minutosTotais = Math.max(0, fimManha - t1);
+    }
+  } else if (tipoTurno === 'TARDE') {
+    const iniTarde = t3 !== null ? t3 : (t1 !== null ? t1 : null);
+    if (iniTarde !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - iniTarde);
+    }
+  } else if (tipoTurno === 'CONTINUO') {
+    const fim = t4 !== null ? t4 : (t2 !== null ? t2 : null);
+    if (t1 !== null && fim !== null) {
+      minutosTotais = Math.max(0, fim - t1);
+    }
+  } else {
+    // INTEGRAL
+    if (t1 !== null && t2 !== null && t3 !== null && t4 !== null) {
+      const manha = Math.max(0, t2 - t1);
+      const tarde = Math.max(0, t4 - t3);
+      minutosTotais = manha + tarde;
+    } else if (t1 !== null && t2 !== null && t3 === null && t4 === null) {
+      minutosTotais = Math.max(0, t2 - t1);
+    } else if (t1 === null && t2 === null && t3 !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - t3);
+    } else if (t1 !== null && t4 !== null) {
+      minutosTotais = Math.max(0, t4 - t1);
+    }
+  }
+
+  const horasDecimais = parseFloat((minutosTotais / 60).toFixed(2));
+  const hDisplay = Math.floor(minutosTotais / 60);
+  const mDisplay = minutosTotais % 60;
+  const textoFormatado = `${hDisplay}h${mDisplay > 0 ? `${mDisplay.toString().padStart(2, '0')}m` : '00m'}`;
+
+  return { minutosTotais, horasDecimais, textoFormatado };
+};
+
+const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], fornecedores = [], veiculosConfig = [], servicosKits = [] }) => {
   if (!os) return null;
+
+  const currentUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('almoxarifado_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+  const isAdmin = currentUser?.role === 'admin';
 
   const [turnoIndexAtivo, setTurnoIndexAtivo] = useState(0);
 
@@ -36,16 +150,23 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
   const labelMedicao = isHorimetro ? 'Horímetro Atual' : 'KM Atual';
   const placeholderMedicao = isHorimetro ? 'Ex: 1250' : 'Ex: 45200';
 
+  // Análise de status de revisão preventiva do veículo alvo da OS
+  const analiseVeiculoAlvo = useMemo(() => {
+    return veiculoAlvo ? calcularStatusRevisaoVeiculo(veiculoAlvo) : null;
+  }, [veiculoAlvo]);
+
   // Estado geral do formulário
   const [executorPrincipal, setExecutorPrincipal] = useState(os.executor || os.tecnicoResponsavel || '');
   const [descricaoGeral, setDescricaoGeral] = useState(os.descricaoServico || '');
   const [atualizarKm, setAtualizarKm] = useState(true);
   const [kmManutencao, setKmManutencao] = useState(() => {
-    if (os.kmManutencao) return os.kmManutencao;
+    if (os.kmManutencao) return String(os.kmManutencao);
+    if (os.kmRodado) return String(os.kmRodado);
     const vFromOS = (os.veiculos || []).find(v => (v.placa || '').trim().toUpperCase() === (os.centroCusto || '').trim().toUpperCase());
-    if (vFromOS?.kmFinal) return vFromOS.kmFinal;
-    return veiculoAlvo?.kmAtual || '';
+    if (vFromOS?.kmFinal) return String(vFromOS.kmFinal);
+    return veiculoAlvo?.kmAtual ? String(veiculoAlvo.kmAtual) : '';
   });
+  const [erroRetrocesso, setErroRetrocesso] = useState(false);
   const [descarteBorra, setDescarteBorra] = useState(os.descarteBorraLitros || '');
 
   // Modal de Foto Ampliada
@@ -60,7 +181,11 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
   const ehOleoDetectado = osTextoDesc.includes('oleo') || osTextoDesc.includes('óleo');
   const ehRevisaoDetectada = osTextoDesc.includes('revisao') || osTextoDesc.includes('revisão');
 
-  const tipoManutencaoInicial = (ehOleoDetectado && ehRevisaoDetectada) ? 'AMBOS' : (ehOleoDetectado ? 'OLEO' : (ehRevisaoDetectada ? 'REVISAO' : 'NAO'));
+  const veiculoOSPrincipal = (os.veiculos || []).find(v => (v.placa || '').trim().toUpperCase() === (os.centroCusto || '').trim().toUpperCase());
+  const trocouOleoSalvo = os.trocouOleo !== undefined ? Boolean(os.trocouOleo) : (veiculoOSPrincipal?.trocouOleo !== undefined ? Boolean(veiculoOSPrincipal.trocouOleo) : ehOleoDetectado);
+  const fezRevisaoSalva = os.fezRevisao !== undefined ? Boolean(os.fezRevisao) : (veiculoOSPrincipal?.fezRevisao !== undefined ? Boolean(veiculoOSPrincipal.fezRevisao) : ehRevisaoDetectada);
+
+  const tipoManutencaoInicial = (trocouOleoSalvo && fezRevisaoSalva) ? 'AMBOS' : (trocouOleoSalvo ? 'OLEO' : (fezRevisaoSalva ? 'REVISAO' : 'NAO'));
   const [tipoManutencao, setTipoManutencao] = useState(tipoManutencaoInicial);
 
   const trocouOleo = tipoManutencao === 'OLEO' || tipoManutencao === 'AMBOS';
@@ -68,36 +193,156 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
 
   // Turnos / Diário de Bordo (Múltiplos Dias)
   const [turnos, setTurnos] = useState(() => {
-    let base = os.servicosExecutados ? JSON.parse(JSON.stringify(os.servicosExecutados)) : [];
+    let base = os.servicosExecutados && Array.isArray(os.servicosExecutados) ? JSON.parse(JSON.stringify(os.servicosExecutados)) : [];
+
+    // Lista de consumíveis originais da OS para fallback seguro
+    const consumiveisFallback = (os.consumiveis && Array.isArray(os.consumiveis)) ? os.consumiveis.map(c => ({
+      codigo: c.codigo || (c.tipo === 'EXTERNA' ? 'EXTERNO' : ''),
+      descricao: c.descricao || '',
+      quantidade: parseFloat(c.quantidade) || 1,
+      unidade: c.unidade || 'UN',
+      valor_unitario: parseFloat(c.valor_unitario) || 0,
+      tipo: c.tipo || (c.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
+      fotoNota: c.fotoNota || ''
+    })) : [];
+
+    // Veículos de deslocamento/apoio salvos na OS (excluindo o veículo alvo da manutenção se for o centro de custo)
+    const veiculosApoioFallback = (os.veiculos && Array.isArray(os.veiculos))
+      ? os.veiculos.filter(v => (v.placa || '').trim().toUpperCase() !== (os.centroCusto || '').trim().toUpperCase()).map(v => ({
+        placa: v.placa || '',
+        kmInicial: v.kmInicial !== undefined ? v.kmInicial : '',
+        kmFinal: v.kmFinal !== undefined ? v.kmFinal : '',
+        km: v.km !== undefined ? v.km : ''
+      }))
+      : [];
+
     if (base.length === 0) {
       base = [{
         id: Date.now().toString(),
-        data: new Date().toISOString().split('T')[0],
+        data: '',
+        tipoTurno: 'INTEGRAL',
         horaInicio: '',
         horaFim1: '',
         horaInicio2: '',
         horaFim: '',
-        descricao: '',
+        descricao: os.descricaoServico || '',
         isSaved: false,
-        maoDeObra: [
-          { matricula: '', nome: os.executor || os.tecnicoResponsavel || '', funcao: 'Executor', horas: '' }
-        ],
-        pecasUtilizadas: os.consumiveis ? os.consumiveis.map(c => ({
-          codigo: c.codigo || '',
-          descricao: c.descricao || '',
-          quantidade: c.quantidade || 1,
-          valor_unitario: c.valor_unitario || 0
-        })) : [],
-        veiculosUtilizados: []
+        maoDeObra: os.maoDeObra && os.maoDeObra.length > 0
+          ? os.maoDeObra.map(m => ({ matricula: m.matricula || '', nome: m.nome || '', funcao: m.funcao || 'Executor', horas: '' }))
+          : [{ matricula: '', nome: os.executor || os.tecnicoResponsavel || '', funcao: 'Executor', horas: '' }],
+        pecasUtilizadas: consumiveisFallback,
+        veiculosUtilizados: veiculosApoioFallback
       }];
+    } else {
+      // Se já existem turnos salvos, garantir que pecasUtilizadas e veiculosUtilizados estejam devidamente povoados
+      const totalPecasNosTurnos = base.reduce((acc, t) => acc + (t.pecasUtilizadas || []).length, 0);
+      const totalVeiculosNosTurnos = base.reduce((acc, t) => acc + (t.veiculosUtilizados || []).length, 0);
+
+      base = base.map((t, idx) => {
+        let pecasDoTurno = Array.isArray(t.pecasUtilizadas) ? t.pecasUtilizadas : [];
+        // Se este turno está sem peças, mas a OS possui consumíveis e nenhum outro turno tem peças, restaura no primeiro turno
+        if (pecasDoTurno.length === 0 && totalPecasNosTurnos === 0 && idx === 0 && consumiveisFallback.length > 0) {
+          pecasDoTurno = consumiveisFallback;
+        }
+
+        let veiculosDoTurno = Array.isArray(t.veiculosUtilizados) ? t.veiculosUtilizados : [];
+        if (veiculosDoTurno.length === 0 && totalVeiculosNosTurnos === 0 && idx === 0 && veiculosApoioFallback.length > 0) {
+          veiculosDoTurno = veiculosApoioFallback;
+        }
+
+        return {
+          ...t,
+          pecasUtilizadas: pecasDoTurno,
+          veiculosUtilizados: veiculosDoTurno
+        };
+      });
     }
     return base;
   });
 
   const [salvando, setSalvando] = useState(false);
+  const [salvandoTipo, setSalvandoTipo] = useState(null); // 'PARCIAL' | 'CONCLUIR' | null
   const [modalConferenciaAberto, setModalConferenciaAberto] = useState(false);
   const [animandoConferencia, setAnimandoConferencia] = useState(false);
   const [auditPhase, setAuditPhase] = useState(0);
+
+  const kitVinculado = useMemo(() => {
+    if (!os || !Array.isArray(servicosKits) || servicosKits.length === 0) return null;
+    let kitCorrespondente = null;
+    if (os.kitId) {
+      kitCorrespondente = servicosKits.find(k => String(k.id) === String(os.kitId));
+    }
+    if (!kitCorrespondente && os.kitNome) {
+      kitCorrespondente = servicosKits.find(k => k.nome === os.kitNome);
+    }
+    return kitCorrespondente;
+  }, [os, servicosKits]);
+
+  // Sugestão/Aplicação automática do Kit vinculado na abertura da O.S. (se não houver peças já apontadas)
+  useEffect(() => {
+    if (!kitVinculado) return;
+
+    if (kitVinculado.pecas && kitVinculado.pecas.length > 0) {
+      setTurnos(prev => {
+        // Validação estrita contra duplicação de injeção (lendo o estado mais atual)
+        const totalPecasPrev = (prev || []).reduce((acc, t) => acc + (t.pecasUtilizadas || []).length, 0);
+        if (totalPecasPrev > 0) return prev;
+
+        const copy = [...prev];
+        const t = { ...copy[turnoIndexAtivo] };
+        const pecasAtuais = [...(t.pecasUtilizadas || [])];
+
+        t.semPecas = false;
+
+        // 1. Preenchimento inteligente da Descrição Detalhada do Passo 3
+        if (kitVinculado.descricaoPadrao && kitVinculado.descricaoPadrao.trim()) {
+          const descAtual = (t.descricao || '').trim();
+          const descAtualLower = descAtual.toLowerCase();
+          const nomeKitLower = (kitVinculado.nome || '').trim().toLowerCase();
+          const descPadraoLower = kitVinculado.descricaoPadrao.trim().toLowerCase();
+
+          if (!descAtual || descAtualLower === nomeKitLower || descAtualLower === descPadraoLower) {
+            t.descricao = kitVinculado.descricaoPadrao;
+          } else if (!descAtualLower.includes(descPadraoLower)) {
+            t.descricao = `${descAtual}\n${kitVinculado.descricaoPadrao}`;
+          }
+        }
+
+        // 2. Inserção das peças
+
+        kitVinculado.pecas.forEach(pk => {
+          const prodEstoque = (produtosEstoque || []).find(p =>
+            (p.codigo && pk.codigo && p.codigo.trim().toUpperCase() === pk.codigo.trim().toUpperCase()) ||
+            (p.descricao && pk.descricao && p.descricao.trim().toUpperCase() === pk.descricao.trim().toUpperCase())
+          );
+
+          const novaPeca = {
+            codigo: pk.codigo || prodEstoque?.codigo || '',
+            descricao: pk.descricao || prodEstoque?.descricao || '',
+            quantidade: pk.quantidade !== undefined ? pk.quantidade : 1,
+            unidade: pk.unidade || prodEstoque?.unidade || 'UN',
+            valor_unitario: Number(prodEstoque?.valor_unitario || prodEstoque?.preco_venda || prodEstoque?.preco_unitario || pk.valor_unitario || 0),
+            tipo: 'ESTOQUE'
+          };
+
+          pecasAtuais.push(novaPeca);
+        });
+
+        t.pecasUtilizadas = pecasAtuais;
+        copy[turnoIndexAtivo] = t;
+        return copy;
+      });
+
+      // 3. Flags de Manutenção Preventiva (Troca de Óleo / Revisão)
+      if (kitVinculado.trocouOleo && kitVinculado.fezRevisao) {
+        setTipoManutencao('AMBOS');
+      } else if (kitVinculado.trocouOleo) {
+        setTipoManutencao(prev => (prev === 'REVISAO' ? 'AMBOS' : 'OLEO'));
+      } else if (kitVinculado.fezRevisao) {
+        setTipoManutencao(prev => (prev === 'OLEO' ? 'AMBOS' : 'REVISAO'));
+      }
+    }
+  }, [kitVinculado, servicosKits.length, produtosEstoque]);
 
   // Efeito de 7 segundos para auditoria e pré-conferência antes do modal
   useEffect(() => {
@@ -119,6 +364,46 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
       };
     }
   }, [animandoConferencia]);
+
+  // Função para pular a contagem regressiva da auditoria
+  const handlePularAuditoria = () => {
+    setAnimandoConferencia(false);
+    setModalConferenciaAberto(true);
+  };
+
+  // Edição de Dia via Modal Totem
+  const [diaParaEditarModal, setDiaParaEditarModal] = useState(null);
+
+  // Auto-preenchimento e Sincronização do Responsável no Turno
+  const handleMudarResponsavelOS = (novoNome) => {
+    setExecutorPrincipal(novoNome);
+    const funcEncontrado = fornecedores.find(f => (f.razao_social || f.nome_fantasia || '').trim().toUpperCase() === novoNome.trim().toUpperCase());
+    setTurnos(prev => {
+      const copy = [...prev];
+      if (copy[0] && copy[0].maoDeObra && copy[0].maoDeObra[0]) {
+        copy[0].maoDeObra[0] = {
+          ...copy[0].maoDeObra[0],
+          nome: novoNome,
+          matricula: funcEncontrado ? (funcEncontrado.cnpj_cpf || funcEncontrado.cnpjCpf || funcEncontrado.matricula || '') : copy[0].maoDeObra[0].matricula
+        };
+      }
+      return copy;
+    });
+  };
+
+  // Cálculo de horas do turno
+  const calcularHorasTurno = (t) => {
+    if (!t) return '0.0';
+    const modo = t.tipoTurno || detectarModoTurno(t);
+    const { horasDecimais } = calcularHorasTrabalhadas(
+      t.horaInicio,
+      t.horaFim1,
+      t.horaInicio2,
+      t.horaFim,
+      modo
+    );
+    return horasDecimais.toFixed(1);
+  };
 
   const kmInicializadoRef = useRef(false);
 
@@ -172,24 +457,6 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
       }
       return copy;
     });
-  };
-
-  // Cálculo de horas do turno
-  const calcularHorasTurno = (t) => {
-    if (!t) return '0.0';
-    let totalMin = 0;
-    const diff = (h1, h2) => {
-      if (!h1 || !h2) return 0;
-      const [iH, iM] = h1.split(':').map(Number);
-      const [fH, fM] = h2.split(':').map(Number);
-      return Math.max(0, (fH * 60 + fM) - (iH * 60 + iM));
-    };
-
-    if (t.horaInicio && t.horaFim1) totalMin += diff(t.horaInicio, t.horaFim1);
-    if (t.horaInicio2 && t.horaFim) totalMin += diff(t.horaInicio2, t.horaFim);
-    if (t.horaInicio && t.horaFim && !t.horaFim1 && !t.horaInicio2) totalMin += diff(t.horaInicio, t.horaFim);
-
-    return (totalMin / 60).toFixed(1);
   };
 
   // Função auxiliar de formatação de data para o padrão brasileiro
@@ -264,14 +531,26 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
   // Turno Ativo Atual
   const turnoAtivo = turnos[turnoIndexAtivo] || turnos[0];
 
+  const textoHorasTurnoAtivo = useMemo(() => {
+    if (!turnoAtivo) return '0h00m';
+    const m = turnoAtivo.tipoTurno || detectarModoTurno(turnoAtivo);
+    return calcularHorasTrabalhadas(
+      turnoAtivo.horaInicio,
+      turnoAtivo.horaFim1,
+      turnoAtivo.horaInicio2,
+      turnoAtivo.horaFim,
+      m
+    ).textoFormatado;
+  }, [turnoAtivo]);
+
   // Manipular Turnos
   const handleTurnoChange = (campo, valor) => {
     setTurnos(prev => {
       const copy = [...prev];
       const tAtualizado = { ...copy[turnoIndexAtivo], [campo]: valor };
 
-      // Se alterou horários, pré-carrega automaticamente as horas da equipe
-      if (['horaInicio', 'horaFim1', 'horaInicio2', 'horaFim'].includes(campo)) {
+      // Se alterou horários ou o tipo de turno, pré-carrega automaticamente as horas da equipe
+      if (['horaInicio', 'horaFim1', 'horaInicio2', 'horaFim', 'tipoTurno'].includes(campo)) {
         const horasCalc = calcularHorasTurno(tAtualizado);
         if (parseFloat(horasCalc) > 0) {
           tAtualizado.maoDeObra = (tAtualizado.maoDeObra || []).map(m => ({
@@ -286,6 +565,50 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
     });
   };
 
+  // Trocar Modo de Turno (Dia Todo, Só Manhã, Só Tarde, Contínuo) com limpeza atômica dos horários não utilizados
+  const handleTrocarTipoTurno = (novoModo) => {
+    setTurnos(prev => {
+      const copy = [...prev];
+      const atual = copy[turnoIndexAtivo] || {};
+      let novoTurno = { ...atual, tipoTurno: novoModo };
+
+      if (novoModo === 'MANHA') {
+        novoTurno.horaInicio = atual.horaInicio || '07:30';
+        novoTurno.horaFim1 = atual.horaFim1 || '11:30';
+        novoTurno.horaInicio2 = '';
+        novoTurno.horaFim = '';
+      } else if (novoModo === 'TARDE') {
+        novoTurno.horaInicio = '';
+        novoTurno.horaFim1 = '';
+        novoTurno.horaInicio2 = atual.horaInicio2 || '13:00';
+        novoTurno.horaFim = (atual.horaFim && atual.horaFim !== '11:30') ? atual.horaFim : '16:20';
+      } else if (novoModo === 'CONTINUO') {
+        novoTurno.horaInicio = atual.horaInicio || '07:00';
+        novoTurno.horaFim1 = '';
+        novoTurno.horaInicio2 = '';
+        novoTurno.horaFim = (atual.horaFim && atual.horaFim !== '11:30') ? atual.horaFim : '13:00';
+      } else {
+        // INTEGRAL
+        novoTurno.horaInicio = atual.horaInicio || '07:30';
+        novoTurno.horaFim1 = atual.horaFim1 || '11:30';
+        novoTurno.horaInicio2 = atual.horaInicio2 || '13:00';
+        novoTurno.horaFim = atual.horaFim || '16:20';
+      }
+
+      // Recalcular horas e atualizar equipe
+      const horasCalc = calcularHorasTurno(novoTurno);
+      if (parseFloat(horasCalc) > 0) {
+        novoTurno.maoDeObra = (novoTurno.maoDeObra || []).map(m => ({
+          ...m,
+          horas: horasCalc
+        }));
+      }
+
+      copy[turnoIndexAtivo] = novoTurno;
+      return copy;
+    });
+  };
+
   // Adicionar Novo Dia de Trabalho (Loop para o próximo dia)
   const handleRegistrarMaisUmDia = () => {
     // Pegar a última data registrada e sugerir o dia seguinte ou hoje
@@ -296,7 +619,8 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
 
     const novoTurno = {
       id: Date.now().toString(),
-      data: proximaData,
+      data: '',
+      tipoTurno: 'INTEGRAL',
       horaInicio: '',
       horaFim1: '',
       horaInicio2: '',
@@ -447,21 +771,79 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
   // Estado para busca dinâmica de peças
   const [activePecaSearch, setActivePecaSearch] = useState({ pecaIdx: null, query: '' });
 
+  // Lista de produtos filtrados dinamicamente por texto (nome) ou número (código)
+  const produtosFiltrados = useMemo(() => {
+    if (activePecaSearch.pecaIdx === null) return [];
+    const q = (activePecaSearch.query || '').trim().toLowerCase();
+    if (!q) return (produtosEstoque || []).slice(0, 20);
+
+    const termos = q.split(/\s+/).filter(Boolean);
+    return (produtosEstoque || []).filter(p => {
+      const desc = (p.descricao || '').toLowerCase();
+      const cod = (p.codigo || '').toLowerCase();
+      return termos.every(t => desc.includes(t) || cod.includes(t));
+    }).slice(0, 25);
+  }, [produtosEstoque, activePecaSearch.pecaIdx, activePecaSearch.query]);
+
+  // Fechar dropdown de peças ao clicar fora
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (activePecaSearch.pecaIdx !== null && !e.target.closest(`.${styles.buscaPecaWrapper}`)) {
+        setActivePecaSearch({ pecaIdx: null, query: '' });
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [activePecaSearch.pecaIdx]);
+
+  const handleSelectProduto = (pecaIdx, prod) => {
+    setTurnos(prev => {
+      const copy = [...prev];
+      const t = { ...copy[turnoIndexAtivo] };
+      const pList = [...(t.pecasUtilizadas || [])];
+      pList[pecaIdx] = {
+        ...pList[pecaIdx],
+        codigo: prod.codigo || '',
+        descricao: prod.descricao || '',
+        unidade: prod.unidade || 'UN',
+        valor_unitario: Number(prod.valor_unitario || prod.preco_venda || prod.preco_unitario || prod.preco || 0),
+        tipo: 'ESTOQUE'
+      };
+      t.pecasUtilizadas = pList;
+      copy[turnoIndexAtivo] = t;
+      return copy;
+    });
+    setActivePecaSearch({ pecaIdx: null, query: '' });
+  };
+
   const handleAddPeca = () => {
     setTurnos(prev => {
       const copy = [...prev];
       const t = { ...copy[turnoIndexAtivo] };
-      t.pecasUtilizadas = [...(t.pecasUtilizadas || []), {
+      const novaLista = [...(t.pecasUtilizadas || []), {
         codigo: '',
         descricao: '',
         quantidade: 1,
+        unidade: 'UN',
         valor_unitario: 0,
         tipo: 'ESTOQUE',
         fotoNota: ''
       }];
+      t.pecasUtilizadas = novaLista;
       copy[turnoIndexAtivo] = t;
       return copy;
     });
+    // Ativa a busca automaticamente no novo item adicionado
+    setTimeout(() => {
+      setTurnos(currentTurnos => {
+        const t = currentTurnos[turnoIndexAtivo];
+        const lastIdx = (t?.pecasUtilizadas || []).length - 1;
+        if (lastIdx >= 0) {
+          setActivePecaSearch({ pecaIdx: lastIdx, query: '' });
+        }
+        return currentTurnos;
+      });
+    }, 50);
   };
 
   const handleAddPecaExterna = () => {
@@ -472,6 +854,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
         codigo: 'EXTERNO',
         descricao: '',
         quantidade: 1,
+        unidade: 'UN',
         valor_unitario: '',
         tipo: 'EXTERNA',
         fotoNota: ''
@@ -489,11 +872,16 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
       const itemAtual = { ...pList[pecaIdx], [campo]: valor };
 
       if (campo === 'descricao' && itemAtual.tipo !== 'EXTERNA') {
-        const prod = (produtosEstoque || []).find(p => p.descricao === valor || p.codigo === valor);
+        const valLower = (valor || '').trim().toLowerCase();
+        const prod = (produtosEstoque || []).find(p =>
+          (p.descricao || '').toLowerCase() === valLower ||
+          (p.codigo || '').toLowerCase() === valLower
+        );
         if (prod) {
           itemAtual.codigo = prod.codigo || '';
           itemAtual.descricao = prod.descricao || valor;
-          itemAtual.valor_unitario = prod.valor_unitario || prod.preco_venda || prod.preco_unitario || 0;
+          itemAtual.unidade = prod.unidade || 'UN';
+          itemAtual.valor_unitario = Number(prod.valor_unitario || prod.preco_venda || prod.preco_unitario || prod.preco || 0);
           itemAtual.tipo = 'ESTOQUE';
         }
       }
@@ -604,6 +992,12 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
   };
 
   // Totais Gerais
+  const totalMinutosGeral = turnos.reduce((acc, t) => {
+    const modo = t.tipoTurno || detectarModoTurno(t);
+    return acc + calcularHorasTrabalhadas(t.horaInicio, t.horaFim1, t.horaInicio2, t.horaFim, modo).minutosTotais;
+  }, 0);
+  const textoTotalHorasGeral = `${Math.floor(totalMinutosGeral / 60)}h${totalMinutosGeral % 60 > 0 ? `${(totalMinutosGeral % 60).toString().padStart(2, '0')}m` : '00m'}`;
+
   const totalHorasGeral = turnos.reduce((acc, t) => acc + parseFloat(calcularHorasTurno(t) || 0), 0);
   const totalItensPecasCount = turnos.reduce((acc, t) => acc + (t.pecasUtilizadas || []).length, 0);
 
@@ -619,9 +1013,33 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
         alert('⚠️ Por favor, informe a data deste dia de trabalho.');
         return false;
       }
+
+      const modo = turnoAtivo.tipoTurno || detectarModoTurno(turnoAtivo);
+      if (modo === 'INTEGRAL') {
+        if (!turnoAtivo.horaInicio || !turnoAtivo.horaFim1 || !turnoAtivo.horaInicio2 || !turnoAtivo.horaFim) {
+          alert('⚠️ Por favor, preencha todos os 4 horários do turno integral.');
+          return false;
+        }
+      } else if (modo === 'MANHA') {
+        if (!turnoAtivo.horaInicio || !turnoAtivo.horaFim1) {
+          alert('⚠️ Por favor, preencha os horários de entrada e saída do turno da manhã.');
+          return false;
+        }
+      } else if (modo === 'TARDE') {
+        if (!turnoAtivo.horaInicio2 || !turnoAtivo.horaFim) {
+          alert('⚠️ Por favor, preencha os horários de entrada e saída do turno da tarde.');
+          return false;
+        }
+      } else if (modo === 'CONTINUO') {
+        if (!turnoAtivo.horaInicio || !turnoAtivo.horaFim) {
+          alert('⚠️ Por favor, preencha os horários de início e término do turno contínuo.');
+          return false;
+        }
+      }
+
       const horasCalc = parseFloat(calcularHorasTurno(turnoAtivo) || 0);
       if (horasCalc <= 0) {
-        alert('⚠️ Por favor, preencha os horários do turno deste dia (o total de horas calculadas deve ser maior que zero).');
+        alert('⚠️ O total de horas calculadas deve ser maior que zero. Verifique os horários informados.');
         return false;
       }
     } else if (p === 3) {
@@ -640,27 +1058,29 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
         alert(`⚠️ Por favor, informe o ${labelMedicao} no atendimento do veículo/equipamento (${os.centroCusto || 'Alvo'}) para avançar.`);
         return false;
       }
-      if (isOSDeVeiculo && kmManutencao && veiculoAlvo?.kmAtual) {
-        const validacaoKm = validarAntiRetrocessoKM(kmManutencao, veiculoAlvo.kmAtual, unidadeMedicao);
-        if (validacaoKm.retrocedeu) {
-          const confirmar = window.confirm(
-            `ℹ️ REGISTRO DE ODÔMETRO:\n\n` +
-            `O valor informado (${formatarNumeroBR(kmManutencao)} ${unidadeMedicao}) é menor que o odômetro atual da frota (${formatarNumeroBR(veiculoAlvo.kmAtual)} ${unidadeMedicao}).\n\n` +
-            `Se esta O.S. for referente a um serviço ou dia anterior, este valor será registrado com sucesso nesta O.S. sem alterar o KM atual do veículo no cadastro.\n\n` +
-            `Deseja confirmar e prosseguir?`
-          );
-          if (!confirmar) return false;
-        }
+      if (isOSDeVeiculo && erroRetrocesso) {
+        alert("Corrija o KM / Horímetro antes de avançar. Não é permitido retroceder o valor da frota.");
+        return false;
       }
       if (!turnoAtivo?.semPecas) {
-        const pecasIncompletas = (turnoAtivo?.pecasUtilizadas || []).some(p => (!p.descricao && !p.codigo) || (parseFloat(p.quantidade) || 0) <= 0);
+        const pecas = turnoAtivo?.pecasUtilizadas || [];
+        if (pecas.length === 0) {
+          alert('⚠️ Por favor, adicione as peças/insumos consumidos ou marque a opção "Serviço apenas com Mão de obra".');
+          return false;
+        }
+        const pecasIncompletas = pecas.some(p => (!p.descricao && !p.codigo) || (parseFloat(p.quantidade) || 0) <= 0);
         if (pecasIncompletas) {
           alert('⚠️ Existem peças adicionadas sem descrição ou com quantidade zero. Por favor, preencha, remova a linha ou marque a opção de apenas mão de obra.');
           return false;
         }
       }
       if (!turnoAtivo?.semVeiculo) {
-        const veicIncompletos = (turnoAtivo?.veiculosUtilizados || []).some(v => !v.placa || !v.placa.trim());
+        const veiculos = turnoAtivo?.veiculosUtilizados || [];
+        if (veiculos.length === 0) {
+          alert('⚠️ Por favor, informe o veículo de deslocamento utilizado ou marque a opção "Não utilizei veículo de deslocamento".');
+          return false;
+        }
+        const veicIncompletos = veiculos.some(v => !v.placa || !v.placa.trim());
         if (veicIncompletos) {
           alert('⚠️ Existem veículos adicionados sem placa informada. Por favor, informe a placa, remova a linha ou marque a opção de não utilização de veículo.');
           return false;
@@ -716,7 +1136,9 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
 
   // Salvar Apontamento
   const handleSalvar = async (concluir = false) => {
+    if (salvando) return; // Blindagem estrita anti-duplo clique
     setSalvando(true);
+    setSalvandoTipo(concluir ? 'CONCLUIR' : 'PARCIAL');
     try {
       const consumiveisConsolidados = [];
       const equipeConsolidada = [];
@@ -754,20 +1176,94 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
           }
         });
 
-        const temDoisPeriodos = Boolean(t.horaInicio2 || t.temSegundoPeriodo);
-        const horaFim1Tratada = temDoisPeriodos ? (t.horaFim1 || '') : '';
-        const horaInicio2Tratada = temDoisPeriodos ? (t.horaInicio2 || '') : '';
-        const horaFimTratada = temDoisPeriodos ? (t.horaFim || '') : (t.horaFim || t.horaFim1 || '');
+        const modo = t.tipoTurno || detectarModoTurno(t);
+        let horaInicioTratada = '';
+        let horaFim1Tratada = '';
+        let horaInicio2Tratada = '';
+        let horaFimTratada = '';
+
+        if (modo === 'MANHA') {
+          horaInicioTratada = t.horaInicio || '07:30';
+          horaFim1Tratada = t.horaFim1 || t.horaFim || '11:30';
+        } else if (modo === 'TARDE') {
+          horaInicio2Tratada = t.horaInicio2 || t.horaInicio || '13:00';
+          horaFimTratada = t.horaFim || '16:20';
+        } else if (modo === 'CONTINUO') {
+          horaInicioTratada = t.horaInicio || '07:00';
+          horaFimTratada = t.horaFim || '13:00';
+        } else {
+          // INTEGRAL
+          horaInicioTratada = t.horaInicio || '07:30';
+          horaFim1Tratada = t.horaFim1 || '11:30';
+          horaInicio2Tratada = t.horaInicio2 || '13:00';
+          horaFimTratada = t.horaFim || '16:20';
+        }
 
         return {
           ...t,
-          horaInicio: t.horaInicio || '',
+          tipoTurno: modo,
+          horaInicio: horaInicioTratada,
           horaFim1: horaFim1Tratada,
           horaInicio2: horaInicio2Tratada,
           horaFim: horaFimTratada,
           isSaved: true,
-          maoDeObra: mTratada
+          maoDeObra: mTratada,
+          pecasUtilizadas: (t.pecasUtilizadas || []).map(p => ({
+            codigo: p.codigo || (p.tipo === 'EXTERNA' ? 'EXTERNO' : ''),
+            descricao: p.descricao || '',
+            quantidade: parseFloat(p.quantidade) || 0,
+            unidade: p.unidade || 'UN',
+            valor_unitario: parseFloat(p.valor_unitario) || 0,
+            tipo: p.tipo || (p.codigo === 'EXTERNO' ? 'EXTERNA' : 'ESTOQUE'),
+            fotoNota: p.fotoNota || ''
+          })),
+          veiculosUtilizados: (t.veiculosUtilizados || []).map(v => ({
+            placa: (v.placa || '').trim().toUpperCase(),
+            kmInicial: v.kmInicial !== undefined && v.kmInicial !== '' ? parseFloat(v.kmInicial) : '',
+            kmFinal: v.kmFinal !== undefined && v.kmFinal !== '' ? parseFloat(v.kmFinal) : '',
+            km: v.km !== undefined && v.km !== '' ? parseFloat(v.km) : ''
+          }))
         };
+      });
+
+      // Consolidar todos os veículos para o payload:
+      // 1. Veículo alvo da manutenção (se a OS for de veículo/máquina)
+      // 2. Veículos de deslocamento/apoio apontados nos turnos
+      const listaVeiculosPayload = [];
+      if (isOSDeVeiculo && os.centroCusto) {
+        listaVeiculosPayload.push({
+          placa: os.centroCusto,
+          kmFinal: atualizarKm ? (kmManutencao || '') : '',
+          trocouOleo: trocouOleo,
+          fezRevisao: fezRevisao
+        });
+      }
+
+      // Adicionar veículos de apoio sem duplicar com o principal
+      turnosTratados.forEach(t => {
+        (t.veiculosUtilizados || []).forEach(v => {
+          if (v.placa) {
+            const jaExiste = listaVeiculosPayload.some(x => (x.placa || '').trim().toUpperCase() === v.placa.trim().toUpperCase());
+            if (!jaExiste) {
+              listaVeiculosPayload.push({
+                placa: v.placa,
+                kmInicial: v.kmInicial || '',
+                kmFinal: v.kmFinal || '',
+                km: v.km || ''
+              });
+            }
+          }
+        });
+      });
+
+      // Também manter quaisquer outros veículos pré-existentes na OS que não estejam na lista
+      (os.veiculos || []).forEach(vAntigo => {
+        if (vAntigo.placa) {
+          const jaExiste = listaVeiculosPayload.some(x => (x.placa || '').trim().toUpperCase() === (vAntigo.placa || '').trim().toUpperCase());
+          if (!jaExiste) {
+            listaVeiculosPayload.push(vAntigo);
+          }
+        }
       });
 
       const payload = {
@@ -788,14 +1284,11 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
         descarteBorraLitros: trocouOleo && descarteBorra ? descarteBorra : null,
         observacao: isAtrasada ? observacaoJustificativa : (os.observacao || ''),
         dataJustificativa: isAtrasada ? dataJustificativa : (os.dataJustificativa || null),
-        veiculos: isOSDeVeiculo && os.centroCusto ? [
-          {
-            placa: os.centroCusto,
-            kmFinal: atualizarKm ? (kmManutencao || '') : '',
-            trocouOleo: trocouOleo,
-            fezRevisao: fezRevisao
-          }
-        ] : (os.veiculos || [])
+        kmManutencao: isOSDeVeiculo && kmManutencao ? kmManutencao : (os.kmManutencao || ''),
+        kmRodado: isOSDeVeiculo && kmManutencao ? kmManutencao : (os.kmRodado || ''),
+        trocouOleo: trocouOleo,
+        fezRevisao: fezRevisao,
+        veiculos: listaVeiculosPayload
       };
 
       const codigoOS = os.codigo || os.id;
@@ -821,6 +1314,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
       alert('Erro ao salvar apontamento: ' + err.message);
     } finally {
       setSalvando(false);
+      setSalvandoTipo(null);
     }
   };
 
@@ -872,6 +1366,11 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
           <div className={styles.bannerOSInfo}>
             <div>Requisitante: <strong>{os.requisitante}</strong></div>
             <div>Alvo / C. Custo: <strong>{os.centroCusto}</strong></div>
+            {os.dataHoraFechamentoOficial ? (
+              <div title="Data e hora exata em que o botão 'Concluir' foi clicado">Preenchido no sistema: <strong>{new Date(os.dataHoraFechamentoOficial).toLocaleString('pt-BR')}</strong></div>
+            ) : os.dataHoraPreenchimentoSistema ? (
+              <div title="Última vez que o botão 'Salvar' foi clicado">Preenchido no sistema: <strong>{new Date(os.dataHoraPreenchimentoSistema).toLocaleString('pt-BR')}</strong></div>
+            ) : null}
             <div>Problema Inicial: <strong>{os.descricao}</strong></div>
           </div>
         </div>
@@ -935,7 +1434,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                   list="listaFuncionariosTotem"
                   placeholder="Selecione ou digite seu nome..."
                   value={executorPrincipal}
-                  onChange={e => handleExecutorChange(e.target.value)}
+                  onChange={e => handleExecutorChange(e.target.value.toUpperCase())}
                   style={{ fontSize: '1.05rem', padding: '14px 16px', fontWeight: '700' }}
                   autoFocus
                 />
@@ -956,148 +1455,257 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
               </div>
 
               <div className={styles.appTurnoContainer}>
-                <div className={styles.appTurnoHeader}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={18} color="var(--cor-destaque)" />
-                    <span style={{ fontWeight: '800', fontSize: '0.95rem', color: 'var(--cor-texto-principal)' }}>
-                      Data do Turno #{turnoIndexAtivo + 1}:
-                    </span>
-                    <input
-                      type="date"
-                      className={styles.inputField}
-                      style={{ width: 'auto', padding: '6px 12px', fontWeight: '700' }}
-                      value={turnoAtivo?.data || ''}
-                      onChange={e => handleTurnoChange('data', e.target.value)}
-                    />
-                  </div>
+                {(() => {
+                  const modo = turnoAtivo?.tipoTurno || detectarModoTurno(turnoAtivo);
+                  const { horasDecimais, textoFormatado } = calcularHorasTrabalhadas(
+                    turnoAtivo?.horaInicio,
+                    turnoAtivo?.horaFim1,
+                    turnoAtivo?.horaInicio2,
+                    turnoAtivo?.horaFim,
+                    modo
+                  );
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className={styles.displayHorasDigital}>
-                      <Clock size={18} />
-                      <span>{calcularHorasTurno(turnoAtivo)} horas calculadas</span>
-                    </div>
-                    {turnos.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleCancelarDiaCriado(turnoIndexAtivo)}
-                        className={styles.btnCancelarDiaAdicional}
-                        title="Desistir deste dia adicional e voltar ao resumo da O.S."
-                      >
-                        <Trash2 size={16} />
-                        <span>Desistir / Cancelar Dia #{turnoIndexAtivo + 1}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  return (
+                    <>
+                      <div className={styles.appTurnoHeader}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Calendar size={18} color="var(--cor-destaque)" />
+                          <span style={{ fontWeight: '800', fontSize: '0.95rem', color: 'var(--cor-texto-principal)' }}>
+                            Data do Turno #{turnoIndexAtivo + 1}:
+                          </span>
+                          <input
+                            type="date"
+                            className={styles.inputField}
+                            style={{ width: 'auto', padding: '6px 12px', fontWeight: '700' }}
+                            value={turnoAtivo?.data || ''}
+                            onChange={e => handleTurnoChange('data', e.target.value)}
+                          />
+                        </div>
 
-                {/* Cards dos Períodos estilo App */}
-                <div className={styles.periodosGridApp}>
-
-                  {/* 1º Período */}
-                  <div className={styles.periodoCardApp}>
-                    <div className={styles.periodoHeaderApp}>
-                      <div className={styles.periodoIconBox} style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#f97316' }}>
-                        <Sunrise size={18} />
-                      </div>
-                      <span>
-                        {turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo
-                          ? '1º Período (Entrada & Almoço)'
-                          : '1º Período (Entrada & Saída)'}
-                      </span>
-                    </div>
-
-                    <div className={styles.horasCamposRowApp}>
-                      <div className={styles.campoHoraApp}>
-                        <label>Entrada</label>
-                        <input
-                          type="time"
-                          className={styles.inputHoraApp}
-                          value={turnoAtivo?.horaInicio || ''}
-                          onChange={e => handleTurnoChange('horaInicio', e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.campoHoraApp}>
-                        <label>
-                          {turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo ? 'Saída Almoço' : 'Saída'}
-                        </label>
-                        <input
-                          type="time"
-                          className={styles.inputHoraApp}
-                          value={turnoAtivo?.horaFim1 || (!turnoAtivo?.horaInicio2 && !turnoAtivo?.temSegundoPeriodo ? turnoAtivo?.horaFim : '') || ''}
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo) {
-                              handleTurnoChange('horaFim1', val);
-                            } else {
-                              handleTurnoChange('horaFim1', val);
-                              handleTurnoChange('horaFim', val);
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2º Período (Aparece se estiver ativo) */}
-                  {(turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo) && (
-                    <div className={styles.periodoCardApp}>
-                      <div className={styles.periodoHeaderApp} style={{ justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div className={styles.periodoIconBox} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
-                            <Sunset size={18} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div className={styles.badgeHorasEfetivasTotem} title="Horas líquidas de trabalho">
+                            <Clock size={18} />
+                            <span>Total Efetivo: {textoFormatado}</span>
                           </div>
-                          <span>2º Período (Retorno & Final)</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleTurnoChange('horaInicio2', '');
-                            handleTurnoChange('temSegundoPeriodo', false);
-                          }}
-                          className={styles.btnRemoverItem}
-                          title="Remover 2º Período"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-
-                      <div className={styles.horasCamposRowApp}>
-                        <div className={styles.campoHoraApp}>
-                          <label>Retorno Almoço</label>
-                          <input
-                            type="time"
-                            className={styles.inputHoraApp}
-                            value={turnoAtivo?.horaInicio2 || ''}
-                            onChange={e => handleTurnoChange('horaInicio2', e.target.value)}
-                            autoFocus
-                          />
-                        </div>
-                        <div className={styles.campoHoraApp}>
-                          <label>Saída Final</label>
-                          <input
-                            type="time"
-                            className={styles.inputHoraApp}
-                            value={turnoAtivo?.horaFim || ''}
-                            onChange={e => handleTurnoChange('horaFim', e.target.value)}
-                          />
+                          {turnos.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleCancelarDiaCriado(turnoIndexAtivo)}
+                              className={styles.btnCancelarDiaAdicional}
+                              title="Desistir deste dia adicional e voltar ao resumo da O.S."
+                            >
+                              <Trash2 size={16} />
+                              <span>Desistir / Cancelar Dia #{turnoIndexAtivo + 1}</span>
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                </div>
+                      {/* Seletor de Período do Totem */}
+                      <div style={{ padding: '0 16px', marginTop: '12px' }}>
+                        <div className={styles.tipoTurnoSelector}>
+                          <button
+                            type="button"
+                            className={`${styles.btnTipoTurno} ${modo === 'INTEGRAL' ? styles.btnTipoTurnoActive : ''}`}
+                            onClick={() => handleTrocarTipoTurno('INTEGRAL')}
+                            title="Dia todo com pausa para almoço (Manhã + Tarde)"
+                          >
+                            Dia Todo (Almoço)
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.btnTipoTurno} ${modo === 'MANHA' ? styles.btnTipoTurnoActive : ''}`}
+                            onClick={() => handleTrocarTipoTurno('MANHA')}
+                            title="Atendimento realizado apenas pela manhã"
+                          >
+                            Só Manhã
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.btnTipoTurno} ${modo === 'TARDE' ? styles.btnTipoTurnoActive : ''}`}
+                            onClick={() => handleTrocarTipoTurno('TARDE')}
+                            title="Atendimento realizado apenas pela tarde"
+                          >
+                            Só Tarde
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.btnTipoTurno} ${modo === 'CONTINUO' ? styles.btnTipoTurnoActive : ''}`}
+                            onClick={() => handleTrocarTipoTurno('CONTINUO')}
+                            title="Atendimento em turno único sem almoço"
+                          >
+                            Contínuo
+                          </button>
+                        </div>
+                      </div>
 
-                {/* Botão de Adicionar 2º Período se não estiver ativo */}
-                {(!turnoAtivo?.horaInicio2 && !turnoAtivo?.temSegundoPeriodo) && (
-                  <button
-                    type="button"
-                    className={styles.btnAddSegundoPeriodo}
-                    onClick={() => handleTurnoChange('temSegundoPeriodo', true)}
-                  >
-                    <Plus size={18} />
-                    Adicionar 2º Período (Tarde / Retorno do Almoço)
-                  </button>
-                )}
+                      {/* Cards dos Períodos estilo App conforme Modo */}
+                      <div className={styles.periodosGridApp}>
+                        {modo === 'INTEGRAL' && (
+                          <>
+                            {/* 1º Período */}
+                            <div className={styles.periodoCardApp}>
+                              <div className={styles.periodoHeaderApp}>
+                                <div className={styles.periodoIconBox} style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#f97316' }}>
+                                  <Sunrise size={18} />
+                                </div>
+                                <span>1º Período: Manhã (Entrada & Almoço)</span>
+                              </div>
+
+                              <div className={styles.horasCamposRowApp}>
+                                <div className={styles.campoHoraApp}>
+                                  <label>Entrada</label>
+                                  <input
+                                    type="time"
+                                    className={styles.inputHoraApp}
+                                    value={turnoAtivo?.horaInicio || ''}
+                                    onChange={e => handleTurnoChange('horaInicio', e.target.value)}
+                                  />
+                                </div>
+                                <div className={styles.campoHoraApp}>
+                                  <label>Saída Almoço</label>
+                                  <input
+                                    type="time"
+                                    className={styles.inputHoraApp}
+                                    value={turnoAtivo?.horaFim1 || ''}
+                                    onChange={e => handleTurnoChange('horaFim1', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 2º Período */}
+                            <div className={styles.periodoCardApp}>
+                              <div className={styles.periodoHeaderApp}>
+                                <div className={styles.periodoIconBox} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                                  <Sunset size={18} />
+                                </div>
+                                <span>2º Período: Tarde (Retorno & Saída Final)</span>
+                              </div>
+
+                              <div className={styles.horasCamposRowApp}>
+                                <div className={styles.campoHoraApp}>
+                                  <label>Retorno Almoço</label>
+                                  <input
+                                    type="time"
+                                    className={styles.inputHoraApp}
+                                    value={turnoAtivo?.horaInicio2 || ''}
+                                    onChange={e => handleTurnoChange('horaInicio2', e.target.value)}
+                                  />
+                                </div>
+                                <div className={styles.campoHoraApp}>
+                                  <label>Saída Final</label>
+                                  <input
+                                    type="time"
+                                    className={styles.inputHoraApp}
+                                    value={turnoAtivo?.horaFim || ''}
+                                    onChange={e => handleTurnoChange('horaFim', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {modo === 'MANHA' && (
+                          <div className={styles.periodoCardApp} style={{ gridColumn: '1 / -1' }}>
+                            <div className={styles.periodoHeaderApp}>
+                              <div className={styles.periodoIconBox} style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#f97316' }}>
+                                <Sunrise size={18} />
+                              </div>
+                              <span>Turno Único da Manhã</span>
+                            </div>
+
+                            <div className={styles.horasCamposRowApp}>
+                              <div className={styles.campoHoraApp}>
+                                <label>Entrada</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaInicio || '07:30'}
+                                  onChange={e => handleTurnoChange('horaInicio', e.target.value)}
+                                />
+                              </div>
+                              <div className={styles.campoHoraApp}>
+                                <label>Término Manhã</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaFim1 || '11:30'}
+                                  onChange={e => handleTurnoChange('horaFim1', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {modo === 'TARDE' && (
+                          <div className={styles.periodoCardApp} style={{ gridColumn: '1 / -1' }}>
+                            <div className={styles.periodoHeaderApp}>
+                              <div className={styles.periodoIconBox} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                                <Sunset size={18} />
+                              </div>
+                              <span>Turno Único da Tarde</span>
+                            </div>
+
+                            <div className={styles.horasCamposRowApp}>
+                              <div className={styles.campoHoraApp}>
+                                <label>Início Tarde</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaInicio2 || '13:00'}
+                                  onChange={e => handleTurnoChange('horaInicio2', e.target.value)}
+                                />
+                              </div>
+                              <div className={styles.campoHoraApp}>
+                                <label>Saída Final</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaFim || '16:20'}
+                                  onChange={e => handleTurnoChange('horaFim', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {modo === 'CONTINUO' && (
+                          <div className={styles.periodoCardApp} style={{ gridColumn: '1 / -1' }}>
+                            <div className={styles.periodoHeaderApp}>
+                              <div className={styles.periodoIconBox} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                                <Clock size={18} />
+                              </div>
+                              <span>Atendimento Contínuo (Sem Pausa de Almoço)</span>
+                            </div>
+
+                            <div className={styles.horasCamposRowApp}>
+                              <div className={styles.campoHoraApp}>
+                                <label>Início do Serviço</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaInicio || '07:00'}
+                                  onChange={e => handleTurnoChange('horaInicio', e.target.value)}
+                                />
+                              </div>
+                              <div className={styles.campoHoraApp}>
+                                <label>Término do Serviço</label>
+                                <input
+                                  type="time"
+                                  className={styles.inputHoraApp}
+                                  value={turnoAtivo?.horaFim || '13:00'}
+                                  onChange={e => handleTurnoChange('horaFim', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -1121,26 +1729,24 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={16} color="var(--cor-destaque)" />
                   <span>
-                    Horários: <strong>
-                      {turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo
-                        ? `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim1 || '--:--'} | ${turnoAtivo?.horaInicio2 || '--:--'} às ${turnoAtivo?.horaFim || '--:--'}`
-                        : `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim || turnoAtivo?.horaFim1 || '--:--'}`}
-                    </strong>
+                    Horários: <strong>{formatarHorariosTurno(turnoAtivo)}</strong>
                   </span>
                 </div>
                 <div className={styles.badgeHorasDestaque}>
                   <Clock size={16} />
-                  <span>{calcularHorasTurno(turnoAtivo)} horas calculadas</span>
+                  <span>{textoHorasTurnoAtivo} calculadas</span>
                 </div>
               </div>
 
               <div className={styles.campoGrupo}>
-                <label>O que foi realizado neste dia de trabalho? (Descrição detalhada) *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>O que foi realizado neste dia de trabalho? (Descrição detalhada) *</label>
+                </div>
                 <textarea
                   className={styles.textareaField}
                   placeholder="Relate detalhadamente os procedimentos executados nesta data (ex: troca de correias, reparo na fiação, solda)..."
                   value={turnoAtivo?.descricao || ''}
-                  onChange={e => handleTurnoChange('descricao', e.target.value)}
+                  onChange={e => handleTurnoChange('descricao', e.target.value.toUpperCase())}
                   autoFocus
                 />
               </div>
@@ -1157,10 +1763,18 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                   <Users size={20} color="var(--cor-destaque)" />
                   Passo 4: Equipe & Ajudantes (Dia #{turnoIndexAtivo + 1})
                 </div>
-                <button type="button" onClick={handleAddMembro} className={styles.btnAdicionarItem}>
-                  <Plus size={14} /> Adicionar Membro
-                </button>
               </div>
+
+              {kitVinculado && (
+                <div style={{ backgroundColor: 'rgba(255, 107, 0, 0.08)', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--cor-destaque)' }}>
+                  <Users size={18} color="var(--cor-destaque)" />
+                  <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--cor-destaque)' }}>Equipe Sugerida pelo Kit:</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '700' }}>
+                    {kitVinculado.quantidadeMembros} colab(s).
+                    {kitVinculado.precisaMecanico && kitVinculado.precisaBorracheiro ? ' (Mecânico + Borracheiro)' : (kitVinculado.precisaMecanico ? ' (Mecânico)' : (kitVinculado.precisaBorracheiro ? ' (Borracheiro)' : ''))}
+                  </span>
+                </div>
+              )}
 
               {/* Banner Informativo com os Horários do Dia */}
               <div className={styles.bannerHorasDiaInfo}>
@@ -1171,20 +1785,21 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={16} color="var(--cor-destaque)" />
                   <span>
-                    Horários: <strong>
-                      {turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo
-                        ? `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim1 || '--:--'} | ${turnoAtivo?.horaInicio2 || '--:--'} às ${turnoAtivo?.horaFim || '--:--'}`
-                        : `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim || turnoAtivo?.horaFim1 || '--:--'}`}
-                    </strong>
+                    Horários: <strong>{formatarHorariosTurno(turnoAtivo)}</strong>
                   </span>
                 </div>
                 <div className={styles.badgeHorasDestaque}>
                   <Clock size={16} />
-                  <span>{calcularHorasTurno(turnoAtivo)} horas calculadas</span>
+                  <span>{textoHorasTurnoAtivo} calculadas</span>
                 </div>
               </div>
 
               <div className={styles.subTabelaContainer}>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
+                  <button type="button" onClick={handleAddMembro} className={styles.btnAdicionarItem}>
+                    <Plus size={14} /> Adicionar Colaborador
+                  </button>
+                </div>
                 <table className={styles.subTabela}>
                   <thead>
                     <tr>
@@ -1204,14 +1819,14 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                             list="listaFuncionariosTotem"
                             placeholder="Nome do membro..."
                             value={m.nome || ''}
-                            onChange={e => handleMembroChange(mIdx, 'nome', e.target.value)}
+                            onChange={e => handleMembroChange(mIdx, 'nome', e.target.value.toUpperCase())}
                           />
                         </td>
                         <td>
                           <select
                             className={styles.subTabelaInput}
                             value={m.funcao || 'Ajudante'}
-                            onChange={e => handleMembroChange(mIdx, 'funcao', e.target.value)}
+                            onChange={e => handleMembroChange(mIdx, 'funcao', e.target.value.toUpperCase())}
                           >
                             <option value="Executor">Executor</option>
                             <option value="Ajudante">Ajudante</option>
@@ -1260,16 +1875,12 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={16} color="var(--cor-destaque)" />
                   <span>
-                    Horários: <strong>
-                      {turnoAtivo?.horaInicio2 || turnoAtivo?.temSegundoPeriodo
-                        ? `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim1 || '--:--'} | ${turnoAtivo?.horaInicio2 || '--:--'} às ${turnoAtivo?.horaFim || '--:--'}`
-                        : `${turnoAtivo?.horaInicio || '--:--'} às ${turnoAtivo?.horaFim || turnoAtivo?.horaFim1 || '--:--'}`}
-                    </strong>
+                    Horários: <strong>{formatarHorariosTurno(turnoAtivo)}</strong>
                   </span>
                 </div>
                 <div className={styles.badgeHorasDestaque}>
                   <Clock size={16} />
-                  <span>{calcularHorasTurno(turnoAtivo)} horas calculadas</span>
+                  <span>{textoHorasTurnoAtivo} calculadas</span>
                 </div>
               </div>
 
@@ -1289,113 +1900,79 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                       </span>
                     )}
                   </div>
-                  <div className={styles.cardVeiculoAtendidoCorpo}>
-                    {(() => {
-                      const ultimoRegistro = veiculoAlvo?.kmAtual;
-                      const validacaoKm = ultimoRegistro ? validarAntiRetrocessoKM(kmManutencao, ultimoRegistro, unidadeMedicao) : { valido: true, retrocedeu: false };
-
-                      return (
-                        <div style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <div className={styles.campoGrupo} style={{ maxWidth: '380px', marginTop: '2px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                              <label style={{ fontSize: '0.88rem', fontWeight: '800', color: 'var(--cor-texto-principal)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                                <RefreshCw size={15} color="var(--cor-destaque)" />
-                                {labelMedicao} no Atendimento: <span style={{ color: 'var(--cor-erro, #ef4444)' }}>*</span>
-                              </label>
-                              {kmManutencao && (
-                                <span style={{ fontSize: '0.85rem', fontWeight: '800', color: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : 'var(--cor-destaque)' }}>
-                                  👀 {formatarOdometroDisplay(kmManutencao, unidadeMedicao)}
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <input
-                                type="number"
-                                step="0.1"
-                                className={styles.inputField}
-                                style={{ 
-                                  fontWeight: '800', 
-                                  fontSize: '1.05rem', 
-                                  color: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : 'var(--cor-destaque)', 
-                                  borderColor: validacaoKm.retrocedeu ? 'var(--cor-erro, #ef4444)' : undefined,
-                                  minWidth: '160px' 
-                                }}
-                                placeholder={placeholderMedicao}
-                                value={kmManutencao}
-                                onChange={e => setKmManutencao(e.target.value)}
-                                required
-                              />
-                              <span style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--cor-texto-secundario)' }}>{unidadeMedicao}</span>
-                            </div>
-                            {validacaoKm.retrocedeu && (
-                              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--cor-erro, #ef4444)', borderRadius: '6px', padding: '6px 10px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--cor-erro, #ef4444)', fontSize: '0.8rem', fontWeight: '700' }}>
-                                <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-                                <span>{validacaoKm.mensagem}</span>
-                              </div>
-                            )}
-                            <span style={{ fontSize: '0.78rem', color: 'var(--cor-texto-secundario)', marginTop: validacaoKm.retrocedeu ? '4px' : '2px' }}>
-                              Obrigatório para atualização automática do odômetro deste veículo/máquina.
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    <div className={styles.checkboxesVeiculoAtendido}>
-                      <label className={`${styles.checkboxItemVeiculo} ${trocouOleo ? styles.checked : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={trocouOleo}
-                          onChange={e => {
-                            const checked = e.target.checked;
-                            if (checked && fezRevisao) setTipoManutencao('AMBOS');
-                            else if (checked) setTipoManutencao('OLEO');
-                            else if (fezRevisao) setTipoManutencao('REVISAO');
-                            else setTipoManutencao('NAO');
-                          }}
+                    <div className={styles.cardVeiculoAtendidoCorpo}>
+                      <div style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                        <InputOdometroInteligente 
+                          veiculo={veiculoAlvo}
+                          value={kmManutencao}
+                          onChange={setKmManutencao}
+                          onError={setErroRetrocesso}
+                          label={`${labelMedicao} no Atendimento:`}
                         />
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <Droplet size={15} color="#3b82f6" />
-                          Registrar Troca de Óleo para este veículo/equipamento
-                        </span>
-                      </label>
+                      </div>
 
-                      {trocouOleo && (
-                        <div className={styles.campoGrupo} style={{ maxWidth: '340px', marginLeft: '12px', marginTop: '4px', marginBottom: '4px' }}>
-                          <label style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--cor-texto-principal)', display: 'block', marginBottom: '4px' }}>
-                            Descarte de Óleo Usado / Borra (Litros):
-                          </label>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                              type="number"
-                              step="0.5"
-                              className={styles.inputField}
-                              placeholder="Ex: 20 L"
-                              value={descarteBorra}
-                              onChange={e => setDescarteBorra(e.target.value)}
-                            />
-                            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--cor-texto-secundario)' }}>Litros</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px', width: '100%' }}>
+                      {/* Banner de Alerta Preventivo da Frota no Passo 5 */}
+                      {analiseVeiculoAlvo && analiseVeiculoAlvo.temAlerta && (
+                        <div style={{
+                          backgroundColor: analiseVeiculoAlvo.critico ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                          border: `1px solid ${analiseVeiculoAlvo.critico ? 'rgba(239, 68, 68, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
+                          borderRadius: '10px',
+                          padding: '14px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          color: analiseVeiculoAlvo.critico ? 'var(--cor-erro, #ef4444)' : '#f59e0b',
+                          fontSize: '0.82rem',
+                          fontWeight: '700'
+                        }}>
+                          <AlertTriangle size={24} style={{ flexShrink: 0 }} />
+                          <div>
+                            <div style={{ fontSize: '0.9rem', marginBottom: '4px' }}>🚨 Lembrete da Frota: {analiseVeiculoAlvo.alertaPrincipal?.texto}</div>
+                            <div style={{ fontSize: '0.76rem', fontWeight: '500', color: 'var(--cor-texto-secundario)', lineHeight: '1.4' }}>
+                              Se a troca de óleo ou revisão foi realizada durante este atendimento, marque as opções abaixo para atualizar o ciclo.
+                            </div>
                           </div>
                         </div>
                       )}
 
-                      <label className={`${styles.checkboxItemVeiculo} ${fezRevisao ? styles.checked : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={fezRevisao}
-                          onChange={e => {
-                            const checked = e.target.checked;
-                            if (checked && trocouOleo) setTipoManutencao('AMBOS');
-                            else if (checked) setTipoManutencao('REVISAO');
-                            else if (trocouOleo) setTipoManutencao('OLEO');
-                            else setTipoManutencao('NAO');
-                          }}
-                        />
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <Wrench size={15} color="#f59e0b" />
-                          Registrar Revisão Geral / Periódica
-                        </span>
-                      </label>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <label className={`${styles.checkboxItemVeiculo} ${trocouOleo ? styles.checked : ''}`} style={{ flex: '1 1 300px', padding: '14px', justifyContent: 'center', fontSize: '0.9rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={trocouOleo}
+                            onChange={e => {
+                              const checked = e.target.checked;
+                              if (checked && fezRevisao) setTipoManutencao('AMBOS');
+                              else if (checked) setTipoManutencao('OLEO');
+                              else if (fezRevisao) setTipoManutencao('REVISAO');
+                              else setTipoManutencao('NAO');
+                            }}
+                          />
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <Droplet size={18} color="#3b82f6" />
+                            Registrar Troca de Óleo neste veículo
+                          </span>
+                        </label>
+
+                        <label className={`${styles.checkboxItemVeiculo} ${fezRevisao ? styles.checked : ''}`} style={{ flex: '1 1 300px', padding: '14px', justifyContent: 'center', fontSize: '0.9rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={fezRevisao}
+                            onChange={e => {
+                              const checked = e.target.checked;
+                              if (checked && trocouOleo) setTipoManutencao('AMBOS');
+                              else if (checked) setTipoManutencao('REVISAO');
+                              else if (trocouOleo) setTipoManutencao('OLEO');
+                              else setTipoManutencao('NAO');
+                            }}
+                          />
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <Wrench size={18} color="#f59e0b" />
+                            Registrar Revisão Geral / Periódica
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1403,6 +1980,37 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
 
               {/* 1. SEÇÃO DE PEÇAS & INSUMOS */}
               <div style={{ marginBottom: '20px' }}>
+                {kitVinculado && (
+                  <div style={{
+                    marginBottom: '16px',
+                    padding: '12px 16px',
+                    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+                    border: '1px solid var(--cor-destaque)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} color="var(--cor-destaque)" />
+                      <span style={{ fontWeight: '800', color: 'var(--cor-destaque)', textTransform: 'uppercase', fontSize: '0.85rem' }}>
+                        Receita Padrão do Kit: {kitVinculado.nome}
+                      </span>
+                    </div>
+                    {kitVinculado.descricaoPadrao && (
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cor-texto-secundario)' }}>{kitVinculado.descricaoPadrao}</p>
+                    )}
+                    <div style={{ marginTop: '4px' }}>
+                      <strong style={{ fontSize: '0.75rem', display: 'block', marginBottom: '4px' }}>Peças Previstas para este serviço:</strong>
+                      <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.75rem', color: 'var(--cor-texto-principal)' }}>
+                        {(kitVinculado.pecas || []).map((p, idx) => (
+                          <li key={idx}><strong>{p.quantidade} {p.unidade}</strong> - {p.codigo ? `[${p.codigo}] ` : ''}{p.descricao}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
                 {/* Opção Checkbox: Não Usou Peças */}
                 <label className={`${styles.checkboxOptionRow} ${turnoAtivo?.semPecas ? styles.checked : ''}`}>
                   <input
@@ -1430,6 +2038,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                       <label style={{ fontSize: '0.88rem', fontWeight: '700' }}>Peças / Insumos Consumidos:</label>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {/* Botão de Aplicar Kit removido pois agora é pré-preenchido */}
                         <button type="button" onClick={handleAddPeca} className={styles.btnAdicionarItem} title="Buscar peça no estoque da Omie">
                           <Package size={14} /> + Peça Estoque
                         </button>
@@ -1439,7 +2048,13 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                       </div>
                     </div>
 
-                    <div className={styles.subTabelaContainer}>
+                    <div
+                      className={styles.subTabelaContainer}
+                      style={{
+                        marginBottom: activePecaSearch.pecaIdx !== null ? '180px' : '0px',
+                        transition: 'margin-bottom 0.25s ease'
+                      }}
+                    >
                       <table className={styles.subTabela}>
                         <thead>
                           <tr>
@@ -1461,9 +2076,13 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                           ) : (
                             turnoAtivo.pecasUtilizadas.map((p, pIdx) => {
                               const isExterna = p.tipo === 'EXTERNA' || p.codigo === 'EXTERNO';
+                              const isLinhaAtiva = activePecaSearch.pecaIdx === pIdx;
 
                               return (
-                                <tr key={pIdx}>
+                                <tr
+                                  key={pIdx}
+                                  style={isLinhaAtiva ? { position: 'relative', zIndex: 9999 } : { position: 'relative', zIndex: 1 }}
+                                >
                                   <td style={{ textAlign: 'center' }}>
                                     {isExterna ? (
                                       <span className={styles.badgeOrigemExterna}>
@@ -1476,38 +2095,71 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                                     )}
                                   </td>
 
-                                  <td>
+                                  <td style={isLinhaAtiva ? { position: 'relative', zIndex: 9999 } : { position: 'relative', zIndex: 1 }}>
                                     {isExterna ? (
                                       <input
                                         type="text"
                                         className={styles.subTabelaInput}
                                         placeholder="Nome da peça comprada fora..."
                                         value={p.descricao || ''}
-                                        onChange={e => handlePecaChange(pIdx, 'descricao', e.target.value)}
+                                        onChange={e => handlePecaChange(pIdx, 'descricao', e.target.value.toUpperCase())}
                                       />
                                     ) : (
-                                      <input
-                                        type="text"
-                                        className={styles.subTabelaInput}
-                                        list="listaProdutosTotem"
-                                        placeholder="Buscar ou selecionar peça do estoque..."
-                                        value={p.descricao || ''}
-                                        onChange={e => handlePecaChange(pIdx, 'descricao', e.target.value)}
-                                      />
+                                      <div className={styles.buscaPecaWrapper}>
+                                        <input
+                                          type="text"
+                                          className={styles.subTabelaInput}
+                                          placeholder="Buscar peça por nome ou código..."
+                                          value={activePecaSearch.pecaIdx === pIdx ? activePecaSearch.query : (p.descricao || '')}
+                                          onFocus={() => setActivePecaSearch({ pecaIdx: pIdx, query: p.descricao || '' })}
+                                          onChange={e => {
+                                            const val = e.target.value;
+                                            setActivePecaSearch({ pecaIdx: pIdx, query: val });
+                                            handlePecaChange(pIdx, 'descricao', val);
+                                          }}
+                                          autoComplete="off"
+                                        />
+                                        {activePecaSearch.pecaIdx === pIdx && produtosFiltrados.length > 0 && (
+                                          <ul className={styles.dropdownPecasLista}>
+                                            {produtosFiltrados.map((prod, fIdx) => (
+                                              <li
+                                                key={prod.codigo || fIdx}
+                                                className={styles.itemPecaOpcao}
+                                                onMouseDown={(e) => {
+                                                  e.preventDefault();
+                                                  handleSelectProduto(pIdx, prod);
+                                                }}
+                                              >
+                                                <div className={styles.pecaInfoText}>
+                                                  <span className={styles.pecaDescricaoText}>{prod.descricao}</span>
+                                                  <span className={styles.pecaCodigoText}>
+                                                    {prod.codigo ? `[${prod.codigo}] ` : ''}{prod.unidade ? `• Unidade: ${prod.unidade}` : ''}
+                                                  </span>
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </div>
                                     )}
                                   </td>
 
                                   <td style={{ textAlign: 'center' }}>
-                                    <input
-                                      type="number"
-                                      min="0.01"
-                                      step="any"
-                                      className={styles.subTabelaInput}
-                                      style={{ textAlign: 'center', fontWeight: '700' }}
-                                      value={p.quantidade !== undefined && p.quantidade !== null ? p.quantidade : ''}
-                                      onChange={e => handlePecaChange(pIdx, 'quantidade', e.target.value)}
-                                      onWheel={e => e.target.blur()}
-                                    />
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                                      <input
+                                        type="number"
+                                        min={permiteDecimais(p.unidade) ? "0.01" : "1"}
+                                        step={permiteDecimais(p.unidade) ? "0.01" : "1"}
+                                        className={styles.subTabelaInput}
+                                        style={{ textAlign: 'center', fontWeight: '700', width: '56px' }}
+                                        value={p.quantidade !== undefined && p.quantidade !== null ? p.quantidade : ''}
+                                        onChange={e => handlePecaChange(pIdx, 'quantidade', e.target.value)}
+                                        onWheel={e => e.target.blur()}
+                                      />
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--cor-destaque)', minWidth: '20px' }} title={p.unidade ? `Unidade: ${p.unidade}` : 'Unidade'}>
+                                        {obterRotuloUnidade(p.unidade)}
+                                      </span>
+                                    </div>
                                   </td>
 
                                   <td style={{ textAlign: 'right' }}>
@@ -1524,8 +2176,11 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                                         onWheel={e => e.target.blur()}
                                       />
                                     ) : (
-                                      <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--cor-texto-secundario)', paddingRight: '6px' }}>
-                                        {p.valor_unitario ? `R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : '—'}
+                                      <span
+                                        style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--cor-texto-secundario)', paddingRight: '6px' }}
+                                        title={isAdmin ? `Valor unitário: R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : "Valor confidencial do estoque"}
+                                      >
+                                        {isAdmin ? (p.valor_unitario ? `R$ ${formatarNumeroBR(p.valor_unitario, 2)}` : '—') : '—'}
                                       </span>
                                     )}
                                   </td>
@@ -1657,21 +2312,21 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                                     list="listaVeiculosTotem"
                                     placeholder="Selecione a placa..."
                                     value={v.placa || ''}
-                                    onChange={e => handleVeiculoChange(vIdx, 'placa', e.target.value)}
+                                    onChange={e => handleVeiculoChange(vIdx, 'placa', e.target.value.toUpperCase())}
                                   />
                                 </td>
-                                  <td style={{ textAlign: 'center' }}>
-                                    <input
-                                      type="number"
-                                      step="0.1"
-                                      className={styles.subTabelaInput}
-                                      placeholder="KM Inicial"
-                                      value={v.kmInicial || ''}
-                                      onChange={e => handleVeiculoChange(vIdx, 'kmInicial', e.target.value)}
-                                      title="KM Inicial do veículo (editável para O.S. antigas)"
-                                      style={{ textAlign: 'center', fontWeight: '700' }}
-                                    />
-                                  </td>
+                                <td style={{ textAlign: 'center' }}>
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    className={styles.subTabelaInput}
+                                    placeholder="KM Inicial"
+                                    value={v.kmInicial || ''}
+                                    onChange={e => handleVeiculoChange(vIdx, 'kmInicial', e.target.value.replace(/,/g, ''))}
+                                    title="KM Inicial do veículo (editável para O.S. antigas)"
+                                    style={{ textAlign: 'center', fontWeight: '700' }}
+                                  />
+                                </td>
                                 <td style={{ textAlign: 'center' }}>
                                   <input
                                     type="number"
@@ -1679,7 +2334,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                                     className={styles.subTabelaInput}
                                     placeholder="KM Final"
                                     value={v.kmFinal || ''}
-                                    onChange={e => handleVeiculoChange(vIdx, 'kmFinal', e.target.value)}
+                                    onChange={e => handleVeiculoChange(vIdx, 'kmFinal', e.target.value.replace(/,/g, ''))}
                                     style={{ textAlign: 'center', fontWeight: '700' }}
                                   />
                                 </td>
@@ -1752,7 +2407,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                     rows={4}
                     placeholder="Explique o motivo do atraso desta ordem de serviço (ex: aguardando peças de reposição da fábrica, equipamento em uso prioritário na granja, atraso na liberação da área)..."
                     value={observacaoJustificativa}
-                    onChange={e => setObservacaoJustificativa(e.target.value)}
+                    onChange={e => setObservacaoJustificativa(e.target.value.toUpperCase())}
                     autoFocus
                   />
                 </div>
@@ -1779,7 +2434,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                   <span>Total Geral de Horas Trabalhadas:</span>
                   <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Clock size={16} color="var(--cor-sucesso)" />
-                    {totalHorasGeral.toFixed(1)} horas ({turnos.length} turnos)
+                    {textoTotalHorasGeral} ({turnos.length} {turnos.length === 1 ? 'turno' : 'turnos'})
                   </strong>
                 </div>
                 <div className={styles.resumoItem}>
@@ -1835,7 +2490,10 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className={styles.horasBadge} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <Clock size={15} />
-                          {calcularHorasTurno(t)} horas
+                          {(() => {
+                            const m = t.tipoTurno || detectarModoTurno(t);
+                            return calcularHorasTrabalhadas(t.horaInicio, t.horaFim1, t.horaInicio2, t.horaFim, m).textoFormatado;
+                          })()} ({formatarHorariosTurno(t)})
                         </span>
                         <button
                           type="button"
@@ -1977,16 +2635,33 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
             <button
               type="button"
               className={styles.btnSalvarParcial}
-              disabled={salvando}
-              onClick={() => handleSalvar(false)}
+              disabled={salvando || animandoConferencia}
+              onClick={() => {
+                if (salvando || animandoConferencia) return;
+                handleSalvar(false);
+              }}
             >
-              <Save size={18} />
-              Salvar Parcial
+              {salvando && salvandoTipo === 'PARCIAL' ? (
+                <>
+                  <Loader2 size={18} className={styles.spin} />
+                  <span>Salvando Parcial...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  <span>Salvar Parcial</span>
+                </>
+              )}
             </button>
 
             {passoAtual < passoResumoId ? (
-              <button type="button" className={styles.btnAvancar} onClick={handleAvancar}>
-                Avançar Passo
+              <button
+                type="button"
+                className={styles.btnAvancar}
+                onClick={handleAvancar}
+                disabled={salvando || animandoConferencia}
+              >
+                <span>Avançar Passo</span>
                 <ChevronRight size={18} />
               </button>
             ) : (
@@ -1995,12 +2670,22 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
                 className={styles.btnConcluirOS}
                 disabled={salvando || animandoConferencia}
                 onClick={() => {
+                  if (salvando || animandoConferencia) return;
                   if (!validarPasso(passoAtual)) return;
                   setAnimandoConferencia(true);
                 }}
               >
-                <CheckCircle size={20} />
-                Concluir e Finalizar O.S.
+                {animandoConferencia || (salvando && salvandoTipo === 'CONCLUIR') ? (
+                  <>
+                    <Loader2 size={20} className={styles.spin} />
+                    <span>{animandoConferencia ? 'Preparando Espelho...' : 'Concluindo O.S...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={20} />
+                    <span>Concluir e Finalizar O.S.</span>
+                  </>
+                )}
               </button>
             )}
           </div>
@@ -2071,14 +2756,6 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
         <datalist id="listaFuncionariosTotem">
           {listaFuncionariosTratada.map((nome, i) => (
             <option key={i} value={nome} />
-          ))}
-        </datalist>
-
-        <datalist id="listaProdutosTotem">
-          {(produtosEstoque || []).map((pr, i) => (
-            <option key={i} value={pr.descricao}>
-              {pr.codigo}
-            </option>
           ))}
         </datalist>
 
@@ -2156,6 +2833,7 @@ const PainelApontamentoOS = ({ os, onClose, onSucesso, produtosEstoque = [], for
             </div>
           </div>
         )}
+
 
       </div>
     </div>

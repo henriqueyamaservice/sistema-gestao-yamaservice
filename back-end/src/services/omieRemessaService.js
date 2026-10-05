@@ -130,12 +130,12 @@ async function criarRemessa(opcoes) {
     paramRemessa.cabec.nCodVend = codigoVendedor;
   }
 
-  // Adiciona projeto se informado
+  // Adiciona projeto se informado (pertence exclusivamente à tag infAdic na API de Remessas)
   if (codigoProjeto > 0) {
     paramRemessa.infAdic.nCodProj = codigoProjeto;
   }
 
-  console.log(`[OMIE REMESSA] 📋 Remessa ${codigoIntegracao}: ${produtos.length} item(ns) para cliente ${codigoCliente}`);
+  console.log(`[OMIE REMESSA] 📋 Remessa ${codigoIntegracao}: ${produtos.length} item(ns) | Cliente: ${codigoCliente} | Vendedor: ${codigoVendedor || 'N/A'} | Projeto: ${codigoProjeto || 'N/A'}`);
 
   const resultado = await chamarOmieRemessa('IncluirRemessa', paramRemessa);
 

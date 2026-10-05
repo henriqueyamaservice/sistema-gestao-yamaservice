@@ -35,3 +35,20 @@ dist-ssr
 
 **/agente.md
 CONTRATO_API.md
+
+# Certificados Digitais SEFAZ (seguranca)
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
+**/certificados/
+
+# AI Agents & Regras (Sigilo)
+AGENTS.md
+**/AGENTS.md
+.agents/
+
+# Arquivos de Teste Mock
+*.xml

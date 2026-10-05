@@ -1,0 +1,442 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  background: var(--cor-fundo-secundario);
+}
+
+.modalHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  background: rgba(255, 107, 0, 0.12);
+  color: var(--cor-destaque);
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalHeaderTitle h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--cor-texto-principal);
+  font-weight: 700;
+}
+
+.modalHeaderTitle p {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnClose {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnClose:hover {
+  background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Card de Certificado Ativo */
+.certCardAtivo {
+  background: var(--cor-fundo-principal);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.certCardAtivo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--cor-sucesso);
+}
+
+.certCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.certBadgeStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--cor-sucesso);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.certTitularNome {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--cor-texto-principal);
+  margin: 0;
+}
+
+.certDoc {
+  font-size: 0.9rem;
+  color: var(--cor-destaque);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.certGridInfo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  background: var(--cor-fundo-secundario);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.certInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoLabel {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.infoVal {
+  font-size: 0.85rem;
+  color: var(--cor-texto-principal);
+  font-weight: 600;
+}
+
+.certAcoesRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--cor-borda-cartao);
+}
+
+.btnTestar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnTestar:hover:not(:disabled) {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnSubstituir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSubstituir:hover {
+  background: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+}
+
+.btnRemover {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--cor-erro);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnRemover:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Área de Upload / Instalação */
+.formUploadCertificado {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fileDropArea {
+  border: 2px dashed var(--cor-destaque);
+  border-radius: 12px;
+  padding: 24px;
+  background: rgba(255, 107, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fileDropArea:hover {
+  background: rgba(255, 107, 0, 0.08);
+  border-color: var(--cor-destaque-hover);
+}
+
+.fileDropIcon {
+  color: var(--cor-destaque);
+  margin-bottom: 10px;
+}
+
+.fileDropTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+  margin: 0 0 4px 0;
+}
+
+.fileDropSub {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  margin: 0;
+}
+
+.fileSelectedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--cor-sucesso);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.passwordInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputSenha {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  color: var(--cor-texto-principal);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.inputSenha:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.15);
+}
+
+.btnTogglePassword {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.selectField {
+  padding: 10px 12px;
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.selectField:focus {
+  border-color: var(--cor-destaque);
+}
+
+.alertaErro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--cor-erro);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.alertaSucesso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--cor-sucesso);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnSalvarCertificado {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
+}
+
+.btnSalvarCertificado:hover:not(:disabled) {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnSalvarCertificado:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}

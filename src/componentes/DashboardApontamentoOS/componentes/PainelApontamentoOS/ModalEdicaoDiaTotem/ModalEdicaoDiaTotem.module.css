@@ -398,3 +398,137 @@
   background-color: var(--cor-destaque-hover);
   transform: translateY(-1px);
 }
+
+/* ==========================================
+   SELETOR DE TURNO E HORÁRIOS INTELIGENTES
+   ========================================== */
+.tipoTurnoSelector {
+  display: inline-flex;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+  width: 100%;
+}
+
+.btnTipoTurno {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.btnTipoTurno:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+}
+
+.btnTipoTurnoActive {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  box-shadow: 0 2px 6px rgba(255, 107, 0, 0.3);
+}
+
+.btnTipoTurnoActive:hover {
+  background-color: var(--cor-destaque-hover);
+  color: var(--cor-texto-inverso);
+}
+
+/* ========================================================= */
+/* DROPDOWN DE BUSCA INTERATIVA DE PEÇAS NO MODAL           */
+/* ========================================================= */
+.buscaPecaWrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+}
+
+.dropdownPecasLista {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 440px;
+  width: 100%;
+  max-width: 650px;
+  background-color: var(--cor-fundo-cartao);
+  border: 2px solid var(--cor-destaque);
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 999999;
+  list-style: none;
+  padding: 6px;
+  margin: 0;
+}
+
+[data-theme="light"] .dropdownPecasLista {
+  background-color: #ffffff;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .dropdownPecasLista {
+  background-color: #1e2225;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+.itemPecaOpcao {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid var(--cor-fundo-sutil);
+}
+
+.itemPecaOpcao:last-child {
+  border-bottom: none;
+}
+
+.itemPecaOpcao:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+}
+
+.pecaInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.pecaDescricaoText {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+.pecaCodigoText {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+}
+
+.pecaPrecoBadge {
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--cor-destaque);
+  background: rgba(255, 107, 0, 0.12);
+  padding: 3px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+

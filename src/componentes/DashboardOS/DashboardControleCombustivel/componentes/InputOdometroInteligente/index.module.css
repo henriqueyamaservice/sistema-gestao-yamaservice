@@ -1,0 +1,120 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.container label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  background-color: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px var(--cor-fundo-sutil-forte);
+}
+
+.inputError {
+  border-color: var(--cor-erro) !important;
+  color: var(--cor-erro) !important;
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.errorText {
+  color: var(--cor-erro);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* HEALTH BAR */
+.healthContainer {
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.healthHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.healthHeader span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.healthBarWrapper {
+  width: 100%;
+  height: 8px;
+  background-color: var(--cor-fundo-sutil-forte);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.healthBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.healthDetails {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+}

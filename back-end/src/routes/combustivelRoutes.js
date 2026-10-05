@@ -42,20 +42,25 @@ function dbRowToAbastecimento(row) {
   if (!row) return null;
   let dados = {};
   try { dados = JSON.parse(row.dados_json || '{}'); } catch (e) { /* ignore */ }
+  const fotoValida = dados.foto || dados.fotoNota || dados.fotoVisor || dados.fotoComprovante || null;
   return {
+    ...dados,
     id: row.id,
-    placa: row.placa,
-    modelo: row.modelo,
-    veiculo_id: row.veiculo_id,
-    motorista: row.motorista,
-    tipo_combustivel: row.tipo_combustivel,
-    litros: row.litros,
-    valor_litro: row.valor_litro,
-    valor_total: row.valor_total,
-    km_abastecimento: row.km_abastecimento,
-    tanque_origem: row.tanque_origem,
-    data_hora: row.data_hora,
-    ...dados
+    foto: fotoValida,
+    fotoNota: fotoValida,
+    fotoVisor: fotoValida,
+    fotoComprovante: fotoValida,
+    placa: row.placa || dados.veiculo || dados.placa,
+    modelo: row.modelo || dados.modelo,
+    veiculo_id: row.veiculo_id || dados.veiculo_id,
+    motorista: row.motorista || dados.motorista || dados.requisitante,
+    tipo_combustivel: row.tipo_combustivel || dados.combustivel,
+    litros: row.litros || dados.qtde,
+    valor_litro: row.valor_litro || dados.valorUnitario,
+    valor_total: row.valor_total || dados.valorTotal,
+    km_abastecimento: row.km_abastecimento || dados.km,
+    tanque_origem: row.tanque_origem || dados.fornecedor,
+    data_hora: row.data_hora || dados.data
   };
 }
 
@@ -73,15 +78,35 @@ router.get('/lotes-disponiveis', async (req, res) => {
     const entradasRaw = await db.all(`SELECT * FROM entradas_combustivel`);
     const saidasRaw = await db.all(`SELECT * FROM saidas_combustivel`);
 
+    const matchEstoque = (est1, est2) => {
+      if (!est1 || !est2) return false;
+      const u1 = String(est1).trim().toUpperCase();
+      const u2 = String(est2).trim().toUpperCase();
+      if (u1 === u2) return true;
+      if (u1.includes('YAMAVES') && u2.includes('YAMAVES')) return true;
+      if (u1.includes('ALMOXARIFADO') && u2.includes('ALMOXARIFADO')) return true;
+      return false;
+    };
+
+    const matchProduto = (p1, p2) => {
+      if (!p1 || !p2) return false;
+      const u1 = String(p1).trim().toUpperCase();
+      const u2 = String(p2).trim().toUpperCase();
+      if (u1 === u2) return true;
+      if (u1.includes('DIESEL') && u2.includes('DIESEL')) return true;
+      if (u1.includes('ARLA') && u2.includes('ARLA')) return true;
+      if (u1.includes('GASOLINA') && u2.includes('GASOLINA')) return true;
+      return false;
+    };
+
     const entradas = entradasRaw.map(dbRowToEntrada).filter(e => 
-      e.estoque && estoque && e.estoque.toUpperCase() === estoque.toUpperCase() && 
-      e.produto && produto && e.produto.toUpperCase() === produto.toUpperCase()
+      matchEstoque(e.estoque, estoque) && matchProduto(e.produto, produto)
     );
     
     const saidas = saidasRaw.map(dbRowToAbastecimento).filter(s => 
-      s.fornecedor && estoque && s.fornecedor.toUpperCase() === estoque.toUpperCase() && 
-      s.combustivel && produto && s.combustivel.toUpperCase() === produto.toUpperCase() && 
-      (s.status === 'CONCLUÍDO' || s.status === 'ABASTECIDA')
+      matchEstoque(s.tanque_origem || s.fornecedor, estoque) && 
+      matchProduto(s.tipo_combustivel || s.combustivel, produto) && 
+      (s.status === 'ABASTECIDA' || s.status === 'CONCLUÍDO')
     );
 
     // Ordenar entradas por data (do mais antigo para o mais novo)
@@ -96,7 +121,7 @@ router.get('/lotes-disponiveis', async (req, res) => {
       const situacaoLote = lote ? (lote.situacao === 'AGUARDANDO COMBUSTIVEL' ? 'AGUARDANDO COMBUSTIVEL' : 'INTEGRO') : '';
       if (lote && situacaoLote !== 'AGUARDANDO COMBUSTIVEL') {
          if (lote.quantidadeReservada === undefined) lote.quantidadeReservada = 0;
-         lote.quantidadeReservada += parseMonetaryValue(s.qtde) || 0;
+         lote.quantidadeReservada += parseMonetaryValue(s.litros || s.qtde) || 0;
       } else if (lote && situacaoLote === 'AGUARDANDO COMBUSTIVEL') {
          // Se amarraram um lote AGUARDANDO COMBUSTIVEL, cai para consumo automático
          saidasAutomaticas.push(s);
@@ -104,9 +129,9 @@ router.get('/lotes-disponiveis', async (req, res) => {
     });
 
     // 2. Abater Saídas Automáticas via FIFO
-    let consumoRestante = saidasAutomaticas.reduce((acc, s) => acc + (parseMonetaryValue(s.qtde) || 0), 0);
+    let consumoRestante = saidasAutomaticas.reduce((acc, s) => acc + (parseMonetaryValue(s.litros || s.qtde) || 0), 0);
 
-    const lotesDisponiveis = entradas.map(ent => {
+    let lotesDisponiveis = entradas.map(ent => {
       let qtdEntrada = parseMonetaryValue(ent.quantidade) || 0;
       qtdEntrada -= (ent.quantidadeReservada || 0);
       if (qtdEntrada < 0) qtdEntrada = 0;
@@ -136,6 +161,23 @@ router.get('/lotes-disponiveis', async (req, res) => {
       };
     }).filter(e => e.saldoRestante > 0 && e.situacao !== 'AGUARDANDO COMBUSTIVEL');
 
+    // Se nenhum lote com saldo positivo foi encontrado, traz a última entrada válida como preço de referência do estoque
+    if (lotesDisponiveis.length === 0 && entradas.length > 0) {
+      const ultimaValida = [...entradas].reverse().find(e => parseFloat(e.valorUn) > 0);
+      if (ultimaValida) {
+        lotesDisponiveis = [{
+          id: ultimaValida.id,
+          fornecedor: ultimaValida.fornecedor,
+          notaFiscal: ultimaValida.notaFiscal,
+          data: ultimaValida.data,
+          quantidadeOriginal: ultimaValida.quantidade,
+          saldoRestante: 0,
+          valorUn: ultimaValida.valorUn,
+          situacao: ultimaValida.situacao
+        }];
+      }
+    }
+
     res.json(lotesDisponiveis);
   } catch (error) {
     res.status(500).json({ message: 'Erro ao buscar lotes disponíveis', error: error.message });
@@ -147,7 +189,7 @@ router.get('/lotes-disponiveis', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const db = await getDb();
-    const rows = await db.all(`SELECT * FROM saidas_combustivel`);
+    const rows = await db.all(`SELECT * FROM saidas_combustivel ORDER BY id DESC`);
     res.json(rows.map(dbRowToAbastecimento));
   } catch (error) {
     res.status(500).json({ message: 'Erro ao ler dados de combustível', error: error.message });
@@ -360,26 +402,128 @@ router.post('/requisicao', async (req, res) => {
     const id = Date.now().toString();
     const reqObj = { status: 'EM ANDAMENTO', ...req.body };
     const dadosJson = JSON.stringify(reqObj);
+    const novoKm = reqObj.km ? parseFloat(reqObj.km) : null;
+
+    // === Trava Global Anti-Retrocesso de KM (Requisição) ===
+    if (novoKm && reqObj.veiculo) {
+      const placaRef = reqObj.veiculo.trim().toUpperCase();
+      const vRow = await db.get(`SELECT * FROM frota_veiculos WHERE placa = ?`, [placaRef]);
+      if (vRow) {
+        let vDados = {};
+        try { vDados = JSON.parse(vRow.dados_json || '{}'); } catch(e){}
+        const kmAtualBd = parseFloat(vDados.kmAtual) || 0;
+        if (novoKm < kmAtualBd) {
+          const diferenca = kmAtualBd - novoKm;
+          if (diferenca > 2000) {
+            return res.status(400).json({ message: `TRAVA DE SEGURANÇA: O KM informado (${novoKm}) é menor que o histórico do veículo (${kmAtualBd}). Diferença exagerada: ${diferenca}.` });
+          }
+        }
+      } else {
+        const gRow = await db.get(`SELECT * FROM frota_geradores WHERE nome = ? OR codigo = ?`, [placaRef, placaRef]);
+        if (gRow) {
+          let gDados = {};
+          try { gDados = JSON.parse(gRow.dados_json || '{}'); } catch(e){}
+          const hAtualBd = parseFloat(gDados.horimetroAtual) || 0;
+          if (novoKm < hAtualBd) {
+            const diferenca = hAtualBd - novoKm;
+            if (diferenca > 2000) {
+              return res.status(400).json({ message: `TRAVA DE SEGURANÇA: O Horímetro informado (${novoKm}) é menor que o histórico (${hAtualBd}). Diferença exagerada: ${diferenca}.` });
+            }
+          }
+        }
+      }
+    }
 
     await db.run(
-      `INSERT INTO saidas_combustivel (id, placa, motorista, tipo_combustivel, litros, valor_total, tanque_origem, data_hora, dados_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO saidas_combustivel (id, placa, motorista, tipo_combustivel, litros, valor_litro, valor_total, km_abastecimento, tanque_origem, data_hora, dados_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         reqObj.veiculo || null,
-        reqObj.motorista || null,
+        reqObj.motorista || reqObj.requisitante || null,
         reqObj.combustivel || null,
         parseMonetaryValue(reqObj.qtde),
+        parseMonetaryValue(reqObj.valorUnitario || reqObj.valor_litro),
         parseMonetaryValue(reqObj.valorTotal),
+        novoKm,
         reqObj.fornecedor || null,
         reqObj.data || null,
         dadosJson
       ]
     );
 
+    // === Automação Frota (KM) ao abrir requisição se informado ===
+    if (novoKm && reqObj.veiculo) {
+      const placaRef = reqObj.veiculo.trim().toUpperCase();
+      const vRow = await db.get(`SELECT * FROM frota_veiculos WHERE placa = ?`, [placaRef]);
+      if (vRow) {
+        let vDados = {};
+        try { vDados = JSON.parse(vRow.dados_json || '{}'); } catch(e){}
+        if (novoKm > (parseFloat(vDados.kmAtual) || 0)) {
+          vDados.kmAtual = novoKm;
+          await db.run(`UPDATE frota_veiculos SET dados_json = ? WHERE id = ?`, [JSON.stringify(vDados), vRow.id]);
+        }
+      }
+
+      // === Automação Geradores (Horímetro) ===
+      const granjaRef = reqObj.veiculo.trim(); 
+      const gRow = await db.get(`SELECT * FROM frota_geradores WHERE nome = ? OR codigo = ?`, [granjaRef, granjaRef]);
+      if (gRow) {
+        let gDados = {};
+        try { gDados = JSON.parse(gRow.dados_json || '{}'); } catch(e){}
+        if (novoKm > (parseFloat(gDados.horimetroAtual) || 0)) {
+          gDados.horimetroAtual = novoKm;
+          await db.run(`UPDATE frota_geradores SET dados_json = ? WHERE id = ?`, [JSON.stringify(gDados), gRow.id]);
+        }
+      }
+    }
+
     res.status(201).json({ message: 'Requisição cadastrada', requisicao: { id, ...reqObj } });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao salvar requisição', error: error.message });
+  }
+});
+
+// Anexar Foto do Comprovante / Visor da Bomba na Requisição
+router.patch('/requisicao/:id/foto', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { foto, fotoNota, fotoVisor, fotoComprovante } = req.body;
+    const img = foto || fotoNota || fotoVisor || fotoComprovante;
+    if (!img) return res.status(400).json({ message: 'Foto é obrigatória' });
+
+    const db = await getDb();
+    let row = await db.get(`SELECT * FROM saidas_combustivel WHERE id = ?`, [id]);
+    if (!row) {
+      const rows = await db.all(`SELECT * FROM saidas_combustivel`);
+      row = rows.find(r => {
+        try {
+          const d = JSON.parse(r.dados_json || '{}');
+          return String(d.numeroRequisicao).trim() === String(id).trim() || String(r.id).trim() === String(id).trim();
+        } catch(e) { return false; }
+      });
+    }
+
+    if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
+
+    let dados = {};
+    try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
+
+    dados.foto = img;
+    dados.fotoNota = img;
+    dados.fotoVisor = img;
+    dados.fotoComprovante = img;
+
+    await db.run(`UPDATE saidas_combustivel SET dados_json = ? WHERE id = ?`, [JSON.stringify(dados), row.id]);
+    
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('combustivel_atualizado', { tipo: 'foto', id: row.id, numeroRequisicao: dados.numeroRequisicao });
+    }
+
+    res.json({ message: 'Foto anexada à requisição com sucesso', foto: img, requisicao: { id: row.id, ...dados } });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao anexar foto', error: error.message });
   }
 });
 
@@ -397,7 +541,7 @@ router.put('/abastecimento/:id', async (req, res) => {
       row = rows.find(r => {
         try {
           const d = JSON.parse(r.dados_json || '{}');
-          return d.numeroRequisicao === id;
+          return String(d.numeroRequisicao).trim() === String(id).trim() || String(r.id).trim() === String(id).trim();
         } catch(e) { return false; }
       });
     }
@@ -407,16 +551,73 @@ router.put('/abastecimento/:id', async (req, res) => {
     let dados = {};
     try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
 
-    if (dados.status === 'CONCLUÍDO' || dados.status === 'ABASTECIDA') {
+    if (dados.status === 'ABASTECIDA') {
       return res.status(400).json({ message: 'Esta requisição já foi abastecida' });
     }
 
-    dados = { ...dados, ...req.body, status: 'CONCLUÍDO' };
+    // Preserva foto prévia caso o payload chegue sem foto ou com campo vazio
+    const fotoExistente = dados.foto || dados.fotoNota || dados.fotoVisor || dados.fotoComprovante || null;
+    const fotoRecebida = req.body.foto || req.body.fotoNota || req.body.fotoVisor || req.body.fotoComprovante || null;
+    const fotoFinal = fotoRecebida || fotoExistente;
+
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const dataAtual = `${ano}-${mes}-${dia}`;
+    const horaAtual = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+    const dataHoraISO = req.body.data_hora || req.body.data_hora_abastecimento || `${dataAtual}T${horaAtual}:00`;
+
+    dados = {
+      ...dados,
+      ...req.body,
+      data_abastecimento: req.body.data_abastecimento || dataAtual,
+      hora_abastecimento: req.body.hora_abastecimento || horaAtual,
+      data_hora: dataHoraISO,
+      data_hora_abastecimento: dataHoraISO,
+      status: 'ABASTECIDA'
+    };
+    if (fotoFinal) {
+      dados.foto = fotoFinal;
+      dados.fotoNota = fotoFinal;
+      dados.fotoVisor = fotoFinal;
+      dados.fotoComprovante = fotoFinal;
+    }
     const novoKm = req.body.km ? parseFloat(req.body.km) : null;
+
+    // === Trava Global Anti-Retrocesso de KM (Abastecimento) ===
+    if (novoKm && dados.veiculo) {
+      const placaRef = dados.veiculo.trim().toUpperCase();
+      const vRow = await db.get(`SELECT * FROM frota_veiculos WHERE placa = ?`, [placaRef]);
+      if (vRow) {
+        let vDados = {};
+        try { vDados = JSON.parse(vRow.dados_json || '{}'); } catch(e){}
+        const kmAtualBd = parseFloat(vDados.kmAtual) || 0;
+        if (novoKm < kmAtualBd) {
+          const diferenca = kmAtualBd - novoKm;
+          if (diferenca > 2000) {
+            return res.status(400).json({ message: `TRAVA DE SEGURANÇA: O KM abastecido (${novoKm}) é menor que o histórico do veículo (${kmAtualBd}). Operação bloqueada.` });
+          }
+        }
+      } else {
+        const gRow = await db.get(`SELECT * FROM frota_geradores WHERE nome = ? OR codigo = ?`, [placaRef, placaRef]);
+        if (gRow) {
+          let gDados = {};
+          try { gDados = JSON.parse(gRow.dados_json || '{}'); } catch(e){}
+          const hAtualBd = parseFloat(gDados.horimetroAtual) || 0;
+          if (novoKm < hAtualBd) {
+            const diferenca = hAtualBd - novoKm;
+            if (diferenca > 2000) {
+              return res.status(400).json({ message: `TRAVA DE SEGURANÇA: O Horímetro abastecido (${novoKm}) é menor que o histórico (${hAtualBd}). Operação bloqueada.` });
+            }
+          }
+        }
+      }
+    }
 
     await db.run(
       `UPDATE saidas_combustivel SET 
-         placa = ?, motorista = ?, tipo_combustivel = ?, litros = ?, valor_litro = ?, valor_total = ?, km_abastecimento = ?, tanque_origem = ?, dados_json = ?
+         placa = ?, motorista = ?, tipo_combustivel = ?, litros = ?, valor_litro = ?, valor_total = ?, km_abastecimento = ?, tanque_origem = ?, data_hora = ?, dados_json = ?
        WHERE id = ?`,
       [
         dados.veiculo || row.placa,
@@ -427,6 +628,7 @@ router.put('/abastecimento/:id', async (req, res) => {
         parseMonetaryValue(req.body.valorTotal || row.valor_total),
         parseMonetaryValue(req.body.kmAtual || req.body.km_abastecimento),
         req.body.fornecedor || req.body.tanque_origem || null,
+        dataHoraISO,
         JSON.stringify(dados),
         row.id
       ]
@@ -460,7 +662,7 @@ router.put('/abastecimento/:id', async (req, res) => {
       }
     }
 
-    res.json({ message: 'Abastecimento registrado', requisicao: dados });
+    res.json({ message: 'Abastecimento registrado', requisicao: { id: row.id, ...dados } });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao registrar abastecimento', error: error.message });
   }
@@ -489,13 +691,13 @@ router.put('/cancelar/:id', async (req, res) => {
     let dados = {};
     try { dados = JSON.parse(row.dados_json || '{}'); } catch(e){}
     
-    dados.status = 'CANCELADO';
+    dados.status = 'CANCELADA';
     dados.motivoCancelamento = motivoCancelamento || 'Cancelado pelo usuário';
     dados.dataCancelamento = new Date().toISOString();
 
     await db.run(`UPDATE saidas_combustivel SET dados_json = ? WHERE id = ?`, [JSON.stringify(dados), row.id]);
 
-    res.json({ message: 'Requisição cancelada', requisicao: dados });
+    res.json({ message: 'Requisição cancelada', requisicao: { id: row.id, ...dados } });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao cancelar', error: error.message });
   }

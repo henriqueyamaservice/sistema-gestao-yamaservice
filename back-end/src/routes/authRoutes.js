@@ -2,12 +2,56 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import getDb from '../config/database.js';
+import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ [AVISO DE SEGURANÇA] JWT_SECRET não configurado no .env! Utilizando fallback de desenvolvimento.');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'almoxarifado_yama_secret_dev';
 
-// Login route
+// Rate Limiter em memória para proteção contra ataques de força bruta no Login
+const loginTentativas = new Map(); // IP -> { tentativas: number, primeiroErro: number }
+const MAX_TENTATIVAS_FALHAS = 5;
+const JANELA_BLOQUEIO_MS = 15 * 60 * 1000; // 15 minutos
+
+// Limpeza automática periódica de registros expirados a cada 10 minutos
+setInterval(() => {
+  const agora = Date.now();
+  for (const [ip, dado] of loginTentativas.entries()) {
+    if (agora - dado.primeiroErro > JANELA_BLOQUEIO_MS) {
+      loginTentativas.delete(ip);
+    }
+  }
+}, 10 * 60 * 1000);
+
+// Helper para registrar falha
+const registrarFalhaLogin = (clientIp) => {
+  const agora = Date.now();
+  const registro = loginTentativas.get(clientIp) || { tentativas: 0, primeiroErro: agora };
+  registro.tentativas += 1;
+  loginTentativas.set(clientIp, registro);
+};
+
+// Login route com proteção contra força bruta
 router.post('/login', async (req, res) => {
+  const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1').split(',')[0].trim();
+  const agora = Date.now();
+  const registroIp = loginTentativas.get(clientIp);
+
+  // Verifica se o IP está temporariamente bloqueado por excesso de tentativas incorretas
+  if (registroIp && registroIp.tentativas >= MAX_TENTATIVAS_FALHAS) {
+    if (agora - registroIp.primeiroErro < JANELA_BLOQUEIO_MS) {
+      const minutosRestantes = Math.ceil((JANELA_BLOQUEIO_MS - (agora - registroIp.primeiroErro)) / 60000);
+      return res.status(429).json({
+        message: `Muitas tentativas incorretas consecutivas. Por segurança, tente novamente em ${minutosRestantes} minuto(s).`
+      });
+    } else {
+      loginTentativas.delete(clientIp);
+    }
+  }
+
   try {
     const { username, password } = req.body;
 
@@ -21,14 +65,19 @@ router.post('/login', async (req, res) => {
     const user = await db.get(`SELECT * FROM usuarios WHERE username = ?`, [username]);
     
     if (!user) {
+      registrarFalhaLogin(clientIp);
       return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.senha_hash);
     if (!isMatch) {
+      registrarFalhaLogin(clientIp);
       return res.status(401).json({ message: 'Usuário ou senha incorretos.' });
     }
+
+    // Sucesso: remove o histórico de erros do IP
+    loginTentativas.delete(clientIp);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -61,6 +110,14 @@ router.post('/login', async (req, res) => {
     console.error('Erro no login:', error);
     res.status(500).json({ message: 'Erro interno no servidor.', error: error.message });
   }
+});
+
+// GET /api/auth/verificar - Validação de token ativo e retorno seguro de perfil
+router.get('/verificar', authMiddleware, async (req, res) => {
+  res.json({
+    valido: true,
+    user: req.user
+  });
 });
 
 // Setup admin if not exists

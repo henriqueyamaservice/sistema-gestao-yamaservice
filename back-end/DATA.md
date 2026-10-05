@@ -1,70 +1,59 @@
-# Arquitetura e Dados do Sistema Almoxarifado (Agente)
+# Arquitetura e Dados do Sistema Almoxarifado (MariaDB / Docker)
 
-Este documento descreve a estrutura atual de dados do sistema (baseada em arquivos JSON) e o planejamento para a futura migração para um banco de dados relacional (MySQL), além da estratégia de integração com a API da Omie.
-
----
-
-## 1. Estrutura Atual dos Dados (JSON)
-
-### 1.1. Dados da Empresa (Base e Cadastros)
-A base da empresa é composta por informações essenciais de suprimentos e organização, majoritariamente integradas com o ERP Omie:
-* **Produtos e Estoque (`produtos.json`):** Catálogo de itens vindos da Omie, incluindo código, EAN, NCM, valor unitário, saldo em estoque, lotes e validade.
-* **Estrutura Organizacional:** 
-  * Departamentos (`departamentos.json`)
-  * Projetos / Centros de Custo (`projetos.json`)
-  * Locais de Estoque (`locais_estoque.json`)
-* **Terceiros:** Fornecedores (`fornecedores.json`) e Vendedores (`vendedores.json`).
-
-### 1.2. Dados do Relatório da OS (Ordem de Serviço)
-Os registros das operações (`ordens_servico.json`) contêm todas as informações gerenciais:
-* **Cabeçalho:** Identificação (ID, Código), Data/Hora de criação, Requisitante.
-* **Classificação:** Setor, Centro de Custo, Tipo (Corretiva, Melhoria), Prioridade e Complexidade.
-* **Métricas de Tempo:** Prazo estipulado, Situação (Concluído, Andamento), Datas e Horas reais de Início e Fim.
-* **Recursos Consumidos (Custos):**
-  * **Mão de Obra:** Funcionários envolvidos, função (Executor/Ajudante) e horas trabalhadas.
-  * **Consumíveis:** Materiais/Produtos do estoque gastos na OS (cruzamento direto com o catálogo da Omie).
-  * **Frota:** Placa do veículo utilizado e Km rodado.
-* **Detalhamento:** Descrição inicial, passos executados, resultado e observações finais.
+Este documento descreve a infraestrutura real de persistência de dados do sistema, 100% migrada e operacional em **MariaDB/MySQL** executado via Docker (tanto em ambiente local quanto em produção na VPS).
 
 ---
 
-## 2. Visão de Futuro: Migração para MySQL
+## 1. Infraestrutura do Banco de Dados
 
-Para suportar crescimento, relatórios complexos e concorrência de múltiplos usuários, a base de dados migrará de JSON para um modelo relacional no MySQL. 
-
-### 2.1. Modelagem Sugerida (Tabelas Principais)
-1. **`produtos`**: Armazena o espelho do catálogo Omie.
-   * `id` (PK), `omie_codigo_produto`, `sku`, `descricao`, `estoque_atual`, `estoque_minimo`, `valor_unitario`, `ultima_sincronizacao`.
-2. **`lotes_produtos`**: Tabela filha para controle de lotes e validades.
-3. **`ordens_servico`**: Tabela principal da OS.
-   * `id` (PK), `codigo`, `requisitante_id`, `setor_id`, `centro_custo_id`, `status`, `data_criacao`, `data_inicio`, `data_fim`, etc.
-4. **`os_mao_obra`**: Relação 1:N com as OS.
-   * `id`, `os_id` (FK), `matricula`, `nome`, `funcao`, `horas`.
-5. **`os_consumiveis`**: Relação N:M entre OS e Produtos.
-   * `id`, `os_id` (FK), `produto_id` (FK), `quantidade_utilizada`, `valor_custo_momento`.
+- **SGBD:** MariaDB / MySQL (`mysql2/promise` com pool de conexões).
+- **Driver:** Abstração unificada em `src/config/database.js` (`getDb()`, com métodos `.exec()`, `.run()`, `.all()`, `.get()`).
+- **Resiliência:** Pool automático com até 12 tentativas de reconexão automática e pool de 10 conexões concorrentes.
+- **Tipagem Monetária:** `DECIMAL(15,2)` e `DECIMAL(15,4)` para blindagem financeira contra imprecisões de ponto flutuante.
 
 ---
 
-## 3. Estratégia de Sincronização com Omie (Controle de Limites API)
+## 2. Mapa Completo de Tabelas Ativas no MariaDB
 
-A API da Omie possui limites de requisição rígidos (geralmente cerca de 4 requisições por segundo / rate limits diários). Para evitar bloqueios ("Too Many Requests") e gargalos, adotaremos as seguintes estratégias na arquitetura futura:
+### 2.1. Tabelas Espelho da Integração ERP Omie (Cadastros)
 
-### A. Webhooks (Push em vez de Pull)
-Em vez de o nosso sistema ficar "perguntando" para a Omie o tempo todo se o estoque de um produto mudou, nós configuraremos **Webhooks** na Omie. 
-* **Como funciona:** A Omie envia uma notificação (um POST HTTP) para o nosso Back-end apenas quando um produto é criado, alterado ou tem seu estoque atualizado lá.
-* **Vantagem:** O consumo de API despenca para quase zero no que tange a atualizações de catálogo.
+| Tabela | Chave Primária | Finalidade | Campos Principais |
+| :--- | :--- | :--- | :--- |
+| `produtos_omie` | `codigo VARCHAR(191)` | Catálogo geral com 11.000+ peças e insumos | `descricao`, `ncm`, `ean`, `valor_unitario`, `quantidade_estoque`, `dados_json` (lotes, validades, marca, localização) |
+| `fornecedores_omie` | `codigo VARCHAR(191)` | Fornecedores, clientes e colaboradores | `razao_social`, `cnpj_cpf`, `dados_json` |
+| `departamentos_omie` | `codigo VARCHAR(191)` | Departamentos e centros de custo oficiais | `descricao`, `dados_json` |
+| `projetos_omie` | `codigo VARCHAR(191)` | Projetos e O.S. registradas no ERP | `nome`, `dados_json` |
+| `locais_estoque_omie` | `codigo VARCHAR(191)` | Locais de estoque (Almoxarifado Central, etc.) | `descricao`, `dados_json` |
+| `vendedores_omie` | `codigo VARCHAR(191)` | Vendedores e operadores habilitados no Omie | `nome`, `dados_json` |
 
-### B. Sincronização Delta (Por Data de Alteração)
-Se precisarmos de rotinas ativas de busca (ex: job noturno de verificação de consistência):
-* **Como funciona:** Nunca buscaremos a base completa (`ListarProdutos`). Utilizaremos os parâmetros `filtrar_por_data_de` e `filtrar_por_data_ate` ou `filtrar_apenas_inclusao`.
-* **Vantagem:** Baixamos apenas as diferenças ("Deltas"), reduzindo o tráfego e o tempo da requisição.
+### 2.2. Tabelas Operacionais do Sistema
 
-### C. Fila de Sincronização (Queue System) para Escrita
-Quando a OS for concluída e precisarmos dar baixa no estoque da Omie (ou gerar requisição de material):
-* **Como funciona:** As solicitações não vão direto para a Omie no momento que o usuário clica em "Salvar". Elas entram em uma tabela de "Fila de Integração" local.
-* Um processo em background (um *Worker* com Node.js ou cron job) lê essa fila e envia para a Omie de forma cadenciada (ex: com um `sleep(300)` entre requisições ou usando bibliotecas de *rate limiting* como `bottleneck`).
-* **Vantagem:** Garante que o usuário não trave a tela esperando a Omie responder, e se a API da Omie cair, a fila segura o processo e tenta novamente mais tarde.
+| Tabela | Chave Primária | Finalidade | Estrutura |
+| :--- | :--- | :--- | :--- |
+| `ordens_servico` | `id VARCHAR(191)` | Cabeçalho e dados mestre de O.S. | `numero_os` (UNIQUE), `situacao`, `tipo`, `setor`, `centro_custo`, `requisitante`, `tecnico`, `prioridade`, `valor_estimado`, `dados_json` (histórico diff de edições, faturamento, granjas) |
+| `os_turnos` | `id VARCHAR(191)` | Apontamento de diário de bordo por turnos | `os_id` (FK CASCADE), `data_apontamento`, `hora_inicio`, `hora_fim1`, `hora_inicio2`, `hora_fim`, `descricao_servico` |
+| `os_equipe` | `id VARCHAR(191)` | Equipe de mecânicos por turno | `turno_id` (FK CASCADE), `matricula`, `nome`, `funcao`, `horas` |
+| `os_pecas_utilizadas` | `id VARCHAR(191)` | Peças consumidas na O.S. | `turno_id` (FK CASCADE), `codigo`, `descricao`, `quantidade` |
+| `os_veiculos_utilizados`| `id VARCHAR(191)` | Veículos utilizados no serviço | `turno_id` (FK CASCADE), `placa`, `km_inicial`, `km_final`, `km_total` |
+| `relatorios_custos` | `id VARCHAR(191)` | Relatórios mensais de custos operacionais | `data_inicio`, `data_fim`, `horas_uteis`, `data_fechamento` |
+| `relatorios_custos_funcionarios` | `id VARCHAR(191)` | Custos de folha e homem-hora | `relatorio_id` (FK CASCADE), `cpf`, `nome`, `cargo`, `horas_trabalhadas`, `folha_mensal`, `ferias`, `fgts` |
+| `requisicoes` | `id VARCHAR(191)` | Requisições (Almoxarifado, Compras, O.S.) | `numero_os`, `status`, `status_compras`, `tipo`, `solicitante`, `departamento`, `entregador`, `local_estoque`, `dados_json` (itens, cotações, orçamentos, conciliação fiscal) |
+| `servicos_kits` | `id VARCHAR(191)` | Kits padronizados de revisão preventiva | `nome`, `area_manutencao` (`MECANICA`, `ELETRICA`, `PREDIAL`), `categoria`, `dados_json` (itens do kit) |
+| `usuarios` | `id VARCHAR(191)` | Controle de acesso e autenticação | `nome`, `username` (UNIQUE), `senha_hash`, `role`, `setor`, `codigo_omie` |
 
-### D. Banco Local como Fonte da Verdade de Leitura
-* O usuário do sistema de Almoxarifado sempre fará consultas de relatórios e pesquisas de produtos em cima do nosso banco **MySQL**. O MySQL é o nosso "cache" persistente e rápido.
-* O sistema nunca faz uma chamada na API da Omie para popular uma tabela na tela (Dashboard), o que garante velocidade instantânea para o usuário final e protege a franquia de requisições da Omie.
+### 2.3. Módulo Frota & Combustível
+
+| Tabela | Chave Primária | Finalidade | Estrutura |
+| :--- | :--- | :--- | :--- |
+| `frota_veiculos` | `id VARCHAR(191)` | Frota de caminhões, tratores e veículos leves | `placa` (UNIQUE), `modelo`, `tipo`, `marca`, `ano`, `status`, `dados_json` (`kmAtual`, `kmTrocaOleo`, revisões) |
+| `frota_geradores` | `id VARCHAR(191)` | Geradores das granjas e sede | `codigo` (UNIQUE), `nome`, `localizacao`, `status`, `dados_json` (`horimetroAtual`, `horimetroTrocaOleo`) |
+| `entradas_combustivel`| `id VARCHAR(191)` | Notas de entrada de Diesel e Arla | `fornecedor`, `tipo_combustivel`, `quantidade_litros`, `valor_total`, `valor_unitario`, `estoque_destino`, `dados_json` |
+| `saidas_combustivel` | `id VARCHAR(191)` | Abastecimentos e descarte | `placa`, `modelo`, `veiculo_id`, `motorista`, `tipo_combustivel`, `litros`, `valor_litro`, `valor_total`, `km_abastecimento`, `tanque_origem`, `dados_json` |
+| `checklists_veiculos` | `id VARCHAR(191)` | Checklists diários de frotas | `placa`, `modelo`, `condutor_nome`, `data_hora`, `dados_json` |
+
+---
+
+## 3. Resíduo de Migração Mapeado para Pós-Apresentação
+
+- **`pedidos_pendentes`**: Atualmente armazenado no arquivo JSON `data/almoxarifado/pedidos_pendentes.json` via `jsonDbService.js`.
+  - Mapeado para migração na tabela MariaDB `recebimentos_pendentes_almoxarifado` após a apresentação de segunda-feira.

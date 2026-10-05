@@ -19,14 +19,23 @@ import NotificationRevisaoService from './componentes/NotificationRevisaoService
 const DashboardControleCombustivel = ({ osList, abaAtiva }) => {
   const [requisicoes, setRequisicoes] = useState([]);
 
-  // Buscar dados do backend
+  // Buscar dados do backend com anti-cache
+  const fetchRequisicoes = async () => {
+    try {
+      const res = await fetch(`/api/combustivel?_t=${Date.now()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setRequisicoes(data);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar combustivel:', err);
+    }
+  };
+
   useEffect(() => {
-    fetch(`/api/combustivel`)
-      .then(res => res.json())
-      .then(data => {
-        setRequisicoes(data);
-      })
-      .catch(err => console.error('Erro ao buscar combustivel:', err));
+    fetchRequisicoes();
   }, []);
 
   // Estados dos Modais
@@ -39,20 +48,34 @@ const DashboardControleCombustivel = ({ osList, abaAtiva }) => {
   const [showTipoRequisicaoModal, setShowTipoRequisicaoModal] = useState(false);
   const [tipoRequisicaoSelecionado, setTipoRequisicaoSelecionado] = useState('carro');
 
-  const handleAddRequisicao = (req) => {
-    setRequisicoes(prev => [...prev, req]);
+  const handleAddRequisicao = () => {
+    fetchRequisicoes();
   };
 
-  const handleAddAbastecimento = (abast) => {
-    setRequisicoes(prev => prev.map(r => (r.id === abast.id || r.numeroRequisicao === abast.numeroRequisicao) ? abast : r));
+  const handleAddAbastecimento = () => {
+    fetchRequisicoes();
   };
 
-  const handleRowClick = (req) => {
-    if (req.status === 'EM ANDAMENTO' || req.status === 'ABERTA') {
-      setRequisicaoParaAbastecer(req);
+  const handleRowClick = async (req) => {
+    let atual = req;
+    try {
+      const res = await fetch(`/api/combustivel?_t=${Date.now()}`);
+      if (res.ok) {
+        const data = await res.json();
+        atual = data.find(r => r.id === req.id || r.numeroRequisicao === req.numeroRequisicao) || req;
+      }
+    } catch (error) {
+      console.warn('Erro ao atualizar status do abastecimento em tempo real. Usando dados locais.', error);
+    }
+
+    setRequisicaoParaAbastecer(atual);
+
+    const sLower = (atual.status || '').toString().trim().toLowerCase().replace(/_/g, ' ');
+    const isPending = sLower.includes('em andamento') || sLower.includes('aguardando abastecimento') || sLower === 'aberta';
+
+    if (isPending) {
       setShowNovoAbastecimento(true);
     } else {
-      setRequisicaoParaAbastecer(req);
       setShowDetalhesAbastecimento(true);
     }
   };
@@ -69,13 +92,15 @@ const DashboardControleCombustivel = ({ osList, abaAtiva }) => {
               <h2 className={`${styles.cardTitle} ${styles.noBorderBottom}`}>
                 Relatório de Saídas (Abastecimentos)
               </h2>
-              <button
-                className={`${styles.btnSecondary} ${styles.btnDestaque}`}
-                onClick={() => setShowTipoRequisicaoModal(true)}
-              >
-                <Plus size={18} />
-                Nova Requisição
-              </button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button
+                  className={`${styles.btnSecondary} ${styles.btnDestaque}`}
+                  onClick={() => setShowTipoRequisicaoModal(true)}
+                >
+                  <Plus size={18} />
+                  Nova Requisição
+                </button>
+              </div>
             </div>
 
             <TabelaCombustivel requisicoes={requisicoes} onRowClick={handleRowClick} />

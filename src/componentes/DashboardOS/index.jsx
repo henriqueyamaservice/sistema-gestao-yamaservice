@@ -6,6 +6,9 @@ import FormularioOS from './componentes/FormularioOS';
 import TabelaOS from './componentes/TabelaOS';
 import FormularioServicoOS from './componentes/FormularioServicoOS';
 import ImpressaoOS from './componentes/ImpressaoOS';
+import TabelaPrestacaoServicos from './componentes/TabelaPrestacaoServicos';
+import FormularioPrestacaoServico from './componentes/FormularioPrestacaoServico';
+import ImpressaoPrestacaoServico from './componentes/ImpressaoPrestacaoServico';
 import logoYamaservice from '../../assets/YAMASERVICE.jpeg';
 import { Truck, Fuel } from 'lucide-react';
 import DashboardControleCombustivel from './DashboardControleCombustivel';
@@ -13,21 +16,31 @@ import MenuOs from './componentes/MenuOs';
 import CheckListVeiculo from './componentes/CheckListVeiculo';
 import TabelaCheckList from './componentes/TabelaCheckList';
 import GestaoCustos from './componentes/GestaoCustos';
+import ModalVerificacaoCentroCustoOS from './componentes/ModalVerificacaoCentroCustoOS';
 import { EM_ANDAMENTO } from '../../utils/osStatus';
 import GerenciadorUsuarios from '../GerenciadorUsuarios';
 import { ShieldAlert } from 'lucide-react';
 
-const DashboardOS = () => {
+const DashboardOS = ({ initialViewMode = 'os' }) => {
   const [osList, setOsList] = useState([]);
   const [abaRelatorio, setAbaRelatorio] = useState('os');
   const [osSelecionada, setOsSelecionada] = useState(null);
   const [osParaImprimir, setOsParaImprimir] = useState(null);
   const [showNovaOS, setShowNovaOS] = useState(false);
-  const [viewMode, setViewMode] = useState('os'); // 'os' ou 'combustivel'
+  const [showTriagemOS, setShowTriagemOS] = useState(false);
+  const [centroCustoPreSelecionado, setCentroCustoPreSelecionado] = useState('');
+  const [tipoNovaOS, setTipoNovaOS] = useState('CORRETIVA');
+  const [viewMode, setViewMode] = useState(initialViewMode); // 'os' ou 'combustivel'
   const [abaCombustivel, setAbaCombustivel] = useState('geral');
   const [checklists, setChecklists] = useState([]);
   const [checklistSelecionado, setChecklistSelecionado] = useState(null);
   const [showGerenciadorUsuarios, setShowGerenciadorUsuarios] = useState(false);
+
+  useEffect(() => {
+    if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
 
   // Carregar checklists do backend
   useEffect(() => {
@@ -95,6 +108,15 @@ const DashboardOS = () => {
     }, 500);
   };
 
+  const isPrestacaoOS = (os) => Boolean(
+    os && (
+      os.tipo === 'PRESTACAO_SERVICO' ||
+      os.isPrestacaoServico === true ||
+      os.modalidade === 'PRESTACAO_SERVICO' ||
+      (Array.isArray(os.itensPrestacao) && os.itensPrestacao.length > 0)
+    )
+  );
+
   return (
     <div className={styles.appLayout}>
       <MenuOs 
@@ -120,12 +142,37 @@ const DashboardOS = () => {
         <>
       {/* Corpo principal */}
       <main className={osParaImprimir ? styles.noPrint : ''}>
+        {/* Modal de Verificação / Triagem Prévia de Centro de Custo para Prevenção de Duplicidade */}
+        {showTriagemOS && (
+          <ModalVerificacaoCentroCustoOS 
+            isOpen={showTriagemOS}
+            onClose={() => setShowTriagemOS(false)}
+            osList={osList}
+            isPrestacao={tipoNovaOS === 'PRESTACAO_SERVICO'}
+            onContinuar={(centroEscolhido) => {
+              setCentroCustoPreSelecionado(centroEscolhido);
+              setShowTriagemOS(false);
+              setShowNovaOS(true);
+            }}
+            onVerOS={(os) => {
+              setShowTriagemOS(false);
+              setOsSelecionada(os);
+            }}
+          />
+        )}
+
         {/* Formulário de Cadastro Modal */}
         {showNovaOS && (
           <FormularioOS 
             onAddOS={handleAddOS} 
             osList={osList} 
-            onClose={() => setShowNovaOS(false)}
+            initialTipo={tipoNovaOS}
+            isPrestacaoMode={tipoNovaOS === 'PRESTACAO_SERVICO'}
+            initialCentroCusto={centroCustoPreSelecionado}
+            onClose={() => {
+              setShowNovaOS(false);
+              setCentroCustoPreSelecionado('');
+            }}
           />
         )}
 
@@ -136,7 +183,23 @@ const DashboardOS = () => {
             onRowClick={(os) => setOsSelecionada(os)} 
             onPrint={handleImprimirOS} 
             onStart={handleStartOS}
-            onNovoClick={() => setShowNovaOS(true)}
+            onNovoClick={() => {
+              setTipoNovaOS('CORRETIVA');
+              setShowTriagemOS(true);
+            }}
+          />
+        )}
+
+        {/* Tabela de Prestação de Serviços (Granjas) */}
+        {abaRelatorio === 'prestacao-servicos' && (
+          <TabelaPrestacaoServicos 
+            osList={osList} 
+            onRowClick={(os) => setOsSelecionada(os)} 
+            onPrint={handleImprimirOS} 
+            onNovoClick={() => {
+              setTipoNovaOS('PRESTACAO_SERVICO');
+              setShowTriagemOS(true);
+            }}
           />
         )}
 
@@ -182,14 +245,22 @@ const DashboardOS = () => {
           </div>
         )}
 
-
-        {/* Modal de Fechamento de OS */}
+        {/* Modal de Fechamento / Apontamento de OS */}
         {osSelecionada && (
-          <FormularioServicoOS 
-            os={osSelecionada} 
-            onClose={() => setOsSelecionada(null)} 
-            onUpdateOS={handleUpdateOS} 
-          />
+          isPrestacaoOS(osSelecionada) ? (
+            <FormularioPrestacaoServico 
+              os={osSelecionada} 
+              onClose={() => setOsSelecionada(null)} 
+              onUpdateOS={handleUpdateOS} 
+              onPrint={handleImprimirOS}
+            />
+          ) : (
+            <FormularioServicoOS 
+              os={osSelecionada} 
+              onClose={() => setOsSelecionada(null)} 
+              onUpdateOS={handleUpdateOS} 
+            />
+          )
         )}
       </main>
           </>
@@ -197,7 +268,11 @@ const DashboardOS = () => {
 
           {/* Componente de Impressão (Oculto na tela normal) */}
           {osParaImprimir && ReactDOM.createPortal(
-            <ImpressaoOS os={osParaImprimir} />,
+            isPrestacaoOS(osParaImprimir) ? (
+              <ImpressaoPrestacaoServico os={osParaImprimir} />
+            ) : (
+              <ImpressaoOS os={osParaImprimir} />
+            ),
             document.body
           )}
         </div>

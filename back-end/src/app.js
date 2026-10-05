@@ -26,6 +26,9 @@ import calendarioRoutes from './routes/calendarioRoutes.js';
 import saudeRoutes from './routes/saudeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import usuariosRoutes from './routes/usuariosRoutes.js';
+import servicosKitsRoutes from './routes/servicosKitsRoutes.js';
+import iaOrcamentoRoutes from './routes/iaOrcamentoRoutes.js';
+import recebimentoFiscalRoutes from './routes/recebimentoFiscalRoutes.js';
 
 const app = express();
 
@@ -43,11 +46,12 @@ const comprasDir = path.join(dataDir, 'compras');
 const projetosDir = path.join(dataDir, 'projetos');
 const calendarioDir = path.join(dataDir, 'calendario');
 const checklistDir = path.join(dataDir, 'checklist');
+const certificadosDir = path.join(dataDir, 'certificados');
 
 [
   dataDir, almoxarifadoDir, omieCollectionDir, uploadsDir, 
   dashboardOsDir, frotaCombustivelDir, geradoresDir, 
-  comprasDir, projetosDir, calendarioDir, checklistDir
+  comprasDir, projetosDir, calendarioDir, checklistDir, certificadosDir
 ].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -77,6 +81,9 @@ app.use('/api/combustivel', combustivelRoutes);
 app.use('/api/geradores', geradoresRoutes);
 app.use('/api/remessa', remessaRoutes);
 app.use('/api/checklists', checklistRoutes);
+app.use('/api/servicos-kits', servicosKitsRoutes);
+app.use('/api/ia-orcamento', iaOrcamentoRoutes);
+app.use('/api/recebimento-fiscal', recebimentoFiscalRoutes);
 
 // Rotas mistas (fornecedores, departamentos, cotacao, calendario)
 app.use('/api', cadastrosRoutes);

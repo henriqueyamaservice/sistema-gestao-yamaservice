@@ -1,0 +1,297 @@
+.printContainer {
+  display: none;
+  background-color: #fff;
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 10mm;
+  box-sizing: border-box;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .printContainer, .printContainer * {
+    visibility: visible;
+  }
+
+  .printContainer {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #000;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoImg {
+  height: 42px;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #d9534f;
+  margin: 0;
+}
+
+.titleArea {
+  text-align: right;
+}
+
+.docTitle {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.5px;
+}
+
+.docNumero {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111;
+  margin: 0;
+}
+
+/* Grid de Informações Principais */
+.infoTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+  border: 1.5px solid #000;
+}
+
+.infoTable td, .infoTable th {
+  border: 1px solid #777;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.infoLabel {
+  font-size: 9px;
+  color: #555;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 1px;
+}
+
+.infoVal {
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+}
+
+.boxResultadoRow {
+  background-color: #f9f9f9;
+}
+
+.totalGeralBox {
+  font-size: 15px;
+  font-weight: 900;
+  color: #b91c1c;
+}
+
+/* Tabela Principal de Recursos / Consumíveis */
+.recursosTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
+  border: 1.5px solid #000;
+}
+
+.recursosTable th {
+  background-color: #eee;
+  border: 1px solid #000;
+  padding: 5px 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+}
+
+.recursosTable td {
+  border: 1px solid #999;
+  padding: 4px 5px;
+  font-size: 10.5px;
+  height: 20px;
+}
+
+.colDataHora {
+  width: 12%;
+  text-align: center;
+}
+
+.colTp {
+  width: 6%;
+  text-align: center;
+  font-weight: bold;
+}
+
+.colCodigo {
+  width: 14%;
+  text-align: center;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.colQuant {
+  width: 10%;
+  text-align: right;
+  font-weight: bold;
+}
+
+.colDescricao {
+  width: 38%;
+  text-align: left;
+}
+
+.colValorUni {
+  width: 10%;
+  text-align: right;
+}
+
+.colTotalItem {
+  width: 10%;
+  text-align: right;
+  font-weight: bold;
+}
+
+.recursosTable tr {
+  page-break-inside: avoid;
+}
+
+.emptyRow td {
+  border-bottom: 1px dashed #ccc;
+}
+
+/* Bloco de Assinaturas */
+.assinaturasContainer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.linhaAssinatura {
+  width: 220px;
+  border-top: 1px solid #000;
+  padding-top: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Anexo Oficial de Comprovantes & Notas Fiscais */
+.anexoComprovantes {
+  margin-top: 24px;
+  page-break-before: always;
+}
+
+.anexoHeader {
+  border-bottom: 2px solid #000;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.anexoTitulo {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0;
+  color: #111;
+}
+
+.anexoSubtitulo {
+  font-size: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+.anexoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.anexoCard {
+  border: 1px solid #999;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  page-break-inside: avoid;
+}
+
+.anexoCardInfo {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+.anexoItemNome {
+  font-size: 11px;
+  font-weight: bold;
+  color: #000;
+}
+
+.anexoItemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 9.5px;
+  color: #444;
+  margin-top: 2px;
+}
+
+.anexoImgContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 280px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+}
+
+.anexoImg {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}

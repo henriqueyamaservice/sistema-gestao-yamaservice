@@ -774,3 +774,94 @@
   gap: 10px;
   align-items: center;
 }
+
+/* ==========================================
+   SELETOR DE TURNO E HORÁRIOS INTELIGENTES
+   ========================================== */
+.tipoTurnoSelector {
+  display: inline-flex;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btnTipoTurno {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btnTipoTurno:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+}
+
+.btnTipoTurnoActive {
+  background-color: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+}
+
+.btnTipoTurnoActive:hover {
+  background-color: var(--cor-destaque-hover);
+  color: var(--cor-texto-inverso);
+}
+
+.horariosCardLinha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background-color: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.horarioItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.horarioSubLabel {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+}
+
+.horarioAte {
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+  font-weight: 500;
+}
+
+.horarioDivisor {
+  color: var(--cor-borda-cartao);
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.badgeHorasDia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-left: auto;
+}
+

@@ -60,16 +60,41 @@ async function criarPedidoCompra(opcoes) {
   console.log(`[OMIE PEDIDO DE COMPRA] 🛒 Gerando pedido para o fornecedor ${codigoFornecedor} com ${itens.length} itens...`);
 
   const param = {
-    cabecalho: {
-      codigo_fornecedor: codigoFornecedor,
-      etapa: etapa
+    cabecalho_incluir: {
+      nCodFor: codigoFornecedor,
+      cCodIntPed: `P-${Date.now().toString().slice(-8)}`
     },
-    detalhes: itens
+    produtos_incluir: itens.map((item, index) => ({
+      cCodIntItem: `I-${Date.now().toString().slice(-8)}-${index}`,
+      nCodProd: Number(item.codigo_item),
+      cDescricao: item.descricao,
+      nQtde: item.quantidade,
+      nValUnit: item.valor_unitario,
+      cObs: item.observacao || ''
+    }))
   };
 
-  return chamarOmie('IncluirPedidoCompra', param);
+  return chamarOmie('IncluirPedCompra', param);
+}
+/**
+ * Altera a etapa de um pedido de compra na Omie
+ * @param {number} nCodPed - ID interno do pedido na Omie
+ * @param {string} etapa - Nova etapa (Ex: '20' - Faturamento pelo Fornecedor)
+ */
+async function alterarEtapaPedido(nCodPed, etapa) {
+  console.log(`[OMIE PEDIDO DE COMPRA] 🔄 Alterando etapa do pedido ${nCodPed} para ${etapa}...`);
+  
+  const param = {
+    cabecalho: {
+      nCodPed: Number(nCodPed),
+      cEtapa: etapa
+    }
+  };
+
+  return chamarOmie('AlterarPedCompra', param);
 }
 
 export default {
-  criarPedidoCompra
+  criarPedidoCompra,
+  alterarEtapaPedido
 };

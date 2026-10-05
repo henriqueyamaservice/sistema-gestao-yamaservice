@@ -5,8 +5,8 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node --openssl-legacy-provider server.js",
+    "dev": "node --openssl-legacy-provider --watch server.js",
     "sync:omie": "node scripts/sync-omie-produtos.js",
     "migrar:sqlite": "node scripts/migrar-para-sqlite.js"
   },
@@ -17,7 +17,10 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.4.0",
     "mysql2": "^3.11.0",
+    "openai": "^7.23.0",
+    "pdf-parse": "^2.4.5",
     "socket.io": "^4.8.3",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1"

@@ -143,6 +143,9 @@ const CadastroVeiculos = () => {
       if (validacaoKm.retrocedeu) {
         const confirmar = window.confirm(`⚠️ ATENÇÃO: O valor digitado (${formatarNumeroBR(formData.kmAtual)}) é MENOR que o último registrado (${formatarNumeroBR(formData.kmAtualOriginal)}).\n\nTem certeza que deseja salvar este valor reduzido?`);
         if (!confirmar) return;
+      } else if (!validacaoKm.valido) {
+        alert(validacaoKm.mensagem);
+        return;
       }
     }
 

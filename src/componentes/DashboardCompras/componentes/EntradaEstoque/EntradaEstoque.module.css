@@ -377,32 +377,32 @@
 }
 
 .badgeWaiting {
-  background-color: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fde047;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .badgePending {
-  background-color: #fff7ed;
+  background-color: rgba(255, 107, 0, 0.12);
   color: var(--cor-destaque);
-  border: 1px solid #fed7aa;
+  border: 1px solid rgba(255, 107, 0, 0.3);
 }
 
 .nfeHighlight {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  background: rgba(239, 68, 68, 0.08);
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid #fecaca;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  box-shadow: inset 0 1px 2px var(--cor-fundo-sutil);
 }
 
 .nfeHighlight .label {
-  color: #dc2626;
-  opacity: 0.8;
+  color: var(--cor-erro);
+  opacity: 0.9;
 }
 
 .nfeHighlight .value {
-  color: #dc2626;
+  color: var(--cor-erro);
   font-size: 1.1rem;
   letter-spacing: 1px;
 }
@@ -526,104 +526,548 @@
   text-align: center;
 }
 
+.colSituacao {
+  min-width: 500px;
+  width: 50%;
+}
+
 .mappingBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 10px 16px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid transparent;
   width: auto;
   white-space: nowrap;
 }
 
 .mappingBtnNovo {
-  color: #0284c7;
-  background-color: #f0f9ff;
-  border-color: #bae6fd;
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 .mappingBtnNovo:hover {
-  background-color: #e0f2fe;
-  border-color: #7dd3fc;
-  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
+  background-color: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  box-shadow: 0 3px 8px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1px);
 }
 
 .mappingBtnAssociar {
-  color: #16a34a;
-  background-color: #f0fdf4;
-  border-color: #bbf7d0;
+  color: var(--cor-sucesso);
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .mappingBtnAssociar:hover {
-  background-color: #dcfce7;
-  border-color: #86efac;
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.1);
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: var(--cor-sucesso);
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
 }
 
 .mappingBtnIgnorar {
-  color: #dc2626;
-  background-color: #fef2f2;
-  border-color: #fecaca;
+  color: var(--cor-erro);
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .mappingBtnIgnorar:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--cor-erro);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
 }
 
 .mappingStateActive {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 14px;
   background-color: var(--cor-fundo-cartao);
-  padding: 8px 16px;
-  border: 1px solid var(--cor-borda-cartao);
-  border-radius: 8px;
-  box-shadow: 0 2px 4px var(--cor-fundo-sutil);
+  padding: 10px 18px;
+  border: 1.5px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px var(--cor-fundo-sutil);
+  width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.mappingStateIgnorado {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.mappingStateIgnorado .mappingStateLabel {
+  color: var(--cor-erro) !important;
+}
+
+.mappingStateNovo {
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  background-color: rgba(56, 189, 248, 0.08) !important;
+}
+
+.mappingStateNovo .mappingStateLabel {
+  color: #38bdf8 !important;
+}
+
+.mappingStateAssociado {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+.mappingStateAssociado .mappingStateLabel {
+  color: var(--cor-sucesso) !important;
 }
 
 .mappingStateLabel {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
+.inputWithMatchedWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  width: 100%;
+}
+
 .mappingInput {
   flex: 1;
-  min-width: 180px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--cor-borda-cartao);
-  font-size: 0.85rem;
+  min-width: 240px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--cor-borda-cartao);
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--cor-texto-principal);
   background-color: var(--cor-fundo-principal);
   outline: none;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .mappingInput:focus {
   border-color: var(--cor-destaque);
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+}
+
+.matchedBadge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--cor-sucesso);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  flex-shrink: 0;
 }
 
 .mappingCancelBtn {
   color: var(--cor-texto-secundario);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   white-space: nowrap;
-  font-weight: 500;
-  transition: color 0.2s;
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.2s;
+  padding: 8px 14px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  flex-shrink: 0;
 }
 
 .mappingCancelBtn:hover {
-  color: var(--cor-texto-principal);
-  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-erro);
+  border-color: var(--cor-erro);
+  background-color: rgba(239, 68, 68, 0.1);
 }
+
+/* Rodapé e Ações do Mapeamento */
+.mappingFooterAcoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.statusMapeamentoIncompleto {
+  color: var(--cor-erro);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  fontSize: 0.9rem;
+  font-weight: 600;
+}
+
+.statusMapeamentoCompleto {
+  color: var(--cor-sucesso);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  fontSize: 0.9rem;
+  font-weight: 600;
+}
+
+.btnSalvarRecebimento {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(255, 107, 0, 0.2);
+  transition: all 0.2s;
+}
+
+.btnSalvarRecebimento:hover {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnSalvarRecebimento:disabled {
+  background: var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ordemRecebimentoDespachada {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--cor-sucesso);
+  border-radius: 8px;
+  color: var(--cor-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.ordemRecebimentoDespachada strong {
+  color: var(--cor-texto-principal);
+}
+
+.ordemRecebimentoDespachada p {
+  margin: 2px 0 0 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+}
+
+.btnVerRecebidos {
+  margin-top: 16px;
+  background: transparent;
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btnVerRecebidos:hover {
+  background: var(--cor-fundo-sutil-forte);
+}
+
+/* Banner de Pedidos Aguardando NF-e */
+.bannerAguardando {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-left: 5px solid #f59e0b;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px var(--cor-fundo-sutil-forte);
+}
+
+.bannerAguardandoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bannerAguardandoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cor-texto-principal);
+  font-size: 1rem;
+}
+
+.bannerAguardandoSub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+.bannerAguardandoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bannerAguardandoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bannerAguardandoInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bannerBadgeId {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.bannerItemDesc {
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+}
+
+.bannerProjeto {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btnLiberarEntrada {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
+}
+
+.btnLiberarEntrada:hover {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnLiberarEntrada:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnIrAguardando {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btnIrAguardando:hover {
+  background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border-color: var(--cor-texto-secundario);
+}
+
+/* ABAS DE NAVEGAÇÃO */
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  border-bottom: 2px solid var(--cor-borda-cartao);
+  padding-bottom: 6px;
+  margin-top: 4px;
+}
+
+.tabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px 8px 0 0;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tabBtn:hover {
+  color: var(--cor-texto-principal);
+  background: var(--cor-fundo-sutil);
+}
+
+.tabBtnActive {
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil-forte);
+}
+
+.tabBtnActive::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--cor-destaque);
+  border-radius: 3px 3px 0 0;
+}
+
+/* CARDS DE PEDIDOS ENTREGUES / RECEBIDOS PELO ALMOXARIFADO */
+.cardEntregue {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--cor-fundo-cartao);
+}
+
+.cardHeaderEntregue {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.badgeRecebidoAlmox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.corpoEntregue {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resumoEstoqueMsg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid var(--cor-sucesso);
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+}
+
+.tabelaEntregueContainer {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+}
+
+.tabelaEntregue {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabelaEntregue th {
+  background: var(--cor-fundo-secundario);
+  padding: 10px 14px;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.tabelaEntregue td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+}
+
+.badgeEstoqueOk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.obsRecebimento {
+  padding: 10px 14px;
+  background: var(--cor-fundo-secundario);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  border-left: 3px solid var(--cor-borda-cartao);
+}
+

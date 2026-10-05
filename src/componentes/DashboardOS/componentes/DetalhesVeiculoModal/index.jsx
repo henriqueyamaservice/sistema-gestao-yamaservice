@@ -1,14 +1,28 @@
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Truck, Calendar, Clock, AlertTriangle, CheckCircle, FileText } from 'lucide-react';
+import { X, Truck, Calendar, Clock, AlertTriangle, CheckCircle, FileText, Droplet, Wrench, Fuel } from 'lucide-react';
+import { ABASTECIDA } from '../../../../utils/combustivelStatus';
 import styles from './index.module.css';
 
 // Helpers para data
-function formatDateBR(dateStr) {
+function formatDateBR(dateStr, timeStr = '') {
   if (!dateStr) return '-';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return dateStr;
+  const onlyDate = dateStr.split('T')[0].split(' ')[0];
+  let timeExtracted = timeStr;
+  
+  if (!timeExtracted && dateStr.includes('T')) {
+    timeExtracted = dateStr.split('T')[1].substring(0, 5);
+  } else if (!timeExtracted && dateStr.includes(' ')) {
+    timeExtracted = dateStr.split(' ')[1].substring(0, 5);
+  }
+
+  const parts = onlyDate.split('-');
+  let fDate = dateStr;
+  if (parts.length === 3) {
+    fDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  
+  return timeExtracted ? `${fDate} às ${timeExtracted}` : fDate;
 }
 
 // Helpers numéricos
@@ -24,6 +38,33 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
   const isMaq = conf?.tipoEquipamento === 'MAQUINA' || conf?.tipoMedicao === 'Horas' || conf?.tipoMedicao === 'HORAS';
   const unidade = isMaq ? 'Horas' : 'KM';
   const labelMedicao = isMaq ? 'Horímetro Atual' : 'KM Atual';
+
+  // Buscar Histórico de Abastecimentos
+  const [historicoAbastecimentos, setHistoricoAbastecimentos] = React.useState([]);
+  React.useEffect(() => {
+    fetch('/api/combustivel')
+      .then(res => res.json())
+      .then(data => {
+        const abstVeiculo = data.filter(d => {
+          const statusOk = d.status === ABASTECIDA || d.status === 'CONCLUÍDO' || d.status === 'CONCLUIDO' || !d.status || d.status === 'FINALIZADO';
+          
+          const placaRef = placa.trim().toUpperCase();
+          const matchVeiculo = d.veiculo && String(d.veiculo).toUpperCase().includes(placaRef);
+          const matchPlaca = d.placa && String(d.placa).toUpperCase().includes(placaRef);
+          const matchUconsu = d.uConsu && String(d.uConsu).toUpperCase().includes(placaRef);
+          
+          return statusOk && (matchVeiculo || matchPlaca || matchUconsu);
+        });
+        // Ordenar do mais recente para o mais antigo
+        abstVeiculo.sort((a, b) => {
+          const dateA = new Date(a.data_abastecimento || a.data_hora || a.data || 0);
+          const dateB = new Date(b.data_abastecimento || b.data_hora || b.data || 0);
+          return dateB - dateA;
+        });
+        setHistoricoAbastecimentos(abstVeiculo);
+      })
+      .catch(err => console.error('Erro ao buscar abastecimentos do veículo:', err));
+  }, [placa]);
 
   // Filtra as O.S. que esse veículo participou
   const historicoOS = useMemo(() => {
@@ -74,15 +115,21 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
 
   }, [osList, placa]);
 
-  // Encontrar o MAIOR KM FINAL registrado em TODA a história desse veículo (para cruzar com a meta)
+  // Encontrar o MAIOR KM FINAL registrado em TODA a história desse veículo (O.S. + Abastecimentos)
   const kmAtualMaximo = useMemo(() => {
     let max = 0;
+    // Checar KM nas O.S.
     historicoOS.forEach(os => {
       const kmf = parseKM(os.dadosVeiculo.kmFinal);
       if (kmf > max) max = kmf;
     });
+    // Checar KM nos Abastecimentos
+    historicoAbastecimentos.forEach(abast => {
+      const kmAbast = parseKM(abast.km || abast.km_abastecimento);
+      if (kmAbast > max) max = kmAbast;
+    });
     return max > 0 ? max : null;
-  }, [historicoOS]);
+  }, [historicoOS, historicoAbastecimentos]);
 
   // Função para renderizar os cards de manutenção
   const renderCardManutencao = (tipo) => {
@@ -212,9 +259,10 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Data Fim</th>
+                    <th>Data</th>
                     <th>Código O.S.</th>
                     <th>Executor</th>
+                    <th>Manutenções</th>
                     <th>Situação</th>
                     <th>{labelMedicao} Inicial</th>
                     <th>{labelMedicao} Final</th>
@@ -235,9 +283,22 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
 
                       return (
                         <tr key={idx}>
-                          <td>{formatDateBR(os.dataFim || os.dataInicio) || '-'}</td>
+                          <td>{formatDateBR(os.dataFim || os.dataInicio || os.data || os.dataCadastro) || '-'}</td>
                           <td><strong>{os.codigo}</strong></td>
                           <td>{executorNome}</td>
+                          <td style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                            {os.dadosVeiculo.trocouOleo || os.trocouOleo ? (
+                              <span className={styles.badgeNeutral} style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                                <Droplet size={14} style={{ flexShrink: 0 }} /> Óleo
+                              </span>
+                            ) : null}
+                            {os.dadosVeiculo.fezRevisao || os.fezRevisao ? (
+                              <span className={styles.badgeNeutral} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#d97706', padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                                <Wrench size={14} style={{ flexShrink: 0 }} /> Revisão
+                              </span>
+                            ) : null}
+                            {(!os.dadosVeiculo.trocouOleo && !os.trocouOleo && !os.dadosVeiculo.fezRevisao && !os.fezRevisao) ? '-' : null}
+                          </td>
                           <td>
                             <span className={`${styles.badge} ${isConcluida ? styles.badgeSuccess : styles.badgeNeutral}`}>
                               {os.situacao}
@@ -249,6 +310,56 @@ const DetalhesVeiculoModal = ({ placa, osList, veiculosConfig, onClose }) => {
                         </tr>
                       );
                     })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Nova Seção: Histórico de Abastecimentos */}
+          <div className={styles.historicoSection} style={{ marginTop: '24px' }}>
+            <h3 className={styles.sectionTitle}>
+              <Fuel size={18} /> Histórico de Abastecimentos
+            </h3>
+            
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Motorista</th>
+                    <th>Posto / Fornecedor</th>
+                    <th>Combustível</th>
+                    <th>Qtd. (L)</th>
+                    <th>{labelMedicao}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historicoAbastecimentos.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--cor-texto-secundario)' }}>
+                        Nenhum abastecimento encontrado para este equipamento.
+                      </td>
+                    </tr>
+                  ) : (
+                    historicoAbastecimentos.map((abast, idx) => (
+                      <tr key={idx}>
+                        <td>{formatDateBR(abast.data_abastecimento || abast.data_hora || abast.data, abast.hora_abastecimento)}</td>
+                        <td>{abast.motorista || abast.requisitante || '-'}</td>
+                        <td>{abast.fornecedor || '-'}</td>
+                        <td>{abast.combustivel || abast.tipo_combustivel || '-'}</td>
+                        <td>
+                          <strong>
+                            {Number(abast.qtde || abast.litros || 0).toLocaleString('pt-BR')} L
+                          </strong>
+                        </td>
+                        <td>
+                          {abast.km || abast.km_abastecimento 
+                            ? <span style={{ color: 'var(--cor-destaque)', fontWeight: 'bold' }}>{Number(abast.km || abast.km_abastecimento).toLocaleString('pt-BR')} {unidade}</span> 
+                            : '-'}
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

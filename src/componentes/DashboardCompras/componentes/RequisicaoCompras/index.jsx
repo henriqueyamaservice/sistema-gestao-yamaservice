@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ListChecks, ChevronDown, ChevronUp, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { ListChecks, ChevronDown, ChevronUp, CheckCircle, Clock, RefreshCw, Plus } from 'lucide-react';
 import ModalSubstituicao from '../ModalSubstituicao';
+import ModalAdicionarProduto from '../ModalAdicionarProduto';
 import styles from './RequisicaoCompras.module.css';
 
 const RequisicaoCompras = ({ setView }) => {
@@ -11,6 +12,10 @@ const RequisicaoCompras = ({ setView }) => {
   // Modal de Substituição
   const [itemParaSubstituir, setItemParaSubstituir] = useState(null);
   const [reqIdParaSubstituir, setReqIdParaSubstituir] = useState(null);
+
+  // Modal de Adicionar Produto
+  const [modalAdicionarAberto, setModalAdicionarAberto] = useState(false);
+  const [reqIdParaAdicionar, setReqIdParaAdicionar] = useState(null);
 
   useEffect(() => {
     fetchRequisicoes();
@@ -91,6 +96,36 @@ const RequisicaoCompras = ({ setView }) => {
       alert('Ocorreu um erro ao registrar a substituição.');
     }
   };
+
+  const abrirModalAdicionar = (e, reqId) => {
+    e.stopPropagation();
+    setReqIdParaAdicionar(reqId);
+    setModalAdicionarAberto(true);
+  };
+
+  const handleAdicionarProduto = async (produto, quantidade) => {
+    try {
+      const payload = {
+        produto,
+        quantidade
+      };
+
+      const response = await fetch(`/api/requisicoes/${reqIdParaAdicionar}/adicionar-item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Falha ao adicionar item');
+      
+      // Recarrega as requisições para atualizar a tela
+      await fetchRequisicoes();
+    } catch (error) {
+      console.error('Erro ao adicionar produto:', error);
+      alert('Ocorreu um erro ao tentar adicionar o produto à requisição.');
+    }
+  };
+
 
   return (
     <div className={styles['requisicoes-container']}>
@@ -174,8 +209,16 @@ const RequisicaoCompras = ({ setView }) => {
                   <div className={styles['req-body']}>
                     <div className={styles['itens-header']}>
                       <h4>Produtos Solicitados</h4>
-                      <div className={styles['valor-estimado']}>
-                        Custo Estimado (Base Histórica): <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorEstimado)}</strong>
+                      <div className={styles['itens-header-right']}>
+                        <div className={styles['valor-estimado']}>
+                          Custo Estimado: <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorEstimado)}</strong>
+                        </div>
+                        <button 
+                          className={styles['btn-adicionar-produto']}
+                          onClick={(e) => abrirModalAdicionar(e, req.id)}
+                        >
+                          <Plus size={16} /> Adicionar Produto
+                        </button>
                       </div>
                     </div>
                     
@@ -250,6 +293,12 @@ const RequisicaoCompras = ({ setView }) => {
         onClose={() => setItemParaSubstituir(null)}
         itemOriginal={itemParaSubstituir}
         onConfirm={handleSubstituicao}
+      />
+
+      <ModalAdicionarProduto 
+        isOpen={modalAdicionarAberto}
+        onClose={() => setModalAdicionarAberto(false)}
+        onConfirm={handleAdicionarProduto}
       />
     </div>
   );

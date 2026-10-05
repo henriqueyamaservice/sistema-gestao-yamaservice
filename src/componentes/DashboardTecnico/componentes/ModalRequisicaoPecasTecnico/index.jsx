@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Wrench, Search, Send, Trash2, CheckCircle, X, AlertCircle } from 'lucide-react';
 import styles from './ModalRequisicaoPecasTecnico.module.css';
 import { PECAS_ENTREGUES, AGUARDANDO_ALMOXARIFADO } from '../../../../utils/osStatus';
+import { obterRotuloUnidade, permiteDecimais, formatarQuantidadeComUnidade } from '../../../../utils/classificadorUnidades';
 
 const ModalRequisicaoPecasTecnico = ({ os, produtosEstoque, onClose, onSave }) => {
   const isAdicional = os.isAdicional === true;
@@ -30,6 +31,7 @@ const ModalRequisicaoPecasTecnico = ({ os, produtosEstoque, onClose, onSave }) =
         codigo: pecaSelecionada.codigo,
         descricao: pecaSelecionada.descricao,
         quantidade: Number(qtdPeca),
+        unidade: pecaSelecionada.unidade || 'UN',
         valor_unitario: pecaSelecionada.valor_unitario || 0,
         status: 'AGUARDANDO_CHEFE_ADICIONAL',
         _nova: true
@@ -138,15 +140,22 @@ const ModalRequisicaoPecasTecnico = ({ os, produtosEstoque, onClose, onSave }) =
             </div>
           ) : (
             <div className={styles.pecaSelectedRow}>
-              <span className={styles.pecaName}><strong>Selecionado:</strong> {pecaSelecionada.descricao}</span>
-              <input
-                type="number"
-                min="1"
-                className={styles.qtdInput}
-                value={qtdPeca}
-                onChange={e => setQtdPeca(e.target.value)}
-                title="Quantidade"
-              />
+              <span className={styles.pecaName}><strong>Selecionado:</strong> {pecaSelecionada.descricao} ({obterRotuloUnidade(pecaSelecionada.unidade)})</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <input
+                  type="number"
+                  min={permiteDecimais(pecaSelecionada.unidade) ? "0.01" : "1"}
+                  step={permiteDecimais(pecaSelecionada.unidade) ? "0.01" : "1"}
+                  className={styles.qtdInput}
+                  value={qtdPeca}
+                  onChange={e => setQtdPeca(e.target.value)}
+                  title="Quantidade"
+                  style={{ width: '58px', textAlign: 'center', fontWeight: 'bold' }}
+                />
+                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--cor-destaque)' }}>
+                  {obterRotuloUnidade(pecaSelecionada.unidade)}
+                </span>
+              </div>
               <button className={styles.btnSmallConfirm} onClick={handleAdicionarPeca}>Adicionar à Lista</button>
               <button className={styles.btnSmallCancel} onClick={() => setPecaSelecionada(null)}>Cancelar</button>
             </div>
@@ -183,7 +192,7 @@ const ModalRequisicaoPecasTecnico = ({ os, produtosEstoque, onClose, onSave }) =
                       <tr key={idx} style={{ fontSize: '0.72rem' }}>
                         <td style={{ fontSize: '0.72rem', opacity: 0.8 }}>{p.codigo}</td>
                         <td style={{ fontSize: '0.72rem' }}>{p.descricao}</td>
-                        <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.72rem' }}>{p.quantidade}</td>
+                        <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.72rem' }}>{formatarQuantidadeComUnidade(p.quantidade, p.unidade)}</td>
                         <td style={{ fontSize: '0.72rem', color: statusColor, fontWeight: 'bold' }}>
                           {statusText}
                         </td>
@@ -219,7 +228,7 @@ const ModalRequisicaoPecasTecnico = ({ os, produtosEstoque, onClose, onSave }) =
                     <tr key={idx} style={{ fontSize: '0.72rem' }}>
                       <td style={{ fontSize: '0.72rem', opacity: 0.8 }}>{p.codigo}</td>
                       <td style={{ fontSize: '0.72rem' }}>{p.descricao}</td>
-                      <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.72rem' }}>{p.quantidade}</td>
+                      <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.72rem' }}>{formatarQuantidadeComUnidade(p.quantidade, p.unidade)}</td>
                       <td>
                         <button className={styles.btnDelLine} onClick={() => handleRemoverPeca(p.codigo)}>
                           <Trash2 size={14} />

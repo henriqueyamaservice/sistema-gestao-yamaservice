@@ -1,40 +1,49 @@
 .container {
   background: var(--cor-fundo-cartao);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 16px;
+  border-radius: 12px;
   backdrop-filter: blur(12px);
-  padding: 2rem;
-  box-shadow: 0 4px 6px -1px var(--cor-fundo-sutil-forte);
+  padding: 24px 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   color: var(--cor-texto-principal);
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  min-height: calc(100vh - 80px);
 }
 
 .header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--cor-borda-cartao);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btnVoltar {
-  background: transparent;
+  background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
-  color: var(--cor-texto-secundario);
-  display: flex;
+  color: var(--cor-texto-principal);
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
   transition: all 0.2s;
 }
 
 .btnVoltar:hover {
   background: var(--cor-fundo-sutil);
-  color: var(--cor-texto-principal);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
 }
 
 .header h2 {
@@ -43,6 +52,7 @@
   gap: 0.5rem;
   font-size: 1.5rem;
   margin: 0;
+  color: var(--cor-texto-principal);
 }
 
 .formGrid {
@@ -54,55 +64,59 @@
 .cardSection {
   background: var(--cor-fundo-sutil-forte);
   border: 1px solid var(--cor-fundo-sutil);
-  padding: 1.5rem;
+  padding: 1.75rem 2rem;
   border-radius: 12px;
 }
 
 .cardSection h3 {
-  font-size: 1.1rem;
-  margin-bottom: 1.25rem;
+  font-size: 1.15rem;
+  margin: 0 0 1.25rem 0;
   color: var(--cor-destaque);
   font-weight: 600;
 }
 
 .formRow {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 0.75rem;
 }
 
 .formGroup {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  width: 100%;
 }
 
 .formGroup label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--cor-texto-secundario);
-  font-weight: 500;
-  width: 180px; /* Largura fixa para manter todos os inputs alinhados */
-  flex-shrink: 0;
+  font-weight: 600;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .formGroup input, .formGroup select {
-  flex-grow: 1; /* Faz o input esticar até o fim do card */
   width: 100%;
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
   color: var(--cor-texto-principal);
-  padding: 8px 12px; 
+  padding: 11px 14px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 0.9rem; 
-  transition: border-color 0.2s;
+  font-size: 0.92rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .formGroup input:focus, .formGroup select:focus {
   outline: none;
   border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
 /* Busca Produto */
@@ -168,48 +182,105 @@
 .produtoSelecionado {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: rgba(16, 185, 129, 0.1);
+  align-items: flex-start;
+  background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 8px 12px; /* Reduzido */
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
   gap: 1rem;
 }
 
 .prodInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0; /* Necessário para truncar texto no flexbox */
+  gap: 0.5rem;
+  min-width: 0;
   flex-grow: 1;
 }
 
+.prodHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .prodCode {
-  font-size: 0.8rem;
-  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-destaque);
+  background: rgba(249, 115, 22, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(249, 115, 22, 0.25);
 }
 
 .prodName {
-  font-size: 0.95rem; /* Reduzido */
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--cor-sucesso);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--cor-texto-principal);
+}
+
+.prodMetadados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+}
+
+.metaChip strong {
+  color: var(--cor-texto-principal);
+  font-weight: 600;
+}
+
+.metaChipEndereco {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.25);
+  color: #3b82f6;
+}
+
+.metaChipEndereco strong {
+  color: #60a5fa;
+}
+
+.metaChipMarca {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.25);
+  color: #a855f7;
+}
+
+.metaChipMarca strong {
+  color: #c084fc;
 }
 
 .btnLimparProd {
   background: transparent;
-  border: 1px solid var(--cor-fundo-sutil);
-  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 0.85rem;
   cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .btnLimparProd:hover {
   background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
 }
 
 .cardAutomacao {
@@ -274,19 +345,21 @@
 
 .buscaContainer {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .buscaWrapper {
-  flex-grow: 1;
-  min-width: 300px;
+  flex: 1;
+  min-width: 0;
 }
 
 .qtdWrapper {
-  width: 80px;
+  width: 140px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -295,6 +368,10 @@
 .qtdWrapper label {
   font-size: 0.85rem;
   color: var(--cor-texto-secundario);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .qtdWrapper input {
@@ -302,16 +379,18 @@
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
   color: var(--cor-texto-principal);
-  padding: 10px 12px; /* Reduzido */
+  padding: 11px 14px;
   border-radius: 8px;
-  font-size: 0.95rem; /* Reduzido */
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-sizing: border-box;
 }
 
 .btnAdicionarLista {
   background: var(--cor-destaque);
   color: var(--cor-texto-inverso);
   border: 1px solid var(--cor-destaque-hover);
-  padding: 10px 16px; /* Reduzido */
+  padding: 11px 22px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -319,53 +398,79 @@
   align-items: center;
   gap: 0.5rem;
   transition: all 0.2s;
+  height: 44px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btnAdicionarLista:hover:not(:disabled) {
   background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
 }
 
 .btnAdicionarLista:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
 }
 
 .carrinhoContainer {
   background: var(--cor-fundo-sutil-forte);
   border: 1px solid var(--cor-fundo-sutil);
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 10px;
+  padding: 1.25rem 1.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .carrinhoContainer h4 {
   margin: 0 0 1rem 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--cor-texto-principal);
+  font-weight: 600;
 }
 
 .tabelaCarrinho {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .tabelaCarrinho th {
   text-align: left;
-  padding: 8px;
+  padding: 10px 12px;
   color: var(--cor-texto-secundario);
-  border-bottom: 1px solid var(--cor-fundo-sutil);
-  font-weight: 500;
+  border-bottom: 2px solid var(--cor-borda-cartao);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .tabelaCarrinho td {
-  padding: 12px 8px;
+  padding: 12px;
   border-bottom: 1px solid var(--cor-fundo-sutil);
   vertical-align: middle;
 }
 
+.colEndereco {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.colMarca {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.colValidade {
+  font-size: 0.85rem;
+}
+
 .tdQtd {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--cor-sucesso);
+  white-space: nowrap;
 }
 
 .btnRemover {
@@ -383,13 +488,21 @@
 }
 
 /* Responsividade */
-@media (max-width: 600px) {
-  .formGroup {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 1024px) {
+  .formRow {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .formGroup label {
-    width: 100%;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem;
+  }
+  .cardSection {
+    padding: 1.25rem;
+  }
+  .formRow {
+    grid-template-columns: 1fr;
   }
   .buscaContainer {
     flex-direction: column;
@@ -397,6 +510,10 @@
   }
   .qtdWrapper {
     width: 100%;
+  }
+  .produtoSelecionado {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

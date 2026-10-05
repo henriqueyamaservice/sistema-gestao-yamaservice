@@ -64,7 +64,7 @@ export function NotificationProvider({ children }) {
         if (novoStatus.includes('almoxarifado') || novoStatus.includes('separacao')) deveNotificar = true;
       }
       else if (userRole === 'compras') {
-        if (novoStatus.includes('compra') || novoStatus.includes('cotacao')) deveNotificar = true;
+        if (novoStatus.includes('compra') || novoStatus.includes('cotacao') || novoStatus.includes('entregue') || novoStatus.includes('parcial')) deveNotificar = true;
       }
 
       // Se passou nos filtros de status, dispara o Toast
@@ -130,6 +130,7 @@ export function NotificationProvider({ children }) {
 
   return (
     <NotificationContext.Provider value={{ 
+      socket,
       addToast, 
       historicoNotificacoes, 
       limparHistorico, 

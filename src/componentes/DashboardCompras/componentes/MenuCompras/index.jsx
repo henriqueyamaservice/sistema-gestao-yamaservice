@@ -12,14 +12,25 @@ const MenuCompras = ({ view, setView }) => {
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
-  useEffect(() => {
+  const carregarContadorDivergencias = () => {
     fetch('/api/requisicoes')
       .then(res => res.json())
       .then(data => {
-        const div = data.filter(r => r.status_compras === 'entregue_parcial' && r.divergencia);
-        setDivergenciasCount(div.length);
+        if (Array.isArray(data)) {
+          const div = data.filter(r => 
+            (r.status_compras === 'entregue_parcial' || r.divergencia?.status === 'pendente_compras') && 
+            r.divergencia
+          );
+          setDivergenciasCount(div.length);
+        }
       })
       .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    carregarContadorDivergencias();
+    const interval = setInterval(carregarContadorDivergencias, 4000);
+    return () => clearInterval(interval);
   }, [view]);
 
   return (
@@ -86,29 +97,11 @@ const MenuCompras = ({ view, setView }) => {
           </li>
           <li>
             <button 
-              className={`${styles['menu-item']} ${view === 'aguardando' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={() => setView('aguardando')}
-            >
-              <Truck size={20} style={{ flexShrink: 0 }} />
-              {!isCollapsed && <span>Aguardando NF-e</span>}
-            </button>
-          </li>
-          <li>
-            <button 
               className={`${styles['menu-item']} ${view === 'entrada' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
               onClick={() => setView('entrada')}
             >
               <PackagePlus size={20} style={{ flexShrink: 0 }} />
               {!isCollapsed && <span>Entrada no Estoque</span>}
-            </button>
-          </li>
-          <li>
-            <button 
-              className={`${styles['menu-item']} ${view === 'notas' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={() => setView('notas')}
-            >
-              <FileText size={20} style={{ flexShrink: 0 }} />
-              {!isCollapsed && <span>Notas (SEFAZ)</span>}
             </button>
           </li>
           <li>

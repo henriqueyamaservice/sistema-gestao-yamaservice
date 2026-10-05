@@ -43,6 +43,16 @@ const AnimatedNumber = ({ value }) => {
 const CORES = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const EstoqueCombustivel = () => {
+  const currentUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('almoxarifado_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+  const isAdmin = currentUser?.role === 'admin';
+
   const [entradas, setEntradas] = useState([]);
   const [saidas, setSaidas] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -474,9 +484,13 @@ const EstoqueCombustivel = () => {
             )
           ))}
           <hr style={{ border: 'none', borderTop: '1px solid var(--cor-borda-cartao)', margin: '8px 0' }} />
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cor-texto-secundario)' }}>Total Gasto: <strong style={{ color: 'var(--cor-texto-principal)' }}>{formatMoeda(data.GastoTotal)}</strong></p>
+          {isAdmin && (
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cor-texto-secundario)' }}>Total Gasto: <strong style={{ color: 'var(--cor-texto-principal)' }}>{formatMoeda(data.GastoTotal)}</strong></p>
+          )}
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cor-texto-secundario)' }}>Carros Abast.: <strong style={{ color: 'var(--cor-texto-principal)' }}>{data.VeiculosCount}</strong></p>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cor-texto-secundario)' }}>Média: <strong style={{ color: 'var(--cor-texto-principal)' }}>{formatMoeda(data.MediaPorVeiculo)}/carro</strong></p>
+          {isAdmin && (
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cor-texto-secundario)' }}>Média: <strong style={{ color: 'var(--cor-texto-principal)' }}>{formatMoeda(data.MediaPorVeiculo)}/carro</strong></p>
+          )}
         </div>
       );
     }
@@ -686,7 +700,7 @@ const EstoqueCombustivel = () => {
                   <div className={styles.resumoExterno}>
                     <div className={`${styles.resumoExternoCard} ${styles.resumoCardGasto}`}>
                       <p className={styles.resumoLabel}>Gasto Total Externo</p>
-                      <p className={styles.resumoValor}>{formatMoeda(dadosFinanceiros.gastoTotal)}</p>
+                      <p className={styles.resumoValor}>{isAdmin ? formatMoeda(dadosFinanceiros.gastoTotal) : '—'}</p>
                     </div>
                     <div className={styles.resumoExternoCard} style={{ borderLeft: '4px solid #3b82f6' }}>
                       <p className={styles.resumoLabel}>Veículos Abastecidos</p>
@@ -791,7 +805,7 @@ const EstoqueCombustivel = () => {
                     <th>Qtd (L)</th>
                     <th>Nota Fiscal</th>
                     <th>Valor Un.</th>
-                    <th>Valor Total</th>
+                    {isAdmin && <th>Valor Total</th>}
                     <th>Destino</th>
                     <th>Situação (Auto)</th>
                     <th>Saldo</th>
@@ -809,7 +823,7 @@ const EstoqueCombustivel = () => {
                         <td>{ent.quantidade ? parseMoeda(ent.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}</td>
                         <td>{ent.notaFiscal || '-'}</td>
                         <td>{formatMoeda(ent.valorUn)}</td>
-                        <td>{formatMoeda(ent.valorTotal)}</td>
+                        {isAdmin && <td>{formatMoeda(ent.valorTotal)}</td>}
                         <td>{ent.estoque}</td>
                         <td>
                           <span className={
@@ -876,7 +890,7 @@ const EstoqueCombustivel = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="12" className={styles.emptyTableText}>
+                      <td colSpan={isAdmin ? "12" : "11"} className={styles.emptyTableText}>
                         Nenhuma entrada de combustível registrada.
                       </td>
                     </tr>

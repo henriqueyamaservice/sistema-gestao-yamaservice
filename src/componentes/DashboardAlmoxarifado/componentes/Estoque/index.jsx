@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Box, AlertCircle, RefreshCw, Package, Boxes, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import ProdutoModal from '../ProdutoModal';
 import styles from './Estoque.module.css';
+import { obterBadgeInfo, formatarQuantidadeComUnidade, formatarQuantidade, obterRotuloUnidade } from '../../../../utils/classificadorUnidades';
 
 const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
   const [busca, setBusca] = useState('');
@@ -136,14 +137,14 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
       </header>
 
       <main className={styles['dashboard-content']}>
-        {loading && (
+        {loading && produtos.length === 0 && (
           <div className={`${styles['state-container']} ${styles['loading']}`}>
             <div className={styles['loader']}></div>
             <p>Carregando produtos do sistema...</p>
           </div>
         )}
 
-        {error && !loading && (
+        {error && !loading && produtos.length === 0 && (
           <div className={`${styles['state-container']} ${styles['error']}`}>
             <AlertCircle size={48} className={styles['error-icon']} />
             <h2>Erro na Sincronização</h2>
@@ -152,7 +153,7 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
           </div>
         )}
 
-        {!loading && !error && produtosFiltrados.length === 0 && (
+        {(!loading || produtos.length > 0) && !error && produtosFiltrados.length === 0 && (
           <div className={`${styles['state-container']} ${styles['empty']}`}>
             <Package size={48} className={styles['empty-icon']} />
             <h2>Nenhum produto encontrado</h2>
@@ -160,7 +161,7 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
           </div>
         )}
 
-        {!loading && !error && produtosFiltrados.length > 0 && (
+        {produtosFiltrados.length > 0 && (
           <div className={styles['table-container']}>
             <table className={styles['products-table']}>
               <thead>
@@ -182,9 +183,26 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                       className={styles['clickable-row']}
                     >
                       <td className={styles['col-codigo']} onClick={() => setProdutoSelecionadoParaModal(produto)}>
-                        <span className={styles['product-code']}>
-                          <Box size={14} className={styles['table-icon']} /> {produto.codigo || '-'}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className={styles['product-code']}>
+                            <Box size={14} className={styles['table-icon']} /> {produto.codigo || '-'}
+                          </span>
+                          {(() => {
+                            const badge = obterBadgeInfo(produto.unidade);
+                            return (
+                              <span style={{
+                                fontSize: '0.68rem', fontWeight: 'bold',
+                                color: badge.cor, backgroundColor: badge.bg,
+                                border: `1px solid ${badge.border}`,
+                                padding: '1px 6px', borderRadius: '4px',
+                                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                width: 'fit-content'
+                              }}>
+                                <span>{badge.icone}</span> {badge.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
                       </td>
                       <td className={styles['col-descricao']} onClick={() => setProdutoSelecionadoParaModal(produto)}>
                         <span className={styles['product-title']}>
@@ -215,25 +233,28 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                       <td className={styles['col-estoque']}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                           <span style={{ color: (produto.quantidade_estoque < 0 ? 'var(--cor-erro)' : 'var(--cor-sucesso)'), backgroundColor: (produto.quantidade_estoque < 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'), padding: '2px 6px', borderRadius: '4px' }}>
-                            {produto.quantidade_estoque || 0}
+                            {formatarQuantidadeComUnidade(produto.quantidade_estoque, produto.unidade)}
                           </span>
                           <span style={{ color: 'var(--cor-texto-secundario)', fontWeight: 'normal' }}>/</span>
-                          <span style={{ color: 'var(--cor-erro)', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                            {produto.estoque_minimo || 0}
+                          <span style={{ color: 'var(--cor-erro)', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px' }} title="Estoque Mínimo">
+                            {formatarQuantidade(produto.estoque_minimo, produto.unidade)}
                           </span>
                         </div>
                       </td>
                       <td className={styles['col-em-compra']}>
                         {produto.quantidade_pedida > 0 ? (
-                          <span style={{
+                          <span 
+                            title={produto.pedido_compras_info ? `Requisição #${produto.pedido_compras_info.reqId} - Solicitado por ${produto.pedido_compras_info.solicitante}` : 'Pedido em andamento no Compras'}
+                            style={{
                             fontSize: '0.75rem', fontWeight: 'bold',
                             color: 'var(--cor-destaque)',
                             backgroundColor: 'rgba(255, 107, 0, 0.1)',
                             padding: '2px 8px', borderRadius: '12px',
                             display: 'inline-flex', alignItems: 'center', gap: '4px',
-                            whiteSpace: 'nowrap', border: '1px solid rgba(255, 107, 0, 0.2)'
+                            whiteSpace: 'nowrap', border: '1px solid rgba(255, 107, 0, 0.2)',
+                            cursor: 'help'
                           }}>
-                            🛒 {produto.quantidade_pedida} un.
+                            🛒 {formatarQuantidadeComUnidade(produto.quantidade_pedida, produto.unidade)}
                           </span>
                         ) : (
                           <span style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.8rem' }}>-</span>

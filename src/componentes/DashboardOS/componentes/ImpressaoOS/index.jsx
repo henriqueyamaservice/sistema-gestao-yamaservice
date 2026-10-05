@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './index.module.css';
 import logoYamaservice from '../../../../assets/YAMASERVICE.jpeg';
+import { formatarQuantidadeComUnidade } from '../../../../utils/classificadorUnidades';
 
 const ImpressaoOS = ({ os }) => {
   if (!os) return null;
@@ -20,7 +21,10 @@ const ImpressaoOS = ({ os }) => {
   // 1. Mão de Obra Consolidada (Pega direto de os.maoDeObra ou extrai dos turnos)
   const listaMaoDeObra = React.useMemo(() => {
     if (os.maoDeObra && os.maoDeObra.length > 0) {
-      return os.maoDeObra;
+      return os.maoDeObra.map(m => ({
+        ...m,
+        data: m.data || os.dataFim || os.dataInicio || os.dataAbertura || ''
+      }));
     }
     const extraida = [];
     (os.servicosExecutados || []).forEach(t => {
@@ -64,7 +68,10 @@ const ImpressaoOS = ({ os }) => {
   // 3. Consumíveis / Peças Consolidadas
   const listaConsumiveis = React.useMemo(() => {
     if (os.consumiveis && os.consumiveis.length > 0) {
-      return os.consumiveis;
+      return os.consumiveis.map(c => ({
+        ...c,
+        data: c.data || os.dataFim || os.dataInicio || os.dataAbertura || ''
+      }));
     }
     const extraidas = [];
     (os.servicosExecutados || []).forEach(t => {
@@ -86,6 +93,12 @@ const ImpressaoOS = ({ os }) => {
   // Helper para formatar horários de turnos (Diário de Bordo)
   const formatarHorarioTurno = (t) => {
     if (t.hora) return t.hora;
+    if (t.tipoTurno === 'TARDE' || (!t.horaInicio && t.horaInicio2)) {
+      return `${t.horaInicio2 || '--:--'} às ${t.horaFim || '--:--'}`;
+    }
+    if (t.tipoTurno === 'MANHA' || (t.horaInicio && t.horaFim1 && !t.horaInicio2)) {
+      return `${t.horaInicio || '--:--'} às ${t.horaFim1 || t.horaFim || '--:--'}`;
+    }
     if (t.horaInicio && t.horaFim1 && t.horaInicio2 && t.horaFim) {
       return `${t.horaInicio}-${t.horaFim1} / ${t.horaInicio2}-${t.horaFim}`;
     }
@@ -216,7 +229,7 @@ const ImpressaoOS = ({ os }) => {
                       <td>{item.kmInicial ? item.kmInicial.toLocaleString('pt-BR') : '-'}</td>
                       <td>{item.kmFinal ? item.kmFinal.toLocaleString('pt-BR') : '-'}</td>
                       <td>
-                        {kmRodadoCalc ? `${kmRodadoCalc} km` : ''} 
+                        {kmRodadoCalc ? `${kmRodadoCalc} km` : ''}
                         {infoManut.length > 0 ? ` (${infoManut.join(', ')})` : ''}
                       </td>
                     </tr>
@@ -282,7 +295,7 @@ const ImpressaoOS = ({ os }) => {
                   <tr key={`peca-${i}`}>
                     <td>{formatarDataBR(item.data) || '-'}</td>
                     <td>{item.codigo || (item.tipo === 'EXTERNA' ? 'EXTERNA' : 'ESTOQUE')}</td>
-                    <td><strong>{item.quantidade}</strong></td>
+                    <td><strong>{formatarQuantidadeComUnidade(item.quantidade, item.unidade)}</strong></td>
                     <td>{item.descricao}</td>
                   </tr>
                 ))
@@ -298,6 +311,18 @@ const ImpressaoOS = ({ os }) => {
           <h3 className={styles.sectionTitle}>Finalização e Assinaturas</h3>
           <table className={`${styles.table} ${styles.dados}`}>
             <tbody>
+              <tr>
+                <td colSpan="4">
+                  <strong>Resultado da Ordem de Serviço:</strong><br/>
+                  <div style={{ marginTop: '5px', display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
+                    <span>(&nbsp;&nbsp;) Executada</span>
+                    <span>(&nbsp;&nbsp;) Em andamento</span>
+                    <span>(&nbsp;&nbsp;) Aguardando Insumo</span>
+                    <span>(&nbsp;&nbsp;) Execução Pausada</span>
+                    <span>(&nbsp;&nbsp;) Cancelada</span>
+                  </div>
+                </td>
+              </tr>
               <tr>
                 <td colSpan="1">
                   <strong>Início Real:</strong> {formatarDataBR(dataInicioReal) || '___/___/____'} {horaInicioReal ? `às ${horaInicioReal}` : 'às __:__'}

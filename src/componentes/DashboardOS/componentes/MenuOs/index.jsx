@@ -129,6 +129,13 @@ const MenuOs = ({ viewMode, setViewMode, abaCombustivel, setAbaCombustivel, abaR
               {!isCollapsed && <span>Relatório O.S.</span>}
             </button>
             <button
+              className={`${styles.subNavItem} ${viewMode === 'os' && abaRelatorio === 'prestacao-servicos' ? styles.subNavItemActive : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
+              onClick={() => { setViewMode('os'); setAbaRelatorio('prestacao-servicos'); }}
+              title="Serviços Prestados (Granjas)"
+            >
+              {!isCollapsed && <span>Serviços Prestados</span>}
+            </button>
+            <button
               className={`${styles.subNavItem} ${viewMode === 'os' && abaRelatorio === 'custo-mensal' ? styles.subNavItemActive : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
               onClick={() => { setViewMode('os'); setAbaRelatorio('custo-mensal'); }}
               title="Custo Mão de Obra"

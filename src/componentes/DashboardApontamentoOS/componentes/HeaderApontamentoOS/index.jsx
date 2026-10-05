@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Search, X, Activity } from 'lucide-react';
+import { RefreshCw, Search, X, Activity, AlertTriangle, Clock, Wrench, Sparkles } from 'lucide-react';
 import styles from './HeaderApontamentoOS.module.css';
 import logoYamaservice from '../../../../assets/YAMASERVICE.jpeg';
 import UserInfo from '../../../UserInfo';
@@ -12,7 +12,12 @@ const HeaderApontamentoOS = ({
   setTermoBusca, 
   totalPendentes = 0,
   loading = false,
-  searchInputRef
+  searchInputRef,
+  totalRevisoesCriticas = 0,
+  totalRevisoesAtencao = 0,
+  onAbrirVisualizadorRevisoes,
+  onAbrirGerenciadorKits,
+  totalKits = 0
 }) => {
   return (
     <header className={styles.headerContainer}>
@@ -84,10 +89,55 @@ const HeaderApontamentoOS = ({
           )}
         </div>
 
-        {/* Contador de Chamados em Aberto com Ícone React */}
-        <div className={styles.statusCounterBadge}>
-          <Activity size={15} />
-          <span>{totalPendentes} {totalPendentes === 1 ? 'O.S. Pendente' : 'O.S. Pendentes'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Botão Catálogo de Kits de Serviços da Oficina */}
+          {onAbrirGerenciadorKits && (
+            <button
+              type="button"
+              className={styles.btnKitsServicos}
+              onClick={onAbrirGerenciadorKits}
+              title="Abrir catálogo e cadastro de kits de serviços"
+            >
+              <Sparkles size={15} color="var(--cor-destaque)" />
+              <span>Kits de Serviços</span>
+              {totalKits > 0 && (
+                <span className={styles.badgeKitsCount}>{totalKits}</span>
+              )}
+            </button>
+          )}
+
+          {/* Botão Indicador de Revisões da Frota */}
+          {onAbrirVisualizadorRevisoes && (
+            <button
+              type="button"
+              className={`${styles.btnAlertaRevisoes} ${totalRevisoesCriticas > 0 ? styles.alertaCritico : (totalRevisoesAtencao > 0 ? styles.alertaAtencao : styles.alertaOk)}`}
+              onClick={onAbrirVisualizadorRevisoes}
+              title="Abrir painel de revisão preventiva da frota"
+            >
+              {totalRevisoesCriticas > 0 ? (
+                <>
+                  <AlertTriangle size={15} className={styles.pulseIcon} />
+                  <span>{totalRevisoesCriticas} {totalRevisoesCriticas === 1 ? 'Revisão Vencida' : 'Revisões Vencidas'}</span>
+                </>
+              ) : totalRevisoesAtencao > 0 ? (
+                <>
+                  <Clock size={15} />
+                  <span>{totalRevisoesAtencao} {totalRevisoesAtencao === 1 ? 'Revisão Próxima' : 'Revisões Próximas'}</span>
+                </>
+              ) : (
+                <>
+                  <Wrench size={15} />
+                  <span>Frota em Dia</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Contador de Chamados em Aberto com Ícone React */}
+          <div className={styles.statusCounterBadge}>
+            <Activity size={15} />
+            <span>{totalPendentes} {totalPendentes === 1 ? 'O.S. Pendente' : 'O.S. Pendentes'}</span>
+          </div>
         </div>
       </div>
     </header>

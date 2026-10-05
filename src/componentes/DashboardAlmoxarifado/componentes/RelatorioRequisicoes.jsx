@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, ChevronDown, ChevronUp, Package, Calendar, Clock, User, Printer, Download, Search, RotateCcw } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, Package, Calendar, Clock, User, Printer, Download, Search, RotateCcw, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import styles from './RelatorioRequisicoes.module.css';
 import logoYama from '../../../assets/yamaservice.png';
 
@@ -12,6 +12,7 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
   const [dataFim, setDataFim] = useState('');
   const [apenasDevolucoes, setApenasDevolucoes] = useState(false);
   const [processandoDevolucao, setProcessandoDevolucao] = useState(false);
+  const [processandoReenvio, setProcessandoReenvio] = useState(null);
 
   useEffect(() => {
     const fetchRequisicoes = async () => {
@@ -82,6 +83,25 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
       alert('Erro: ' + error.message);
     } finally {
       setProcessandoDevolucao(false);
+    }
+  };
+
+  const reenviarRemessa = async (reqId) => {
+    setProcessandoReenvio(reqId);
+    try {
+      const res = await fetch(`/api/requisicoes/${reqId}/reenviar-remessa`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Falha ao reenviar remessa');
+      alert('✅ Remessa enviada com sucesso para a Omie!');
+      if (data.requisicao) {
+        setRequisicoes(prev => prev.map(r => r.id === reqId ? data.requisicao : r));
+      }
+    } catch (err) {
+      alert('Erro ao reenviar para Omie: ' + err.message);
+    } finally {
+      setProcessandoReenvio(null);
     }
   };
 
@@ -183,6 +203,7 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                 <div><span class="bold">DEPTO/CENTRO:</span> ${req.centroCusto || 'NÃO INFORMADO'}</div>
                 <div><span class="bold">ORDEM DE SERVIÇO:</span> ${req.numeroOS || 'N/A'}</div>
                 <div><span class="bold">SOLICITANTE:</span> ${req.contatoCliente || 'NÃO INFORMADO'}</div>
+                ${req.remessa_omie?.nCodRem ? `<div><span class="bold">REMESSA OMIE:</span> #${req.remessa_omie.nCodRem} (PENDENTE)</div>` : ''}
               </div>
 
               <table class="tabela-itens">
@@ -471,7 +492,21 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                         req.itens?.reduce((acc, item) => acc + (Number(item.quantidade) * Number(item.valor_unitario || 0)), 0) || 0
                       )}
                     </td>
-                    <td><span className={styles['badge']}>Concluída</span></td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                        <span className={styles['badge']}>Concluída</span>
+                        {req.remessa_omie?.status === 'enviada' && (
+                          <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                            Omie #{req.remessa_omie.nCodRem || 'Pendente'}
+                          </span>
+                        )}
+                        {req.remessa_omie?.status === 'erro' && (
+                          <span title={req.remessa_omie.mensagem} style={{ fontSize: '0.72rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', cursor: 'help' }}>
+                            ⚠️ Falha Omie
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className={styles['text-right']}>
                       {expandido === req.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </td>
@@ -481,7 +516,7 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                     <tr className={styles['row-expandida']}>
                       <td colSpan="7">
                         <div className={styles['itens-container']}>
-                          <div className={styles['timeline-container']}>
+                          <div className={styles['timeline-container']} style={{ flexWrap: 'wrap', gap: '8px' }}>
                             <div className={`${styles['timeline-step']} ${styles['active']}`}>
                               <Calendar size={14} /> Criada: {formatarData(req.dataCriacao)} às {formatarHora(req.dataCriacao)}
                             </div>
@@ -493,6 +528,38 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                             <div className={`${styles['timeline-step']} ${styles['active']}`}>
                               <User size={14} /> Entregue por {req.entregador || 'Almoxarife'}
                             </div>
+                            <div className={`${styles['timeline-connector']} ${styles['active']}`}></div>
+                            {req.remessa_omie?.status === 'enviada' ? (
+                              <div className={`${styles['timeline-step']} ${styles['active']}`} style={{ color: '#059669', fontWeight: 'bold' }}>
+                                <CheckCircle2 size={14} /> Omie: Remessa #{req.remessa_omie.nCodRem} (Pendente)
+                              </div>
+                            ) : req.remessa_omie?.status === 'erro' ? (
+                              <div className={`${styles['timeline-step']}`} style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <AlertCircle size={14} />
+                                <span title={req.remessa_omie.mensagem}>Omie: {req.remessa_omie.mensagem?.substring(0, 40)}...</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); reenviarRemessa(req.id); }}
+                                  disabled={processandoReenvio === req.id}
+                                  style={{
+                                    background: 'var(--cor-destaque)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '2px 8px',
+                                    fontSize: '0.72rem',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  {processandoReenvio === req.id ? 'Reenviando...' : 'Reenviar Omie'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className={`${styles['timeline-step']}`} style={{ color: '#6b7280' }}>
+                                <RefreshCw size={14} /> Omie: Aguardando Sincronização
+                              </div>
+                            )}
                           </div>
                           <div className={styles['itens-container-header']}>
                             <h4>Itens Retirados</h4>

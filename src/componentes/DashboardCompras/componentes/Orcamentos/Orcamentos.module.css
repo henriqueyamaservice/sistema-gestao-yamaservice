@@ -362,3 +362,31 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
+
+.btnIaGlobal {
+  background: linear-gradient(135deg, var(--cor-destaque), var(--cor-destaque-hover));
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btnIaGlobal:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5);
+  filter: brightness(1.08);
+}
+
+.btnIaGlobal:active {
+  transform: translateY(0);
+}
+
+

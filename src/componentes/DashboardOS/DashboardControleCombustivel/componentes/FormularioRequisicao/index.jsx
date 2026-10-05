@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Save, FileText, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Save, FileText, X, User, Lock, MapPin } from 'lucide-react';
 import styles from './index.module.css';
 
 const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
@@ -9,11 +9,23 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
     return localISOTime;
   };
 
+  // Identificação do Usuário Logado Criador
+  const currentUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('almoxarifado_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const nomeCriador = currentUser?.nome || currentUser?.username || 'Almoxarifado';
+
   const [formData, setFormData] = useState({
     numeroRequisicao: '',
     data: getNowLocal(),
     requisitante: '',
-    emitente: '',
+    emitente: nomeCriador,
     veiculo: '',
     fornecedor: 'ORIENTE',
     combustivel: 'DIESEL',
@@ -21,6 +33,7 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
   });
 
   const [veiculos, setVeiculos] = useState([]);
+  const [geradores, setGeradores] = useState([]);
   const [caminhoes, setCaminhoes] = useState([]);
   const [estoquesSecundarios, setEstoquesSecundarios] = useState([]);
   const [lotesDisponiveis, setLotesDisponiveis] = useState([]);
@@ -38,12 +51,23 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
       })
       .catch(err => console.error('Erro ao buscar o próximo número de requisição:', err));
   }, []);
+
   useEffect(() => {
     fetch(`/api/veiculos`)
       .then(res => res.json())
-      .then(data => setVeiculos(data))
+      .then(data => {
+        if (Array.isArray(data)) setVeiculos(data);
+      })
+      .catch(err => console.error(err));
+
+    fetch(`/api/geradores`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setGeradores(data);
+      })
       .catch(err => console.error(err));
   }, []);
+
 
   useEffect(() => {
     const fetchEstoqueSecundario = async () => {
@@ -96,10 +120,19 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
     fetchEstoqueSecundario();
   }, [tipo]);
 
+  const isPostoOriente = (formData.fornecedor || '').toUpperCase().includes('ORIENTE');
+
+  // Lote atualmente selecionado (ou o primeiro com saldo)
+  const selectedLote = useMemo(() => {
+    if (isPostoOriente || lotesDisponiveis.length === 0) return null;
+    return lotesDisponiveis.find(l => String(l.id) === String(formData.lote_origem_id)) || lotesDisponiveis[0];
+  }, [isPostoOriente, lotesDisponiveis, formData.lote_origem_id]);
+
   useEffect(() => {
     const fetchLotes = async () => {
-      if (!formData.fornecedor || !formData.combustivel) {
+      if (!formData.fornecedor || !formData.combustivel || formData.fornecedor === 'ORIENTE') {
         setLotesDisponiveis([]);
+        setFormData(prev => ({ ...prev, lote_origem_id: '' }));
         return;
       }
       try {
@@ -141,12 +174,27 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const valorUnitario = (!isPostoOriente && selectedLote && selectedLote.valorUn) ? selectedLote.valorUn : '';
+
+      const payload = {
+        ...formData,
+        lote_origem_id: isPostoOriente ? null : (formData.lote_origem_id || (selectedLote?.id ?? null)),
+        valorUnitario: valorUnitario,
+        valor_litro: valorUnitario,
+        emitente: formData.emitente || nomeCriador,
+        criado_por: nomeCriador,
+        criado_por_id: currentUser?.id || null,
+        criado_por_username: currentUser?.username || null,
+        criado_por_role: currentUser?.role || 'almoxarifado',
+        data_criacao: new Date().toISOString()
+      };
+
       const response = await fetch(`/api/combustivel/requisicao`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       const result = await response.json();
@@ -212,7 +260,12 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Emitente (Autorizado por)</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label className={styles.label} style={{ margin: 0 }}>Emitente / Criado por</label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--cor-texto-secundario)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                <Lock size={12} color="var(--cor-destaque)" /> Login ativo ({nomeCriador})
+              </span>
+            </div>
             <input 
               type="text" 
               name="emitente"
@@ -280,6 +333,8 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
             )}
           </div>
 
+
+
           <div className={styles.formGroup}>
             <label className={styles.label}>{tipo === 'granja' ? 'Caminhão (Fornecedor)' : 'Fornecedor'}</label>
             {tipo === 'carro' ? (
@@ -337,31 +392,62 @@ const FormularioRequisicao = ({ onAdd, onClose, tipo = 'carro' }) => {
             </select>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label} style={{ color: 'var(--cor-destaque)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Lote / Fornecedor Origem
-              {lotesDisponiveis.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--cor-erro)' }}>(Sem Saldo)</span>}
-            </label>
-            <select 
-              name="lote_origem_id"
-              value={formData.lote_origem_id}
-              onChange={handleChange}
-              className={styles.select}
-              required
-              disabled={lotesDisponiveis.length === 0}
-              style={{ borderColor: lotesDisponiveis.length === 0 ? 'var(--cor-erro)' : 'var(--cor-borda-cartao)' }}
-            >
-              {lotesDisponiveis.length === 0 ? (
-                <option value="">Nenhum saldo físico disponível</option>
-              ) : (
-                lotesDisponiveis.map(lote => (
-                  <option key={lote.id} value={lote.id}>
-                    {lote.fornecedor} (NF: {lote.notaFiscal || 'S/N'}) - Saldo: {parseFloat(lote.saldoRestante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+          {isPostoOriente ? (
+            <div className={styles.formGroup}>
+              <label className={styles.label} style={{ color: 'var(--cor-texto-secundario)' }}>
+                Tipo de Posto / Cobrança
+              </label>
+              <div style={{
+                padding: '10px 14px',
+                backgroundColor: 'var(--cor-fundo-sutil)',
+                borderRadius: '8px',
+                border: '1px solid var(--cor-borda-cartao)',
+                fontSize: '0.85rem',
+                color: 'var(--cor-texto-principal)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <MapPin size={16} color="var(--cor-destaque)" style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Posto Oriente:</strong> Posto externo conveniado. O valor por litro virá liberado no lançamento manual e o assistente perguntará o preço da bomba/cupom ao motorista.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.formGroup}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label className={styles.label} style={{ color: 'var(--cor-destaque)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Lote / Fornecedor Origem
+                  {lotesDisponiveis.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--cor-erro)' }}>(Sem Saldo)</span>}
+                </label>
+                {selectedLote && parseFloat(selectedLote.valorUn) > 0 && (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--cor-destaque)', fontWeight: 600 }}>
+                    🔒 Custo Estoque: R$ {parseFloat(selectedLote.valorUn).toFixed(2)}/L
+                  </span>
+                )}
+              </div>
+              <select 
+                name="lote_origem_id"
+                value={formData.lote_origem_id}
+                onChange={handleChange}
+                className={styles.select}
+                required={lotesDisponiveis.length > 0}
+                disabled={lotesDisponiveis.length === 0}
+                style={{ borderColor: lotesDisponiveis.length === 0 ? 'var(--cor-erro)' : 'var(--cor-borda-cartao)' }}
+              >
+                {lotesDisponiveis.length === 0 ? (
+                  <option value="">Nenhum saldo físico disponível</option>
+                ) : (
+                  lotesDisponiveis.map(lote => (
+                    <option key={lote.id} value={lote.id}>
+                      {lote.fornecedor} (NF: {lote.notaFiscal || 'S/N'}) - Saldo: {parseFloat(lote.saldoRestante).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L {parseFloat(lote.valorUn) > 0 ? `| R$ ${parseFloat(lote.valorUn).toFixed(2)}/L` : ''}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          )}
 
           <button 
             type="submit" 

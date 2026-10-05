@@ -191,6 +191,113 @@
   white-space: nowrap;
 }
 
+.btnAlertaRevisoes {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-principal);
+  transition: all 0.2s ease;
+}
+
+.btnAlertaRevisoes:hover {
+  transform: translateY(-1px);
+}
+
+.btnAlertaRevisoes.alertaCritico {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--cor-erro, #ef4444);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+  animation: bgPulseCritico 1.5s infinite ease-in-out;
+}
+
+@keyframes bgPulseCritico {
+  0%, 100% { 
+    background-color: rgba(239, 68, 68, 0.12); 
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15); 
+  }
+  50% { 
+    background-color: rgba(239, 68, 68, 0.35); 
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); 
+  }
+}
+
+.btnAlertaRevisoes.alertaCritico:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--cor-erro, #ef4444);
+}
+
+.btnAlertaRevisoes.alertaAtencao {
+  background-color: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+}
+
+.btnAlertaRevisoes.alertaAtencao:hover {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+.btnAlertaRevisoes.alertaOk {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--cor-sucesso, #10b981);
+}
+
+.btnAlertaRevisoes.alertaOk:hover {
+  background-color: rgba(16, 185, 129, 0.18);
+}
+
+.pulseIcon {
+  animation: iconPulse 1.6s infinite ease-in-out;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+.btnKitsServicos {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-secundario);
+  color: var(--cor-texto-principal);
+  transition: all 0.2s ease;
+}
+
+.btnKitsServicos:hover {
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+  background-color: var(--cor-fundo-sutil-forte);
+  transform: translateY(-1px);
+}
+
+.badgeKitsCount {
+  background-color: rgba(255, 107, 0, 0.15);
+  color: var(--cor-destaque);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
 @media (max-width: 850px) {
   .headerContainer {
     padding: 12px;

@@ -8,7 +8,7 @@
 
 .contentArea {
   padding: 0 24px 28px 24px;
-  max-width: 1550px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -345,6 +345,31 @@
   gap: 3px;
   letter-spacing: 0.3px;
   text-transform: uppercase;
+}
+
+.badgeRevisaoAlertaCard {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.2px;
+  width: fit-content;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.badgeRevisaoVencida {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--cor-erro, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.badgeRevisaoAtencao {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 /* ========================================================= */

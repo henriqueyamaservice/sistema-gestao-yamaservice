@@ -145,3 +145,16 @@
   color: var(--cor-texto-secundario);
   cursor: not-allowed;
 }
+
+.bannerArla {
+  margin: 15px 20px 0 20px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

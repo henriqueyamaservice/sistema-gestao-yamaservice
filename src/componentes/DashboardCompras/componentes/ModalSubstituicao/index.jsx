@@ -75,7 +75,7 @@ const ModalSubstituicao = ({ isOpen, onClose, itemOriginal, onConfirm }) => {
           </div>
 
           <div className={styles.searchSection}>
-            <label>Buscar Peça Substituta na Omie:</label>
+            <label>Buscar Produto do Estoque para Substituir:</label>
             <div className={styles.searchBar}>
               <Search size={20} className={styles.searchIcon} />
               <input 

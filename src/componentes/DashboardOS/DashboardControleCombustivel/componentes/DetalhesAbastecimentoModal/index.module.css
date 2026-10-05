@@ -1,0 +1,339 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modalCard {
+  background-color: var(--cor-fundo-cartao);
+  width: 95%;
+  max-width: 880px;
+  max-height: 92vh;
+  border-radius: 16px;
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 24px 28px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+  overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.closeButton {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  color: var(--cor-destaque);
+  background: rgba(255, 107, 0, 0.12);
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardSubtitle {
+  font-size: 0.78rem;
+  color: var(--cor-texto-secundario);
+  margin-top: 2px;
+  display: block;
+}
+
+.headerBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Banner de Resumo Principal (Top Summary) */
+.heroSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .heroSummaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.heroCard {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  transition: border-color 0.2s;
+}
+
+.heroCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heroCardLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+  letter-spacing: 0.4px;
+}
+
+.heroCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.heroCardValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.heroCardSub {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Seções Principais (2 Colunas) */
+.sectionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .sectionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionBox {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.fieldValueBox {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  background-color: var(--cor-fundo-principal);
+  font-size: 0.88rem;
+  color: var(--cor-texto-principal);
+  font-weight: 500;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.fieldValueHighlight {
+  color: var(--cor-destaque);
+  font-weight: 700;
+}
+
+.fieldValueSuccess {
+  color: var(--cor-sucesso, #10b981);
+  font-weight: 700;
+}
+
+/* Foto & Auditoria */
+.photoBox {
+  background-color: var(--cor-fundo-sutil);
+  border: 1px dashed var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.photoThumb {
+  max-height: 85px;
+  max-width: 110px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  object-fit: cover;
+}
+
+.photoThumb:hover {
+  transform: scale(1.03);
+}
+
+.auditoriaCard {
+  padding: 14px 16px;
+  background-color: var(--cor-fundo-sutil);
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.82rem;
+  margin-bottom: 16px;
+}
+
+.auditoriaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btnSecondary {
+  background-color: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btnSecondary:hover {
+  background-color: var(--cor-fundo-sutil-forte);
+  border-color: var(--cor-destaque);
+}
+
+.btnFechar {
+  padding: 10px 24px;
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnFechar:hover {
+  background-color: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}

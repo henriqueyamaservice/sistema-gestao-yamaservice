@@ -36,6 +36,8 @@ const UserInfo = ({ isCollapsed = false, inline = false }) => {
     if (role === 'compras') return 'Compras';
     if (role === 'apontamento' || role === 'oficina') return 'Colaborador';
     if (role === 'tecnico') return 'Técnico';
+    if (role === 'motorista') return 'Motorista';
+    if (role === 'frentista') return 'Frentista Yamaves';
     if (role === 'funcionario') return 'Funcionário';
     return role;
   };

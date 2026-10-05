@@ -21,7 +21,7 @@
 .modalContent {
   background-color: var(--cor-fundo-principal);
   width: 90%;
-  max-width: 600px;
+  max-width: 1200px;
   border-radius: 12px;
   border: 1px solid var(--cor-borda-cartao);
   box-shadow: 0 10px 40px var(--cor-fundo-sutil-forte);
@@ -152,7 +152,7 @@
   margin-top: 8px;
   border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
-  max-height: 200px;
+  max-height: 450px;
   overflow-y: auto;
   background-color: var(--cor-fundo-cartao);
 }

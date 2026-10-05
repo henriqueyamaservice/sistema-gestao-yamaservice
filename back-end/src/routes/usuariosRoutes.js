@@ -18,7 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
     const { role, setor } = req.query;
-    
+
     let query = 'SELECT id, nome, username, role, setor, codigo_omie, criado_em FROM usuarios WHERE 1=1';
     const params = [];
 
@@ -68,7 +68,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const db = await getDb();
-    
+
     // Verifica se username já existe
     const existe = await db.get(`SELECT id FROM usuarios WHERE username = ?`, [username]);
     if (existe) {
@@ -102,7 +102,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
     const alvo = await db.get('SELECT role, setor FROM usuarios WHERE id = ?', [req.params.id]);
-    
+
     if (!alvo) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
     // Permissão de exclusão
@@ -131,7 +131,7 @@ router.put('/:id/senha', authMiddleware, async (req, res) => {
 
     const db = await getDb();
     const alvo = await db.get('SELECT role, setor FROM usuarios WHERE id = ?', [req.params.id]);
-    
+
     if (!alvo) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
     // Permissão de edição (usando a mesma regra de exclusão/criação)

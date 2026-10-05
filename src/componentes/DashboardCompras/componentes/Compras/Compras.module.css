@@ -362,3 +362,467 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
+
+.cardFooterAcoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  flex-wrap: wrap;
+}
+
+.btnEntradaDireta {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2);
+}
+
+.btnEntradaDireta:hover {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnEntradaDireta:disabled {
+  background: var(--cor-borda-cartao);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btnAguardarNfe {
+  background: var(--cor-fundo-secundario);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btnAguardarNfe:hover {
+  background: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+}
+
+.btnAguardarNfe:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Badges de Status do Card */
+.badgeAguardandoNfe {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badgeSincronizado {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--cor-sucesso);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chevronIcon {
+  color: var(--cor-texto-secundario);
+}
+
+.pedidosTitulo {
+  margin: 0 0 16px 0;
+  color: var(--cor-texto-principal);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pedidosGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pedidoCard {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px var(--cor-fundo-sutil);
+}
+
+.pedidoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  padding-bottom: 12px;
+}
+
+.pedidoHeaderFornecedor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconFactoryWrapper {
+  background: var(--cor-fundo-secundario);
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-destaque);
+}
+
+.fornecedorSubLabel {
+  margin: 0 0 2px 0;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.fornecedorTitulo {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+  font-weight: 600;
+}
+
+.pedidoOmieBox {
+  text-align: right;
+}
+
+.pedidoOmieLabel {
+  margin: 0 0 2px 0;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.pedidoOmieNumeroRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.pedidoOmieNumero {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: var(--cor-destaque);
+}
+
+.itensListaPedido {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  padding-top: 12px;
+}
+
+.itemPedidoCard {
+  background: var(--cor-fundo-secundario);
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda-cartao);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemPedidoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.itemPedidoDescricao {
+  font-weight: bold;
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+}
+
+.itemPedidoCodigo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+.itemPedidoTotal {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--cor-sucesso);
+}
+
+.itemPedidoDetalhesLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-fundo-cartao);
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px dashed var(--cor-borda-cartao);
+}
+
+.itemPedidoDetalhesLinha strong {
+  color: var(--cor-texto-principal);
+}
+
+.itemObservacao {
+  font-size: 0.8rem;
+  color: var(--cor-sucesso);
+  background: rgba(16, 185, 129, 0.1);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--cor-sucesso);
+  font-weight: 500;
+}
+
+.pedidoRodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cor-fundo-secundario);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.nfeVinculadaOk {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cor-sucesso);
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.nfeVinculadaPendente {
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
+}
+
+.pedidoTotalLabel {
+  color: var(--cor-texto-secundario);
+  font-size: 0.8rem;
+  margin-right: 12px;
+}
+
+.pedidoTotalValor {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--cor-sucesso);
+}
+
+.semPedidosAviso {
+  background: var(--cor-fundo-cartao);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  color: var(--cor-texto-secundario);
+  border: 1px dashed var(--cor-borda-cartao);
+}
+
+/* ABAS DE NAVEGAÇÃO */
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  border-bottom: 2px solid var(--cor-borda-cartao);
+  padding-bottom: 6px;
+  margin-top: 4px;
+}
+
+.tabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px 8px 0 0;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tabBtn:hover {
+  color: var(--cor-texto-principal);
+  background: var(--cor-fundo-sutil);
+}
+
+.tabBtnActive {
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil-forte);
+}
+
+.tabBtnActive::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--cor-destaque);
+  border-radius: 3px 3px 0 0;
+}
+
+/* CARDS DE PEDIDOS ENTREGUES / RECEBIDOS */
+.cardEntregue {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--cor-fundo-cartao);
+}
+
+.badgeRecebidoAlmox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.corpoEntregue {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--cor-fundo-cartao);
+}
+
+.resumoEstoqueMsg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid var(--cor-sucesso);
+  color: var(--cor-texto-principal);
+  font-size: 0.9rem;
+}
+
+.tabelaEntregueContainer {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+}
+
+.tabelaEntregue {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabelaEntregue th {
+  background: var(--cor-fundo-secundario);
+  padding: 10px 14px;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+}
+
+.tabelaEntregue td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+}
+
+.badgeEstoqueOk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.obsRecebimento {
+  padding: 10px 14px;
+  background: var(--cor-fundo-secundario);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  border-left: 3px solid var(--cor-borda-cartao);
+}
+
+.pedidoOmieErro {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--cor-erro);
+}
+
+.btnReenviarOmie {
+  background-color: var(--cor-erro);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnReenviarOmie:hover:not(:disabled) {
+  filter: brightness(1.2);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

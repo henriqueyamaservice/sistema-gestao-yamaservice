@@ -1,9 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Save, Clock, AlertCircle, Wrench, Calendar, X, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { FileText, Save, Clock, AlertCircle, Wrench, Calendar, X, Trash2, Sparkles, Check, CheckCircle } from 'lucide-react';
 import styles from './index.module.css';
 import { EM_ANDAMENTO } from '../../../../utils/osStatus';
 
-const FormularioOS = ({ onAddOS, osList, onClose }) => {
+const LISTA_GRANJAS = [
+  'G. KAWAMURA',
+  'G. ITA',
+  'G. MOSQUEIRO',
+  'G. GENIPAUBA',
+  'G. CAMPINA',
+  'G. AGUA BRANCA',
+  'G. CASTANHEIRA',
+  'G. GUARIMÃ',
+  'G. SÃO CAETANO',
+  'G. AVICEMA',
+  'G. KIMURA'
+];
+
+// Helpers para validação e busca de veículos
+const normalizarTexto = (txt) => (txt || '').toString().trim().toUpperCase();
+const normalizarPlaca = (txt) => (txt || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+const detectarCategoriaVeiculo = (veic, textoCentroCusto) => {
+  const combinado = `${veic?.modelo || ''} ${veic?.subtipoMaquina || ''} ${veic?.especieTipo || ''} ${veic?.tipo || ''} ${veic?.tipoEquipamento || ''} ${textoCentroCusto || ''}`.toUpperCase();
+  
+  if (veic?.tipoEquipamento === 'MAQUINA' || veic?.tipoMedicao === 'Horas' || /TRATOR|MAQUINA|MÁQUINA|RETRO|ESCAVADEIRA|PÁ CARREGADEIRA|PA CARREGADEIRA|BOBCAT|VALTRA|MASSEY|JOHN DEERE|NEW HOLLAND|CASE|AGRALE/i.test(combinado)) {
+    return 'MAQUINA';
+  }
+  
+  if (/CAMINHAO|CAMINHÃO|TRUCK|TOCO|CAVALO|24\.280|24280|ATEGO|CONSTELLATION|CARGO|ACTROS|AXOR|FH|VM|CARGA|SCANIA|VOLVO|MERCEDES/i.test(combinado)) {
+    return 'CAMINHAO';
+  }
+  
+  if (/STRADA|SAVEIRO|GOL|FIORINO|ARGO|MOBI|POLO|HILUX|S10|RANGER|TORO|COROLLA|ONIX|HB20|UTILITARIO|UTILITÁRIO|PASSEIO|AUTOMOVEL|AUTOMÓVEL|CARRO|LEVE/i.test(combinado)) {
+    return 'CARRO';
+  }
+
+  // Se tem placa e medição é KM mas não combinou pesado, por padrão consideramos veículo leve/carro
+  if (veic?.tipoMedicao === 'KM' || veic?.placa) {
+    return 'CARRO';
+  }
+
+  return 'TODOS';
+};
+
+const FormularioOS = ({ onAddOS, osList, onClose, initialTipo = 'CORRETIVA', isPrestacaoMode = false, initialCentroCusto = '' }) => {
+  const isPrestacao = Boolean(isPrestacaoMode || initialTipo === 'PRESTACAO_SERVICO');
+
   const [formData, setFormData] = useState({
     codigo: '',
     data: new Date().toISOString().split('T')[0],
@@ -11,14 +54,26 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
     requisitante: '',
     complexidade: 'NORMAL',
     prioridade: '1-NORMAL',
-    setor: '',
-    centroCusto: '',
+    setor: isPrestacao ? 'SLD' : '',
+    centroCusto: initialCentroCusto || '',
     prazo: '',
-    tipo: 'CORRETIVA',
+    tipo: (initialTipo === 'PRESTACAO_SERVICO' ? 'CORRETIVA' : initialTipo) || 'CORRETIVA',
     situacao: EM_ANDAMENTO,
     descricao: '',
-    motivo: ''
+    motivo: '',
+    kitId: null,
+    kitNome: null
   });
+
+  // Atualiza centro de custo caso seja repassado dinamicamente
+  useEffect(() => {
+    if (initialCentroCusto) {
+      setFormData(prev => ({
+        ...prev,
+        centroCusto: initialCentroCusto.toUpperCase()
+      }));
+    }
+  }, [initialCentroCusto]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [servicosPadraoList, setServicosPadraoList] = useState({});
   const [mostrarAddServicoPadrao, setMostrarAddServicoPadrao] = useState(false);
@@ -30,6 +85,23 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
   const [departamentos, setDepartamentos] = useState([]);
   const [requisitantesList, setRequisitantesList] = useState([]);
   const [fornecedoresList, setFornecedoresList] = useState([]);
+  const [servicosKits, setServicosKits] = useState([]);
+  const servicosDropdownRef = useRef(null);
+  const reqDropdownRef = useRef(null);
+
+  // Fechar dropdowns ao clicar fora
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (servicosDropdownRef.current && !servicosDropdownRef.current.contains(e.target)) {
+        setDropdownAberto(false);
+      }
+      if (reqDropdownRef.current && !reqDropdownRef.current.contains(e.target)) {
+        setReqDropdownAberto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // Modal Novo Requisitante
   const [showAddReqModal, setShowAddReqModal] = useState(false);
@@ -136,9 +208,41 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
       .catch(err => console.error('Erro ao buscar serviços padrão:', err));
   }, []);
 
-  // O cálculo do próximo código foi removido do front-end.
-  // O servidor (back-end) irá gerar o código automaticamente ao salvar,
-  // prevenindo duplicações e erros de concorrência.
+  // Busca kits e templates de serviços da oficina
+  useEffect(() => {
+    fetch(`/api/servicos-kits`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setServicosKits(data);
+      })
+      .catch(err => console.error('Erro ao buscar kits de serviços:', err));
+  }, []);
+
+  // Buscar próximo código da sequência global de OS para exibição imediata
+  useEffect(() => {
+    const dataRef = formData.data || new Date().toISOString().split('T')[0];
+    fetch(`/api/os/proximo-codigo?data=${dataRef}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.proximoCodigo) {
+          setFormData(prev => ({ ...prev, codigo: data.proximoCodigo }));
+        }
+      })
+      .catch(() => {
+        if (osList && osList.length > 0) {
+          const [ano, mes] = dataRef.split('-');
+          const sufixo = `${mes}${ano.slice(-2)}`;
+          const osDoMes = osList.filter(o => o.codigo && o.codigo.endsWith(`-${sufixo}`));
+          let proximoNumero = 1;
+          if (osDoMes.length > 0) {
+            const numeros = osDoMes.map(o => parseInt((o.codigo || '').replace(/^#/, '').split('-')[0], 10) || 0);
+            proximoNumero = Math.max(...numeros) + 1;
+          }
+          const proximoCodigo = `${proximoNumero.toString().padStart(2, '0')}-${sufixo}`;
+          setFormData(prev => ({ ...prev, codigo: proximoCodigo }));
+        }
+      });
+  }, [formData.data, osList]);
 
   const [userName, setUserName] = useState('Desconhecido');
 
@@ -167,7 +271,16 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
 
     try {
       // Força a situação para EM_ANDAMENTO ao salvar e salva o usuário logado
-      const novaOS = { ...formData, situacao: EM_ANDAMENTO, abertoPor: userName };
+      const novaOS = {
+        ...formData,
+        situacao: EM_ANDAMENTO,
+        abertoPor: userName,
+        isPrestacaoServico: isPrestacao,
+        modalidade: isPrestacao ? 'PRESTACAO_SERVICO' : 'INTERNA',
+        tipo: isPrestacao ? 'PRESTACAO_SERVICO' : formData.tipo,
+        tipoServico: formData.tipo || 'CORRETIVA',
+        tipoManutencao: formData.tipo || 'CORRETIVA'
+      };
 
       // Envia para o backend
       const response = await fetch(`/api/os`, {
@@ -191,10 +304,11 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
         ...prev,
         codigo: '', // vai ser preenchido pelo useEffect
         requisitante: '',
-        setor: '',
+        setor: isPrestacao ? 'SLD' : '',
         centroCusto: '',
         descricao: '',
-        prazo: ''
+        prazo: '',
+        tipo: 'CORRETIVA'
       }));
     } catch (error) {
       console.error(error);
@@ -257,18 +371,124 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
     }
   };
 
-  const servicosExibicao = servicosPadraoList[formData.setor] ? [...servicosPadraoList[formData.setor]] : [];
+  // Identifica se o Centro de Custo digitado corresponde a um veículo/máquina da frota
+  const veiculoAlvo = useMemo(() => {
+    if (!formData.centroCusto) return null;
+    const centroLimpo = normalizarTexto(formData.centroCusto);
+    const centroPlacaNorm = normalizarPlaca(formData.centroCusto);
 
-  const isCentroCustoVeiculo = veiculos.some(v => v.placa === formData.centroCusto);
+    return (veiculos || []).find(v => {
+      if (!v) return false;
+      const vPlacaNorm = normalizarPlaca(v.placa);
+      const vPlacaTexto = normalizarTexto(v.placa);
+      const vModelo = normalizarTexto(v.modelo || v.subtipoMaquina);
 
-  if (formData.setor === 'MECANICA' && isCentroCustoVeiculo) {
-    const padroesMecanica = ['TROCA DE ÓLEO E REVISÃO', 'REVISÃO', 'TROCA DE ÓLEO']; // Ordem inversa pois usa unshift
-    padroesMecanica.forEach(p => {
-      if (!servicosExibicao.includes(p)) {
-        servicosExibicao.unshift(p);
+      // Match exato ou alfanumérico por placa (ex: XDS1258 === XDS1258)
+      if (vPlacaNorm && centroPlacaNorm && (vPlacaNorm === centroPlacaNorm || centroPlacaNorm.startsWith(vPlacaNorm) || vPlacaNorm.startsWith(centroPlacaNorm))) {
+        return true;
+      }
+      // Match caso o usuário tenha selecionado a opção "PLACA - MODELO" do datalist
+      if (vPlacaTexto && centroLimpo.includes(vPlacaTexto)) {
+        return true;
+      }
+      // Match por modelo caso tenha digitado o modelo exato
+      if (vModelo && (centroLimpo === vModelo || centroLimpo.startsWith(vModelo))) {
+        return true;
+      }
+      return false;
+    }) || null;
+  }, [formData.centroCusto, veiculos]);
+
+  const categoriaVeiculoAtiva = useMemo(() => {
+    if (!formData.centroCusto) return null;
+    return detectarCategoriaVeiculo(veiculoAlvo, formData.centroCusto);
+  }, [veiculoAlvo, formData.centroCusto]);
+
+  // Classificação estrita dos Kits da Oficina conforme o Veículo Alvo
+  const kitsDoVeiculo = useMemo(() => {
+    if (formData.setor !== 'MECANICA' || !servicosKits || servicosKits.length === 0) {
+      return [];
+    }
+
+    const centroTexto = (formData.centroCusto || '').trim();
+    if (!centroTexto) {
+      // Nenhum veículo digitado ainda
+      return [];
+    }
+
+    const placaAlvoLimpa = veiculoAlvo ? normalizarPlaca(veiculoAlvo.placa) : normalizarPlaca(centroTexto);
+    const modeloAlvo = normalizarTexto(veiculoAlvo ? (veiculoAlvo.modelo || veiculoAlvo.subtipoMaquina || '') : centroTexto);
+    const catAlvo = categoriaVeiculoAtiva;
+
+    const compativeis = [];
+
+    servicosKits.forEach(kit => {
+      let pontuacao = 0; // Para ordenar os mais específicos primeiro
+
+      const tipoAlvo = kit.aplicabilidade?.tipoAlvo || 'TODOS';
+      const kitPlaca = normalizarPlaca(kit.aplicabilidade?.placa);
+      const kitModelo = normalizarTexto(kit.aplicabilidade?.modelo);
+      const kitCat = kit.categoria;
+
+      // 1. Kits que exigem uma PLACA específica
+      if (tipoAlvo === 'PLACA' && kitPlaca) {
+        if (placaAlvoLimpa && kitPlaca === placaAlvoLimpa) {
+          pontuacao = 100; // Match exato por placa
+        }
+      }
+      // 2. Kits que exigem um MODELO específico
+      else if (tipoAlvo === 'MODELO' && kitModelo) {
+        if (modeloAlvo && (modeloAlvo.includes(kitModelo) || kitModelo.includes(modeloAlvo))) {
+          pontuacao = 80; // Match específico por modelo
+        }
+      }
+      // 3. Kits genéricos para a CATEGORIA (Carro, Caminhão, Máquina)
+      else if (kitCat && catAlvo && kitCat === catAlvo) {
+        // Se caiu aqui, é porque o kit é genérico para a categoria toda (tipoAlvo === 'TODOS' ou sem modelo/placa exigido)
+        pontuacao = 50;
+      }
+      // 4. Kits Universais de Oficina
+      else if (kitCat === 'GERAL') {
+        pontuacao = 20;
+      }
+
+      // Se teve pontuação > 0, o kit é compatível com este veículo!
+      if (pontuacao > 0) {
+        compativeis.push({ ...kit, _pontuacao: pontuacao });
       }
     });
-  }
+
+    // Ordena os kits com maior relevância primeiro (específicos do modelo/placa primeiro)
+    return compativeis.sort((a, b) => b._pontuacao - a._pontuacao);
+  }, [formData.setor, formData.centroCusto, servicosKits, veiculoAlvo, categoriaVeiculoAtiva]);
+
+  // Manipulador ao selecionar um Kit de Serviço da Oficina
+  const handleSelectKit = (kit) => {
+    setFormData(prev => {
+      let novaDescricao = prev.descricao ? prev.descricao.trim() : '';
+      const textoKit = kit.nome; // Nome do kit vai para o Problema Inicial
+      if (!novaDescricao) {
+        novaDescricao = textoKit;
+      } else if (!novaDescricao.includes(textoKit)) {
+        novaDescricao = `${novaDescricao}\n- ${textoKit}`;
+      }
+
+      // Se for serviço preventivo (óleo ou revisão), ajusta o tipo para PREVENTIVA
+      const ehPreventiva = kit.trocouOleo || kit.fezRevisao || /óleo|oleo|revisão|revisao/i.test(kit.nome);
+      const novoTipo = ehPreventiva ? 'PREVENTIVA' : prev.tipo;
+
+      return {
+        ...prev,
+        descricao: novaDescricao,
+        tipo: novoTipo,
+        kitId: kit.id || null,
+        kitNome: kit.nome || null
+      };
+    });
+    setDropdownAberto(false);
+  };
+
+  const servicosExibicao = servicosPadraoList[formData.setor] ? [...servicosPadraoList[formData.setor]] : [];
 
   return (
     <div className={styles.overlay}>
@@ -279,10 +499,18 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
           </button>
         )}
 
-        <h2 className={styles.cardTitle}>
-          <FileText size={36} className={styles.logoIcon} />
-          Cadastrar Ordem de Serviço
-        </h2>
+        <div className={styles.headerTituloWrapper}>
+          <h2 className={styles.cardTitle} style={{ margin: 0 }}>
+            <FileText size={36} className={styles.logoIcon} />
+            {isPrestacao ? 'Cadastrar Prestação de Serviço (Granjas)' : 'Cadastrar Ordem de Serviço'}
+          </h2>
+          {isPrestacao && (
+            <div className={styles.badgeModalidade}>
+              <span className={styles.badgeModalidadeDot} />
+              PRESTAÇÃO DE SERVIÇO (GRANJAS)
+            </div>
+          )}
+        </div>
 
         {/* Info de quem está abrindo a OS */}
         <div style={{ 
@@ -344,7 +572,7 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
             <div className={styles.formGroup}>
               <label className={styles.label}>Requisitante</label>
               <div style={{ display: 'flex', gap: '8px', flex: 1, alignItems: 'center', width: '100%' }}>
-                <div className={styles.dropdownWrapper} style={{ flex: 1 }}>
+                <div className={styles.dropdownWrapper} ref={reqDropdownRef} style={{ flex: 1 }}>
                   <div
                     className={`${styles.select} ${styles.selectDropdown}`}
                     onClick={() => setReqDropdownAberto(!reqDropdownAberto)}
@@ -427,25 +655,35 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>Centro de Custo Alvo / Veículo</label>
+              <label className={styles.label}>
+                {isPrestacao ? 'Unidade de Destino (Granja)' : 'Centro de Custo Alvo / Veículo'}
+              </label>
               <input
                 type="text"
                 className={styles.input}
                 name="centroCusto"
                 value={formData.centroCusto}
                 onChange={handleChange}
-                placeholder="Ex: Granja ou Placa (ABC-1234)"
-                list="veiculos-list"
+                placeholder={isPrestacao ? "Selecione a Granja (Ex: G. KAWAMURA)" : "Ex: Granja ou Placa (ABC-1234)"}
+                list={isPrestacao ? "granjas-list" : "veiculos-list"}
                 required
               />
-              <datalist id="veiculos-list">
-                {departamentos.map(dep => (
-                  <option key={`dep-${dep.codigo || dep.descricao}`} value={dep.descricao}>{dep.descricao}</option>
-                ))}
-                {veiculos.map(v => (
-                  <option key={`veic-${v.placa}`} value={v.placa}>{v.modelo ? `${v.placa} - ${v.modelo}` : v.placa}</option>
-                ))}
-              </datalist>
+              {isPrestacao ? (
+                <datalist id="granjas-list">
+                  {LISTA_GRANJAS.map(g => (
+                    <option key={`granja-${g}`} value={g}>{g}</option>
+                  ))}
+                </datalist>
+              ) : (
+                <datalist id="veiculos-list">
+                  {departamentos.map(dep => (
+                    <option key={`dep-${dep.codigo || dep.descricao}`} value={dep.descricao}>{dep.descricao}</option>
+                  ))}
+                  {veiculos.map(v => (
+                    <option key={`veic-${v.placa}`} value={v.placa}>{v.modelo ? `${v.placa} - ${v.modelo}` : v.placa}</option>
+                  ))}
+                </datalist>
+              )}
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Complexidade</label>
@@ -489,15 +727,15 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>Tipo</label>
+              <label className={styles.label}>Tipo de Manutenção</label>
               <select
                 className={styles.select}
                 name="tipo"
                 value={formData.tipo}
                 onChange={handleChange}
               >
-                <option value="PREVENTIVA">Preventiva</option>
                 <option value="CORRETIVA">Corretiva</option>
+                <option value="PREVENTIVA">Preventiva</option>
                 <option value="IMPLANTAÇÃO">Implantação</option>
                 <option value="PERIODICO">Periódico</option>
               </select>
@@ -515,49 +753,156 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
             </div>
           </div>
 
-          {/* Serviços Padrão */}
+          {/* Serviços Padrão & Kits de Serviços */}
           {formData.setor && (
             <div className={styles.formGrid}>
               <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-                <label className={styles.label}>Serviços Padrão ({formData.setor})</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label className={styles.label} style={{ margin: 0 }}>
+                    {formData.setor === 'MECANICA' ? 'Kits & Serviços da Oficina (MECÂNICA)' : `Serviços Padrão (${formData.setor})`}
+                  </label>
+                  {formData.setor === 'MECANICA' && servicosKits.length > 0 && (
+                    <span style={{ fontSize: '0.72rem', color: 'var(--cor-destaque)', fontWeight: 800 }}>
+                      ⚡ {servicosKits.length} Kits Disponíveis
+                    </span>
+                  )}
+                </div>
+
+                {/* Chips de Sugestão Rápida para o Veículo Alvo */}
+                {formData.setor === 'MECANICA' && kitsDoVeiculo.length > 0 && (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--cor-destaque)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={12} /> Sugestões para {veiculoAlvo?.placa || formData.centroCusto}:
+                    </span>
+                    {kitsDoVeiculo.slice(0, 4).map((k, idx) => (
+                      <button
+                        key={k.id || idx}
+                        type="button"
+                        className={styles.kitQuickChip}
+                        onClick={() => handleSelectKit(k)}
+                        title={k.descricaoPadrao || k.nome}
+                      >
+                        <Sparkles size={11} />
+                        {k.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className={`${styles.servicosContainer} ${styles.servicosContainerRow}`}>
 
-                  {servicosExibicao.length > 0 ? (
-                    <div className={styles.dropdownWrapper}>
+                  {(servicosExibicao.length > 0 || formData.setor === 'MECANICA') ? (
+                    <div className={styles.dropdownWrapper} ref={servicosDropdownRef} style={{ width: '100%', flex: 1 }}>
                       <div
                         className={`${styles.select} ${styles.selectDropdown}`}
                         onClick={() => setDropdownAberto(!dropdownAberto)}
+                        style={{ paddingRight: formData.kitNome ? '36px' : '12px' }}
                       >
-                        <span>Selecione um serviço para adicionar...</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {formData.kitNome 
+                            ? <><CheckCircle size={14} color="var(--cor-sucesso)" /> <strong style={{ color: 'var(--cor-sucesso)' }}>Kit Selecionado:</strong> {formData.kitNome}</>
+                            : (formData.setor === 'MECANICA' && formData.centroCusto
+                                ? `Selecione um kit ou serviço para ${veiculoAlvo?.placa || formData.centroCusto}...`
+                                : 'Selecione um serviço ou kit para adicionar...')}
+                        </span>
+                        
+                        {formData.kitNome && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, kitId: null, kitNome: null, descricao: '', tipo: 'CORRETIVA' })); }}
+                            style={{ position: 'absolute', right: '30px', background: 'transparent', border: 'none', color: 'var(--cor-texto-secundario)', cursor: 'pointer' }}
+                            title="Remover kit selecionado"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                         <span style={{ fontSize: '10px' }}>{dropdownAberto ? '▲' : '▼'}</span>
                       </div>
 
                       {dropdownAberto && (
-                        <div className={styles.dropdownList}>
-                          {servicosExibicao.map((svc, i) => {
-                            const isHardcoded = ['TROCA DE ÓLEO', 'REVISÃO', 'TROCA DE ÓLEO E REVISÃO'].includes(svc);
-                            return (
-                              <div key={i} className={`${styles.servicoTag} ${styles.servicoTagItem}`}>
-                                <span
-                                  className={styles.servicoTagTexto}
-                                  onClick={() => { handleAddServicoPadraoText(svc); setDropdownAberto(false); }}
-                                >
-                                  {svc}
-                                </span>
-                                {!isHardcoded && (
-                                  <button
-                                    type="button"
-                                    className={styles.servicoTagExcluir}
-                                    onClick={(e) => { e.stopPropagation(); handleExcluirServicoPadrao(svc); }}
-                                    title="Excluir serviço padrão"
-                                  >
-                                    X
-                                  </button>
-                                )}
+                        <div className={styles.dropdownList} style={{ width: '100%', minWidth: '400px' }}>
+                          {/* 1. SE SETOR MECÂNICA MAS VEÍCULO NÃO INFORMADO */}
+                          {formData.setor === 'MECANICA' && !formData.centroCusto && (
+                            <div className={styles.dropdownAvisoVeiculo}>
+                              <AlertCircle size={15} color="var(--cor-destaque)" />
+                              <span>Digite a Placa do veículo no campo "Centro de Custo" acima para listar os kits de manutenção compatíveis com ele.</span>
+                            </div>
+                          )}
+
+                          {/* 2. KITS ESPECÍFICOS PARA O VEÍCULO ALVO (Ex: XDS-1258) */}
+                          {formData.setor === 'MECANICA' && formData.centroCusto && kitsDoVeiculo.length > 0 && (
+                            <>
+                              <div className={styles.dropdownSectionHeader}>
+                                <Sparkles size={11} color="var(--cor-destaque)" />
+                                <span>Kits Compatíveis com {veiculoAlvo ? `${veiculoAlvo.placa} (${veiculoAlvo.modelo || categoriaVeiculoAtiva})` : formData.centroCusto}</span>
                               </div>
-                            );
-                          })}
+                              {kitsDoVeiculo.map((kit, i) => (
+                                <div
+                                  key={`kit-rec-${kit.id || i}`}
+                                  className={`${styles.servicoTag} ${styles.servicoTagItem}`}
+                                  onClick={() => handleSelectKit(kit)}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <div className={styles.servicoTagTexto}>
+                                    <div className={styles.kitItemRow}>
+                                      <div className={styles.kitItemInfo}>
+                                        <span className={styles.kitItemNome}>{kit.nome}</span>
+                                        {kit.descricaoPadrao && (
+                                          <span className={styles.kitItemSub}>{kit.descricaoPadrao.slice(0, 80)}...</span>
+                                        )}
+                                      </div>
+                                      <div className={styles.kitItemBadges}>
+                                        {kit.trocouOleo && <span className={styles.kitItemBadge}>Óleo</span>}
+                                        <span className={styles.kitItemBadge}>{kit.categoria}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          )}
+
+                          {/* AVISO QUANDO TEM VEÍCULO MAS NÃO TEM KIT */}
+                          {formData.setor === 'MECANICA' && formData.centroCusto && kitsDoVeiculo.length === 0 && (
+                            <div className={styles.dropdownAvisoVeiculo} style={{ background: 'var(--cor-fundo-secundario)' }}>
+                              <AlertCircle size={15} color="var(--cor-texto-secundario)" />
+                              <span style={{ fontWeight: 'normal' }}>Nenhum kit pré-configurado encontrado para <strong>{veiculoAlvo?.modelo || formData.centroCusto}</strong>.</span>
+                            </div>
+                          )}
+
+                          {/* 3. SERVIÇOS PADRÃO TEXTUAIS */}
+                          {servicosExibicao.length > 0 && (
+                            <>
+                              {formData.setor === 'MECANICA' && (
+                                <div className={styles.dropdownSectionHeader}>
+                                  <span>Serviços Padrão Textuais</span>
+                                </div>
+                              )}
+                              {servicosExibicao.map((svc, i) => {
+                                const isHardcoded = ['TROCA DE ÓLEO', 'REVISÃO', 'TROCA DE ÓLEO E REVISÃO'].includes(svc);
+                                return (
+                                  <div key={i} className={`${styles.servicoTag} ${styles.servicoTagItem}`}>
+                                    <span
+                                      className={styles.servicoTagTexto}
+                                      onClick={() => { handleAddServicoPadraoText(svc); setDropdownAberto(false); }}
+                                    >
+                                      {svc}
+                                    </span>
+                                    {!isHardcoded && (
+                                      <button
+                                        type="button"
+                                        className={styles.servicoTagExcluir}
+                                        onClick={(e) => { e.stopPropagation(); handleExcluirServicoPadrao(svc); }}
+                                        title="Excluir serviço padrão"
+                                      >
+                                        X
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -637,7 +982,7 @@ const FormularioOS = ({ onAddOS, osList, onClose }) => {
           <div className={styles.actions}>
             <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
               <Save size={18} />
-              {isSubmitting ? 'CADASTRANDO...' : 'CADASTRAR O.S'}
+              {isSubmitting ? 'CADASTRANDO...' : (isPrestacao ? 'CADASTRAR PRESTAÇÃO DE SERVIÇO' : 'CADASTRAR O.S.')}
             </button>
           </div>
         </form>

@@ -18,11 +18,23 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isArla = formData.produto === 'ARLA REDUX';
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     const isNumberOrDate = type === 'number' || type === 'date' || type === 'time';
     const finalValue = (typeof value === 'string' && !isNumberOrDate) ? value.toUpperCase() : value;
+    
+    if (name === 'produto') {
+      const isArlaChoice = finalValue === 'ARLA REDUX';
+      setFormData(prev => ({
+        ...prev,
+        produto: finalValue,
+        situacao: isArlaChoice ? 'INTEGRO' : 'AGUARDANDO COMBUSTIVEL'
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: finalValue
@@ -39,8 +51,12 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const isArlaSubmit = formData.produto === 'ARLA REDUX';
+    const situacaoFinal = isArlaSubmit ? 'INTEGRO' : 'AGUARDANDO COMBUSTIVEL';
+
     const dadosEnvio = {
       ...formData,
+      situacao: situacaoFinal,
       valorTotal: calcularValorTotal(),
       quantidade: parseMoeda(formData.quantidade),
       quantidadeNf: parseMoeda(formData.quantidade),
@@ -57,7 +73,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao salvar pedido de entrada');
+        throw new Error('Erro ao salvar entrada de combustível');
       }
 
       const result = await response.json();
@@ -65,7 +81,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar pedido de entrada.');
+      alert('Erro ao salvar entrada de combustível.');
     } finally {
       setIsSubmitting(false);
     }
@@ -75,16 +91,22 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
-          <h2>Novo Pedido de Combustível</h2>
+          <h2>{isArla ? 'Entrada de Combustível (Arla Redux)' : 'Novo Pedido de Combustível'}</h2>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
+        {isArla && (
+          <div className={styles.bannerArla}>
+            <span>✓ <strong>Entrada Direta:</strong> O Arla Redux entrará imediatamente no saldo do estoque físico, sem necessidade de conferência física (temperatura/densidade/peso).</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>Data do Pedido</label>
+              <label>{isArla ? 'Data da Entrada' : 'Data do Pedido'}</label>
               <input
                 type="date"
                 name="data"
@@ -94,15 +116,17 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
               />
             </div>
 
-            <div className={styles.formGroup}>
-              <label>Prazo de Entrega</label>
-              <input
-                type="date"
-                name="prazoEntrega"
-                value={formData.prazoEntrega}
-                onChange={handleChange}
-              />
-            </div>
+            {!isArla && (
+              <div className={styles.formGroup}>
+                <label>Prazo de Entrega</label>
+                <input
+                  type="date"
+                  name="prazoEntrega"
+                  value={formData.prazoEntrega}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
 
             <div className={styles.formGroup}>
               <label>Fornecedor</label>
@@ -137,7 +161,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Quantidade Pedida / NF (L)</label>
+              <label>{isArla ? 'Quantidade (L)' : 'Quantidade Pedida / NF (L)'}</label>
               <input
                 type="number"
                 name="quantidade"
@@ -206,7 +230,7 @@ const FormularioEntradaEstoque = ({ onClose, onAdd }) => {
             </button>
             <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
               <Save size={18} />
-              {isSubmitting ? 'Salvando...' : 'Salvar Pedido'}
+              {isSubmitting ? 'Salvando...' : (isArla ? 'Cadastrar no Estoque' : 'Salvar Pedido')}
             </button>
           </div>
         </form>

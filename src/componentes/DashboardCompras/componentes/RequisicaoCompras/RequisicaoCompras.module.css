@@ -188,6 +188,12 @@
   margin-bottom: 16px;
 }
 
+.itens-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .itens-header h4 {
   margin: 0;
   font-size: 0.95rem;
@@ -312,4 +318,25 @@
   font-size: 0.75rem;
   color: var(--cor-texto-secundario);
   margin-top: 2px;
+}
+
+.btn-adicionar-produto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-adicionar-produto:hover {
+  background-color: var(--cor-fundo-sutil);
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
 }

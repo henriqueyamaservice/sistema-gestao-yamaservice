@@ -9,7 +9,11 @@ import DashboardOS from './componentes/DashboardOS';
 import DashboardApontamentoOS from './componentes/DashboardApontamentoOS';
 import PortalFornecedor from './componentes/DashboardCompras/componentes/PortalFornecedor';
 import CheckListVeiculo from './componentes/DashboardOS/componentes/CheckListVeiculo';
-import { ArrowRightLeft } from 'lucide-react';
+import DashboardChatBoxCombustivel from './componentes/DashboardOS/DashboardControleCombustivel/componentes/DashboardChatBoxCombustivel';
+import DashboardMotorista from './componentes/DashboardMotorista';
+import DashboardFrentistaYamaves from './componentes/DashboardFrentistaYamaves';
+import DashboardRecebimentoFiscal from './componentes/DashboardRecebimentoFiscal';
+import MenuTrocaModulo from './componentes/MenuTrocaModulo';
 import './index.css';
 
 import ErrorBoundary from './componentes/ErrorBoundary';
@@ -21,25 +25,54 @@ function App() {
   const searchParams = new URLSearchParams(window.location.search);
   const path = window.location.pathname;
 
-  // Modo Desenvolvedor (Bypass do Login localmente se VITE_DEV_MODE=true no .env)
-  const devModeEnv = import.meta.env.VITE_DEV_MODE === 'true';
-  const isDevModeUrl = searchParams.get('dev') === 'true';
-  const isDevBypass = devModeEnv || isDevModeUrl;
+  // Modo Desenvolvedor: estritamente restrito ao ambiente local de desenvolvimento (Vite dev)
+  const isDevBypass = import.meta.env.DEV && import.meta.env.VITE_DEV_MODE === 'true';
 
   const [usuario, setUsuario] = useState(() => {
     if (isDevBypass) return { role: 'admin', nome: 'Desenvolvedor' };
-    const saved = localStorage.getItem('almoxarifado_user');
-    return saved ? JSON.parse(saved) : null;
+    
+    // Validação segura de sessão e expiração do token
+    const savedUser = localStorage.getItem('almoxarifado_user');
+    const token = localStorage.getItem('almoxarifado_token');
+
+    if (!savedUser || !token) {
+      localStorage.removeItem('almoxarifado_user');
+      localStorage.removeItem('almoxarifado_token');
+      return null;
+    }
+
+    try {
+      // Validação da expiração do JWT no cliente
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const payloadJson = JSON.parse(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')));
+        if (payloadJson.exp && payloadJson.exp * 1000 < Date.now()) {
+          console.warn('Sessão expirada. Redirecionando para login...');
+          localStorage.removeItem('almoxarifado_user');
+          localStorage.removeItem('almoxarifado_token');
+          return null;
+        }
+      }
+      return JSON.parse(savedUser);
+    } catch {
+      localStorage.removeItem('almoxarifado_user');
+      localStorage.removeItem('almoxarifado_token');
+      return null;
+    }
   });
 
   const getModuloPadrao = (role) => {
     switch(role) {
+      case 'motorista': return 'motorista';
+      case 'frentista': return 'frentista';
       case 'apontamento':
       case 'oficina': return 'apontamento';
       case 'tecnico': return 'tecnico';
       case 'chefe_setor': return 'chefe';
       case 'almoxarife': return 'almoxarifado';
       case 'compras': return 'compras';
+      case 'fiscal':
+      case 'recebimento_fiscal': return 'recebimento_fiscal';
       case 'diretor': return 'diretor';
       case 'os': return 'os';
       case 'admin': return 'os'; // Admin cai na OS por padrão e pode mudar depois
@@ -76,6 +109,14 @@ function App() {
     );
   }
 
+  if (searchParams.get('chat_combustivel') === 'true' || searchParams.get('abastecer') === 'true') {
+    return (
+      <div style={{ backgroundColor: 'var(--cor-fundo-principal)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DashboardChatBoxCombustivel onClose={() => window.location.href = '/'} />
+      </div>
+    );
+  }
+
   if (path.startsWith('/cotacao/')) {
     const token = path.split('/')[2];
     if (token) {
@@ -92,61 +133,31 @@ function App() {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // O botão de bypass só aparece se o usuário tiver role admin
-  const showDevBypass = usuario.role === 'admin';
+  // O menu de troca de módulo aparece para administradores ou em ambiente de desenvolvimento local (Vite)
+  const showDevBypass = usuario.role === 'admin' || import.meta.env.DEV;
 
   return (
     <NotificationProvider>
       <div className="app-container" style={{ position: 'relative' }}>
 
-        {/* Botão flutuante de alternar módulos oculto por padrão (só exibe se for admin) */}
+        {/* Dock Bar deslizante com efeito de aumento dos ícones para Admin */}
         {showDevBypass && (
-          <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-            <button
-              onClick={() => {
-                if (moduloAtivo === 'almoxarifado') setModuloAtivo('compras');
-                else if (moduloAtivo === 'compras') setModuloAtivo('funcionario');
-                else if (moduloAtivo === 'funcionario') setModuloAtivo('chefe');
-                else if (moduloAtivo === 'chefe') setModuloAtivo('diretor');
-                else if (moduloAtivo === 'diretor') setModuloAtivo('tecnico');
-                else if (moduloAtivo === 'tecnico') setModuloAtivo('os');
-                else if (moduloAtivo === 'os') setModuloAtivo('apontamento');
-                else setModuloAtivo('almoxarifado');
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                backgroundColor: moduloAtivo === 'almoxarifado' ? '#f97316' :
-                  moduloAtivo === 'compras' ? '#3b82f6' :
-                    moduloAtivo === 'funcionario' ? '#10b981' : 
-                      moduloAtivo === 'chefe' ? '#eab308' :
-                        moduloAtivo === 'diretor' ? '#6366f1' :
-                          moduloAtivo === 'tecnico' ? '#06b6d4' :
-                            moduloAtivo === 'os' ? '#ef4444' : '#10b981',
-                color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px',
-                cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-              }}
-            >
-              <ArrowRightLeft size={18} />
-              Mudar para {moduloAtivo === 'almoxarifado' ? 'COMPRAS' :
-                moduloAtivo === 'compras' ? 'FUNCIONÁRIO (REQUISIÇÃO)' :
-                  moduloAtivo === 'funcionario' ? 'CHEFE DE SETOR' :
-                    moduloAtivo === 'chefe' ? 'DIRETOR' :
-                      moduloAtivo === 'diretor' ? 'TÉCNICO' :
-                        moduloAtivo === 'tecnico' ? 'MANUTENÇÃO/O.S' :
-                          moduloAtivo === 'os' ? 'TERMINAL APONTAMENTO (OFICINA)' : 'ALMOXARIFADO'}
-            </button>
-          </div>
+          <MenuTrocaModulo moduloAtivo={moduloAtivo} setModuloAtivo={setModuloAtivo} />
         )}
 
         <ErrorBoundary>
           {moduloAtivo === 'almoxarifado' && <DashboardAlmoxarifado />}
           {moduloAtivo === 'compras' && <DashboardCompras />}
+          {moduloAtivo === 'recebimento_fiscal' && <DashboardRecebimentoFiscal />}
           {moduloAtivo === 'funcionario' && <DashboardBlocoRequisicao />}
           {moduloAtivo === 'chefe' && <DashboardChefeSetor />}
           {moduloAtivo === 'diretor' && <DashboardDiretor />}
           {moduloAtivo === 'tecnico' && <DashboardTecnico />}
-          {moduloAtivo === 'os' && <DashboardOS />}
+          {moduloAtivo === 'os' && <DashboardOS initialViewMode="os" />}
+          {moduloAtivo === 'combustivel' && <DashboardOS initialViewMode="combustivel" />}
           {moduloAtivo === 'apontamento' && <DashboardApontamentoOS />}
+          {moduloAtivo === 'motorista' && <DashboardMotorista />}
+          {moduloAtivo === 'frentista' && <DashboardFrentistaYamaves />}
         </ErrorBoundary>
 
       </div>

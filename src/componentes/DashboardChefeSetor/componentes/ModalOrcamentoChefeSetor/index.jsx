@@ -2,6 +2,7 @@ import React from 'react';
 import { DollarSign, X, ShieldAlert, AlertTriangle, Clock, Trash2, Send, XCircle, PackageCheck, CheckCircle, ChevronLeft } from 'lucide-react';
 import SeletorTecnico from '../SeletorTecnico';
 import styles from '../../DashboardChefeSetor.module.css';
+import { obterRotuloUnidade, permiteDecimais, formatarQuantidadeComUnidade } from '../../../../utils/classificadorUnidades';
 
 const ModalOrcamentoChefeSetor = ({
   osModal,
@@ -353,15 +354,23 @@ const ModalOrcamentoChefeSetor = ({
               </div>
             ) : (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--cor-fundo-principal)', padding: '12px', borderRadius: '6px', border: '1px solid var(--cor-destaque)', marginTop: '8px', flexWrap: 'wrap' }}>
-                <span style={{ flex: 1, minWidth: '200px', fontSize: '0.9rem', color: 'var(--cor-texto-principal)' }}><strong>Selecionado:</strong> {pecaSelecionada.descricao} ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pecaSelecionada.valor_unitario || pecaSelecionada.preco || 0)}/un)</span>
+                <span style={{ flex: 1, minWidth: '200px', fontSize: '0.9rem', color: 'var(--cor-texto-principal)' }}>
+                  <strong>Selecionado:</strong> {pecaSelecionada.descricao} ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pecaSelecionada.valor_unitario || pecaSelecionada.preco || 0)}/{obterRotuloUnidade(pecaSelecionada.unidade)})
+                </span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input 
-                    type="number" 
-                    min="1" 
-                    value={qtdPeca} 
-                    onChange={e => setQtdPeca(e.target.value)} 
-                    style={{ width: '70px', padding: '8px', borderRadius: '6px', border: '1px solid var(--cor-borda-cartao)', textAlign: 'center', backgroundColor: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)' }}
-                  />
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <input 
+                      type="number" 
+                      min={permiteDecimais(pecaSelecionada.unidade) ? "0.01" : "1"}
+                      step={permiteDecimais(pecaSelecionada.unidade) ? "0.01" : "1"}
+                      value={qtdPeca} 
+                      onChange={e => setQtdPeca(e.target.value)} 
+                      style={{ width: '70px', padding: '8px', borderRadius: '6px', border: '1px solid var(--cor-borda-cartao)', textAlign: 'center', backgroundColor: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)' }}
+                    />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--cor-destaque)' }}>
+                      {obterRotuloUnidade(pecaSelecionada.unidade)}
+                    </span>
+                  </div>
                   <button onClick={onAdicionarPeca} style={{ backgroundColor: 'var(--cor-destaque)', color: 'var(--cor-texto-inverso)', border: 'none', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Adicionar</button>
                   <button onClick={() => setPecaSelecionada(null)} style={{ backgroundColor: 'transparent', color: 'var(--cor-texto-secundario)', border: '1px solid var(--cor-texto-secundario)', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
                 </div>
@@ -377,7 +386,7 @@ const ModalOrcamentoChefeSetor = ({
                       <tr>
                         <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '90px' }}>Código</th>
                         <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)' }}>Descrição</th>
-                        <th style={{ textAlign: 'center', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '50px' }}>Qtd</th>
+                        <th style={{ textAlign: 'center', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '70px' }}>Qtd</th>
                         <th style={{ textAlign: 'right', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '100px' }}>Valor Unit.</th>
                         <th style={{ textAlign: 'right', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '100px' }}>Total Peça</th>
                         <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid var(--cor-borda-cartao)', color: 'var(--cor-texto-secundario)', whiteSpace: 'nowrap', width: '140px' }}>Status</th>
@@ -387,6 +396,7 @@ const ModalOrcamentoChefeSetor = ({
                     <tbody>
                       {pecasSolicitadasEdicao.map((p, idx) => {
                         const itemEstoque = produtosEstoque.find(prod => prod.codigo === p.codigo);
+                        const un = p.unidade || itemEstoque?.unidade || 'UN';
                         const valUnit = Number(p.valor_unitario || p.preco || p.valorUnitario || itemEstoque?.valor_unitario || itemEstoque?.preco || 0);
                         const totalItem = valUnit * Number(p.quantidade || 1);
                         return (
@@ -398,10 +408,10 @@ const ModalOrcamentoChefeSetor = ({
                               {p.descricao}
                             </td>
                             <td style={{ textAlign: 'center', fontWeight: 'bold', whiteSpace: 'nowrap', padding: '8px 4px' }}>
-                              {p.quantidade}
+                              {formatarQuantidadeComUnidade(p.quantidade, un)}
                             </td>
                             <td style={{ textAlign: 'right', fontSize: '0.8rem', whiteSpace: 'nowrap', padding: '8px 4px' }}>
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valUnit)}
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valUnit)}/{obterRotuloUnidade(un)}
                             </td>
                             <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--cor-destaque)', fontSize: '0.85rem', whiteSpace: 'nowrap', padding: '8px 4px' }}>
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalItem)}
@@ -427,6 +437,7 @@ const ModalOrcamentoChefeSetor = ({
                 <div className={styles.cardsPecasMobile}>
                   {pecasSolicitadasEdicao.map((p, idx) => {
                     const itemEstoque = produtosEstoque.find(prod => prod.codigo === p.codigo);
+                    const un = p.unidade || itemEstoque?.unidade || 'UN';
                     const valUnit = Number(p.valor_unitario || p.preco || p.valorUnitario || itemEstoque?.valor_unitario || itemEstoque?.preco || 0);
                     const totalItem = valUnit * Number(p.quantidade || 1);
                     return (
@@ -444,8 +455,8 @@ const ModalOrcamentoChefeSetor = ({
                         </div>
                         <p className={styles.cardPecaDesc}>{p.descricao}</p>
                         <div className={styles.cardPecaMeta}>
-                          <span>Qtd: <strong>{p.quantidade}x</strong></span>
-                          <span>Unit: <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valUnit)}</strong></span>
+                          <span>Qtd: <strong>{formatarQuantidadeComUnidade(p.quantidade, un)}</strong></span>
+                          <span>Unit: <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valUnit)}/{obterRotuloUnidade(un)}</strong></span>
                           <span>Total: <strong className={styles.totalDestaque}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalItem)}</strong></span>
                         </div>
                       </div>

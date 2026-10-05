@@ -55,12 +55,29 @@ export const formatarOdometroDisplay = (valor, tipoMedicao = 'KM') => {
  * Garante que o odômetro informado não seja menor que o último KM registrado no banco de dados.
  */
 export const validarAntiRetrocessoKM = (novoValor, valorAnterior, tipoMedicao = 'KM') => {
+  // Verifica se o valor original contém vírgula ANTES de limpar (pois o limparNumeroOdometro converte , em .)
+  if (String(novoValor).includes(',')) {
+    return {
+      valido: false,
+      retrocedeu: false,
+      mensagem: 'Por favor, não utilize vírgula (,). Digite apenas números contínuos.',
+      diferenca: 0,
+      valorNumerico: null
+    };
+  }
+
   const novoNum = limparNumeroOdometro(novoValor);
   const anteriorNum = limparNumeroOdometro(valorAnterior);
 
   // Se o novo valor estiver vazio ou não houver registro anterior, não bloqueia
   if (novoNum === '' || anteriorNum === '' || anteriorNum <= 0) {
-    return { valido: true, retrocedeu: false, mensagem: '', diferenca: 0 };
+    return {
+      valido: true,
+      retrocedeu: false,
+      mensagem: '',
+      diferenca: 0,
+      valorNumerico: typeof novoNum === 'number' ? novoNum : 0
+    };
   }
 
   const isHoras = String(tipoMedicao).toUpperCase().includes('HORA');
@@ -71,15 +88,33 @@ export const validarAntiRetrocessoKM = (novoValor, valorAnterior, tipoMedicao = 
     return {
       valido: false,
       retrocedeu: true,
-      mensagem: `O ${isHoras ? 'horímetro' : 'KM'} informado (${formatarNumeroBR(novoNum)} ${unidade}) é menor que o último registrado (${formatarNumeroBR(anteriorNum)} ${unidade}). O odômetro não pode retroceder!`,
-      diferenca: dif
+      mensagem: `Atenção: O ${isHoras ? 'horímetro' : 'KM'} informado (${formatarNumeroBR(novoNum)} ${unidade}) é menor que o atual da frota (${formatarNumeroBR(anteriorNum)} ${unidade}). Ele será salvo apenas no histórico desta O.S.`,
+      diferenca: dif,
+      valorNumerico: novoNum
     };
+  }
+
+  if (novoNum > anteriorNum) {
+    const dif = novoNum - anteriorNum;
+    // Bloqueia se o salto for > 50000 ou se digitou zero a mais (ex: 20000 -> 200000)
+    const isSaltoExagerado = (anteriorNum > 0) && (dif > 50000 || (String(Math.floor(novoNum)).length > String(Math.floor(anteriorNum)).length && novoNum > anteriorNum * 5));
+    
+    if (isSaltoExagerado) {
+      return {
+        valido: false,
+        retrocedeu: false,
+        mensagem: `ATENÇÃO - SALTO MUITO ALTO DE ${isHoras ? 'HORÍMETRO' : 'ODÔMETRO'}:\n\nO valor informado (${formatarNumeroBR(novoNum)}) representa um salto exagerado em relação ao atual (${formatarNumeroBR(anteriorNum)}).\n\nDiferença: ${formatarNumeroBR(dif)} ${unidade}.\n\nIsso parece ser um erro de digitação (ex: dígito a mais). Verifique e corrija o valor para prosseguir.`,
+        diferenca: dif,
+        valorNumerico: novoNum
+      };
+    }
   }
 
   return {
     valido: true,
     retrocedeu: false,
     mensagem: '',
-    diferenca: novoNum - anteriorNum
+    diferenca: novoNum - anteriorNum,
+    valorNumerico: novoNum
   };
 };
