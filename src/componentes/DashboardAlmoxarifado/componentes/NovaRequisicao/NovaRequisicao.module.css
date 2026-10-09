@@ -599,3 +599,68 @@
 .btnSalvarModal:hover {
   filter: brightness(1.1);
 }
+
+/* Controle e Aviso de Rateio Omie */
+.boxIntegracaoOmie {
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkboxWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+
+.checkboxWrapper input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--cor-destaque);
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkboxLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto-principal);
+}
+
+.alertaRateioOmie {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 8px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+}
+
+.alertaRateioOmie strong {
+  color: #f59e0b;
+}
+
+.badgePendenteAviso {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-left: 6px;
+}
+

@@ -78,6 +78,9 @@ async function criarRemessa(opcoes) {
     codigoIntegracao,
     codigoCliente,
     codigoVendedor,
+    codigoDepartamento = null,
+    nomeDepartamento = '',
+    concluirAutomaticamente = true,
     dataPrevisao,
     observacao = '',
     codigoCategoria = '1.01.01',
@@ -109,6 +112,8 @@ async function criarRemessa(opcoes) {
     return item;
   });
 
+  const valorTotalRemessa = produtos.reduce((acc, p) => acc + ((Number(p.quantidade) || 0) * (Number(p.valorUnitario) || 0)), 0);
+
   const paramRemessa = {
     cabec: {
       cCodIntRem: codigoIntegracao,
@@ -125,6 +130,28 @@ async function criarRemessa(opcoes) {
     produtos: produtosOmie
   };
 
+  // Se houver departamento informado, adicionar rateio padrão Omie
+  if (codigoDepartamento) {
+    paramRemessa.departamentos = [
+      {
+        cCodDep: String(codigoDepartamento),
+        nValDep: Number(valorTotalRemessa.toFixed(2)) || 0.01,
+        nPercDep: 100
+      }
+    ];
+  }
+
+  // Identificação clara em infAdic e obs para garantia visual e contábil na Omie
+  const infoDeptoStr = nomeDepartamento || codigoDepartamento ? `Depto: ${nomeDepartamento || codigoDepartamento}` : '';
+  if (infoDeptoStr) {
+    paramRemessa.infAdic.cDadosAdic = paramRemessa.infAdic.cDadosAdic 
+      ? `${paramRemessa.infAdic.cDadosAdic} | ${infoDeptoStr}` 
+      : infoDeptoStr;
+    if (!paramRemessa.obs.cObs.includes('Depto:')) {
+      paramRemessa.obs.cObs = `${paramRemessa.obs.cObs} | ${infoDeptoStr}`;
+    }
+  }
+
   // Adiciona vendedor se informado
   if (codigoVendedor > 0) {
     paramRemessa.cabec.nCodVend = codigoVendedor;
@@ -135,28 +162,45 @@ async function criarRemessa(opcoes) {
     paramRemessa.infAdic.nCodProj = codigoProjeto;
   }
 
-  console.log(`[OMIE REMESSA] 📋 Remessa ${codigoIntegracao}: ${produtos.length} item(ns) | Cliente: ${codigoCliente} | Vendedor: ${codigoVendedor || 'N/A'} | Projeto: ${codigoProjeto || 'N/A'}`);
+  console.log(`[OMIE REMESSA] 📋 Remessa ${codigoIntegracao}: ${produtos.length} item(ns) | Cliente: ${codigoCliente} | Depto: ${codigoDepartamento || 'N/A'} (${nomeDepartamento || 'N/A'}) | Vendedor: ${codigoVendedor || 'N/A'} | Projeto: ${codigoProjeto || 'N/A'}`);
 
-  const resultado = await chamarOmieRemessa('IncluirRemessa', paramRemessa);
+  let resultado = await chamarOmieRemessa('IncluirRemessa', paramRemessa);
+
+  // Fallback de resiliência: se o schema SOAP da Omie rejeitar a tag departamentos no IncluirRemessa, retenta sem a tag
+  if (resultado.erro && paramRemessa.departamentos && (
+    (resultado.mensagem && resultado.mensagem.toLowerCase().includes('departamento')) ||
+    resultado.faultcode?.includes('SOAP')
+  )) {
+    console.warn(`[OMIE REMESSA] ⚠️ Schema SOAP da Omie não aceitou a tag 'departamentos' no IncluirRemessa (${resultado.mensagem}). Tentando novamente com departamento registrado em infAdic/obs...`);
+    delete paramRemessa.departamentos;
+    resultado = await chamarOmieRemessa('IncluirRemessa', paramRemessa);
+  }
 
   if (!resultado.erro && resultado.dados) {
     console.log(`[OMIE REMESSA] 🎉 Remessa criada! nCodRem: ${resultado.dados.nCodRem || 'N/A'} | cCodIntRem: ${resultado.dados.cCodIntRem || codigoIntegracao}`);
     
-    // ------------------------------------------------------------------------------------------------
-    // O sistema NÃO vai mais concluir a remessa automaticamente a pedido do usuário,
-    // para que ela fique como "Pendente" lá na Omie e eles possam adicionar o Departamento manualmente antes de Faturar/Concluir.
-    /*
-    if (resultado.dados.nCodRem || resultado.dados.cCodIntRem) {
-      console.log(`[OMIE REMESSA] ⏳ Iniciando conclusão da remessa...`);
-      const resultadoConclusao = await concluirRemessa(resultado.dados.nCodRem, resultado.dados.cCodIntRem);
-      if (!resultadoConclusao.erro) {
-        console.log(`[OMIE REMESSA] ✅ Remessa Concluída com sucesso (faturada)!`);
-      } else {
-        console.error(`[OMIE REMESSA] ⚠️ Remessa criada, mas falhou ao concluir: ${resultadoConclusao.mensagem}`);
+    // Conclusão/Faturamento automático da Remessa no Omie
+    if (concluirAutomaticamente && (resultado.dados.nCodRem || resultado.dados.cCodIntRem)) {
+      console.log(`[OMIE REMESSA] ⏳ Disparando conclusão automática da remessa no Omie...`);
+      try {
+        const resultadoConclusao = await concluirRemessa(resultado.dados.nCodRem, resultado.dados.cCodIntRem);
+        if (!resultadoConclusao.erro) {
+          console.log(`[OMIE REMESSA] ✅ Remessa Concluída com sucesso na Omie (Faturada/Baixada)!`);
+          resultado.concluida = true;
+          resultado.dadosConclusao = resultadoConclusao.dados;
+        } else {
+          console.warn(`[OMIE REMESSA] ⚠️ Remessa criada, mas retorno ao concluir automaticamente: ${resultadoConclusao.mensagem}`);
+          resultado.concluida = false;
+          resultado.mensagemConclusao = resultadoConclusao.mensagem;
+        }
+      } catch (errConc) {
+        console.warn(`[OMIE REMESSA] ⚠️ Exceção ao concluir remessa:`, errConc.message);
+        resultado.concluida = false;
       }
+    } else {
+      console.log(`[OMIE REMESSA] 📌 Remessa mantida como PENDENTE na Omie (para conferência e rateio por departamentos no ERP).`);
+      resultado.concluida = false;
     }
-    */
-    // ------------------------------------------------------------------------------------------------
   }
 
   return resultado;
@@ -169,10 +213,10 @@ async function criarRemessa(opcoes) {
  */
 async function consultarRemessa(nCodRem = 0, cCodIntRem = '') {
   await sleep(RATE_LIMIT_MS);
-  return chamarOmieRemessa('ConsultarRemessa', {
-    nCodRem: nCodRem,
-    cCodIntRem: cCodIntRem
-  });
+  const param = {};
+  if (nCodRem && Number(nCodRem) > 0) param.nCodRem = Number(nCodRem);
+  if (cCodIntRem && String(cCodIntRem).trim()) param.cCodIntRem = String(cCodIntRem).trim();
+  return chamarOmieRemessa('ConsultarRemessa', param);
 }
 
 /**
@@ -182,10 +226,10 @@ async function consultarRemessa(nCodRem = 0, cCodIntRem = '') {
  */
 async function statusRemessa(nCodRem = 0, cCodIntRem = '') {
   await sleep(RATE_LIMIT_MS);
-  return chamarOmieRemessa('StatusRemessa', {
-    nCodRem: nCodRem,
-    cCodIntRem: cCodIntRem
-  });
+  const param = {};
+  if (nCodRem && Number(nCodRem) > 0) param.nCodRem = Number(nCodRem);
+  if (cCodIntRem && String(cCodIntRem).trim()) param.cCodIntRem = String(cCodIntRem).trim();
+  return chamarOmieRemessa('StatusRemessa', param);
 }
 
 /**
@@ -201,9 +245,23 @@ async function concluirRemessa(nCodRem = 0, cCodIntRem = '') {
   }, OMIE_REMESSA_FAT_URL);
 }
 
+/**
+ * Cancela uma remessa existente (quando ainda pendente de faturamento na Omie)
+ * @param {number} nCodRem  - Código da remessa na Omie
+ * @param {string} cCodIntRem - Código de integração (alternativa)
+ */
+async function cancelarRemessa(nCodRem = 0, cCodIntRem = '') {
+  await sleep(RATE_LIMIT_MS);
+  const param = {};
+  if (nCodRem && Number(nCodRem) > 0) param.nCodRem = Number(nCodRem);
+  if (cCodIntRem && String(cCodIntRem).trim()) param.cCodIntRem = String(cCodIntRem).trim();
+  return chamarOmieRemessa('CancelarRemessa', param, OMIE_REMESSA_FAT_URL);
+}
+
 export default {
   criarRemessa,
   consultarRemessa,
   statusRemessa,
-  concluirRemessa
+  concluirRemessa,
+  cancelarRemessa
 };

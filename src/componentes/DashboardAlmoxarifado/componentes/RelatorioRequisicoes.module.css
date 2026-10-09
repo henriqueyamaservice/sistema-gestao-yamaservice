@@ -400,3 +400,155 @@
 .timeline-connector.active {
   background: var(--cor-destaque);
 }
+
+.btn-sync-geral {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cor-fundo-cartao);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sync-geral:hover:not(:disabled) {
+  border-color: var(--cor-destaque);
+  color: var(--cor-destaque);
+  background: var(--cor-fundo-sutil);
+}
+
+.btn-sync-geral:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-mini-sync {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #b45309;
+  transition: all 0.2s;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.btn-mini-sync:hover:not(:disabled) {
+  background: rgba(180, 83, 9, 0.15);
+  color: #92400e;
+}
+
+.btn-timeline-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.btn-timeline-sync:hover:not(:disabled) {
+  background: #fde68a;
+  color: #92400e;
+  border-color: #f59e0b;
+}
+
+.girando {
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-cancelada {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btn-cancelar-req {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancelar-req:hover:not(:disabled) {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #be123c;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.15);
+}
+
+.btn-cancelar-req:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timeline-step.cancelado {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.timeline-connector.cancelado {
+  background: #dc2626;
+}
+
+.btn-devolucao-travada {
+  background: #f8fafc;
+  color: #94a3b8;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 4px;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

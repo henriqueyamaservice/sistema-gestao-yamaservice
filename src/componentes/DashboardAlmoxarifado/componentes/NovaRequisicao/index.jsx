@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ArrowLeft, ArrowUpRight, Save, Printer, Search, Plus, Trash2, ShoppingCart, 
-  MapPin, Tag, Calendar, AlertTriangle, CheckCircle2, Clock, Box 
+import {
+  ArrowLeft, ArrowUpRight, Save, Printer, Search, Plus, Trash2, ShoppingCart,
+  MapPin, Tag, Calendar, AlertTriangle, CheckCircle2, Clock, Box, Info
 } from 'lucide-react';
 import styles from './NovaRequisicao.module.css';
-import { 
-  obterBadgeInfo, 
-  obterRotuloUnidade, 
-  permiteDecimais, 
-  formatarQuantidade, 
-  formatarQuantidadeComUnidade 
+import {
+  obterBadgeInfo,
+  obterRotuloUnidade,
+  permiteDecimais,
+  formatarQuantidade,
+  formatarQuantidadeComUnidade
 } from '../../../../utils/classificadorUnidades';
 
 // Helpers para extração robusta de metadados do cadastro de produtos
@@ -181,7 +181,21 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     const fetchDepartamentos = async () => {
       try {
         const res = await fetch('/api/departamentos');
-        if (res.ok) setDepartamentos(await res.json());
+        if (res.ok) {
+          const deps = await res.json();
+          setDepartamentos(deps);
+          if (deps.length > 0) {
+            setFormulario(prev => {
+              if (prev.codigoDepartamentoOmie) return prev;
+              const match = deps.find(d => (d.descricao || '').toUpperCase() === (prev.centroCusto || '').toUpperCase()) || deps[0];
+              return {
+                ...prev,
+                centroCusto: match.descricao,
+                codigoDepartamentoOmie: match.codigo
+              };
+            });
+          }
+        }
       } catch (err) { console.error('Erro ao buscar departamentos:', err); }
     };
     fetchDepartamentos();
@@ -210,7 +224,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
             const veiculosStr = os.veiculos?.map(v => v.placa).filter(Boolean).join(', ');
             const infoVeiculos = veiculosStr ? ` (${veiculosStr})` : '';
             const labelOs = `${os.codigo}${infoVeiculos}`;
-            
+
             // Tenta casar a OS com algum projeto já existente na Omie
             const osLimpa = String(os.codigo).replace(/\D/g, '');
             const matchOmie = listaCombinada.find(p => {
@@ -259,13 +273,15 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     dataLancamento: new Date().toISOString().split('T')[0],
     localEstoque: '01 - Almoxarifado',
     centroCusto: 'GRANJA',
+    codigoDepartamentoOmie: null,
     contatoCliente: '',
     codigoClienteOmie: null,
     vendedor: usuarioLogado.nome || '',
     entregador: usuarioLogado.nome || '',
     codigoVendedorOmie: null,
     numeroOS: '',
-    codigoProjetoOmie: null
+    codigoProjetoOmie: null,
+    concluirAutomaticamenteOmie: false
   });
 
   const [loading, setLoading] = useState(false);
@@ -275,13 +291,13 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   // Filtragem rápida de produtos
   const produtosFiltrados = termoBusca.length >= 2
     ? produtos.filter(p => {
-        const termo = termoBusca.toLowerCase();
-        const nome = (p.descricao || '').toLowerCase();
-        const codigo = (p.codigo || '').toLowerCase();
-        const ean = (p.ean || '').toLowerCase();
-        const bateLote = p.lotes?.some(l => (l.ean || '').toLowerCase().includes(termo));
-        return nome.includes(termo) || codigo.includes(termo) || ean.includes(termo) || bateLote;
-      }).slice(0, 15)
+      const termo = termoBusca.toLowerCase();
+      const nome = (p.descricao || '').toLowerCase();
+      const codigo = (p.codigo || '').toLowerCase();
+      const ean = (p.ean || '').toLowerCase();
+      const bateLote = p.lotes?.some(l => (l.ean || '').toLowerCase().includes(termo));
+      return nome.includes(termo) || codigo.includes(termo) || ean.includes(termo) || bateLote;
+    }).slice(0, 15)
     : [];
 
   const handleSelecionarProduto = (prod) => {
@@ -326,8 +342,27 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
   };
 
   const handleChangeForm = (e) => {
-    const { name, value } = e.target;
-    if (name === 'localEstoque' || name === 'centroCusto' || name === 'dataLancamento') {
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setFormulario(prev => ({ ...prev, [name]: checked }));
+      return;
+    }
+    if (name === 'centroCusto') {
+      const matchDep = departamentos.find(d => String(d.codigo) === String(value) || (d.descricao || '').toUpperCase() === String(value).toUpperCase());
+      if (matchDep) {
+        setFormulario(prev => ({
+          ...prev,
+          centroCusto: matchDep.descricao,
+          codigoDepartamentoOmie: matchDep.codigo
+        }));
+      } else {
+        setFormulario(prev => ({
+          ...prev,
+          centroCusto: value,
+          codigoDepartamentoOmie: null
+        }));
+      }
+    } else if (name === 'localEstoque' || name === 'dataLancamento') {
       setFormulario(prev => ({ ...prev, [name]: value }));
     } else if (name === 'contatoCliente') {
       const valUpper = value.toUpperCase();
@@ -400,9 +435,35 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
     setNovoValorModal('');
   };
 
-  const handleSalvarModalCadastro = () => {
-    if (novoValorModal.trim()) {
-      setFormulario(prev => ({ ...prev, [modalCadastro.campoTarget]: novoValorModal.trim() }));
+  const handleSalvarModalCadastro = async () => {
+    const valor = novoValorModal.trim();
+    if (!valor) {
+      setModalCadastro({ aberto: false, tipo: null, titulo: '', campoTarget: '' });
+      return;
+    }
+
+    if (modalCadastro.tipo === 'departamento') {
+      try {
+        const resp = await fetch('/api/departamentos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ descricao: valor })
+        });
+        if (resp.ok) {
+          const dados = await resp.json();
+          const novoDep = dados.departamento;
+          setDepartamentos(prev => [...prev, novoDep]);
+          setFormulario(prev => ({
+            ...prev,
+            centroCusto: novoDep.descricao,
+            codigoDepartamentoOmie: novoDep.codigo
+          }));
+        }
+      } catch (err) {
+        console.error('Erro ao cadastrar departamento:', err);
+      }
+    } else {
+      setFormulario(prev => ({ ...prev, [modalCadastro.campoTarget]: valor }));
     }
     setModalCadastro({ aberto: false, tipo: null, titulo: '', campoTarget: '' });
   };
@@ -618,7 +679,7 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
           </body>
         </html>
       `);
-      printWindow.document.close();
+        printWindow.document.close();
       }
 
       setItensCarrinho([]);
@@ -697,11 +758,22 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label>Centro de Custo</label>
-              <select name="centroCusto" value={formulario.centroCusto} onChange={handleChangeForm}>
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                Centro de Custo / Depto
+                <button type="button" onClick={() => handleAbrirModalCadastro('departamento', 'Cadastrar Novo Departamento (Omie)', 'centroCusto')} title="Novo Departamento" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cor-destaque)', padding: 0 }}>
+                  <Plus size={16} />
+                </button>
+              </label>
+              <select
+                name="centroCusto"
+                value={formulario.codigoDepartamentoOmie || formulario.centroCusto}
+                onChange={handleChangeForm}
+              >
                 {departamentos.length > 0 ? (
                   departamentos.map(dep => (
-                    <option key={dep.codigo} value={dep.descricao}>{dep.descricao}</option>
+                    <option key={dep.codigo} value={dep.codigo}>
+                      {dep.descricao} {dep.estrutura ? `(${dep.estrutura})` : ''}
+                    </option>
                   ))
                 ) : (
                   <>
@@ -783,6 +855,38 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
                     <option key={p.codigo} value={p.nome} />
                   ))}
                 </datalist>
+              </div>
+            </div>
+          )}
+
+          {tipoInicial !== 'reposicao' && (
+            <div className={styles.boxIntegracaoOmie}>
+              <label className={styles.checkboxWrapper}>
+                <input
+                  type="checkbox"
+                  name="concluirAutomaticamenteOmie"
+                  checked={formulario.concluirAutomaticamenteOmie}
+                  onChange={handleChangeForm}
+                />
+                <span className={styles.checkboxLabel}>
+                  Concluir automaticamente na Omie (Faturar / Baixar direto)
+                </span>
+                {!formulario.concluirAutomaticamenteOmie && (
+                  <span className={styles.badgePendenteAviso}>
+                    Recomendado: Ficará Pendente na Omie
+                  </span>
+                )}
+              </label>
+
+              <div className={styles.alertaRateioOmie}>
+                <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#f59e0b' }} />
+                <div>
+                  <strong>Aviso de Rateio de Departamentos:</strong> A API de Remessas da Omie não permite sincronizar a tabela de distribuição de rateio por departamentos via integração.
+                  <br />
+                  <span>
+                    💡 <em>Ao deixar <strong>desmarcado</strong> (recomendado), a remessa é enviada como <strong>Pendente</strong> na Omie. Você poderá abrir a remessa no ERP, vincular o departamento na aba "Departamentos" e concluir por lá com segurança.</em>
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -1012,7 +1116,12 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
 
       <div className={styles.footer}>
         <div className={styles.cardAutomacao}>
-          <p><strong>Automação Omie:</strong> CFOP 5.949 | ICMS 40 (Isenta)</p>
+          <p>
+            <strong>Automação Omie:</strong> CFOP 5.949 | ICMS 40 (Isenta) | Remessa:{' '}
+            <span style={{ color: formulario.concluirAutomaticamenteOmie ? 'var(--cor-sucesso)' : '#f59e0b', fontWeight: 'bold' }}>
+              {formulario.concluirAutomaticamenteOmie ? 'Conclusão Automática' : 'Pendente (Aguardando Rateio no ERP)'}
+            </span>
+          </p>
         </div>
         <button
           className={styles.btnConcluir}

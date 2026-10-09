@@ -354,6 +354,26 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Resolução antecipada do Departamento Omie
+    let codDep = req.body.codigoDepartamentoOmie || null;
+    const nomeDep = (novaRequisicao.departamento || req.body.centroCusto || '').trim();
+    if (!codDep && nomeDep) {
+      try {
+        const rowDep = await db.get(
+          `SELECT codigo, descricao FROM departamentos_omie WHERE codigo = ? OR UPPER(descricao) = UPPER(?) LIMIT 1`,
+          [nomeDep, nomeDep]
+        );
+        if (rowDep?.codigo) {
+          codDep = rowDep.codigo;
+          console.log(`[REQUISICOES] 🏢 Departamento Omie resolvido antecipadamente: #${rowDep.codigo} (${rowDep.descricao})`);
+        }
+      } catch (eDep) {
+        console.warn('[REQUISICOES] Aviso ao buscar departamento antecipadamente:', eDep.message);
+      }
+    }
+    novaRequisicao.codigoDepartamentoOmie = codDep;
+    novaRequisicao.concluirAutomaticamenteOmie = req.body.concluirAutomaticamenteOmie === true;
+
     if (novaRequisicao.itens && Array.isArray(novaRequisicao.itens)) {
       novaRequisicao.itens = novaRequisicao.itens.map(item => ({
         ...item,
@@ -477,9 +497,15 @@ router.put('/:id', async (req, res) => {
     reqObj = { ...reqObj, ...req.body };
     await saveReq(db, row.id, reqObj);
 
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('produtos_atualizados');
+      io.emit('requisicoes_atualizadas');
+    }
+
     // Notificar se o status ou status_compras mudou
     if (req.body.status || req.body.status_compras) {
-      notificationService.notificarMudancaStatus(req.app.get('io'), {
+      notificationService.notificarMudancaStatus(io, {
         tipo: 'requisicao',
         id: reqObj.id,
         novoStatus: req.body.status || req.body.status_compras,
@@ -490,6 +516,51 @@ router.put('/:id', async (req, res) => {
     res.json({ message: 'Requisição atualizada com sucesso', requisicao: reqObj });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao atualizar requisição', error: error.message });
+  }
+});
+
+// ============================================================
+// POST /:id/cancelar — Cancelar Requisição / Solicitação de Compras
+// ============================================================
+router.post('/:id/cancelar', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const { motivo } = req.body || {};
+
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ? OR numero_os = ?`, [id, id]);
+    if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
+
+    let reqObj = dbRowToReq(row);
+    reqObj.status = 'cancelado';
+    reqObj.status_compras = 'cancelado';
+    reqObj.cancelado_em = new Date().toISOString();
+    reqObj.motivo_cancelamento = motivo || 'Cancelado pelo usuário no Almoxarifado';
+    reqObj.historico_status = reqObj.historico_status || [];
+    reqObj.historico_status.push({
+      status: 'cancelado',
+      data: new Date().toISOString(),
+      motivo: reqObj.motivo_cancelamento
+    });
+
+    await saveReq(db, row.id, reqObj);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('produtos_atualizados');
+      io.emit('requisicoes_atualizadas');
+    }
+
+    notificationService.notificarMudancaStatus(io, {
+      tipo: 'requisicao',
+      id: reqObj.id,
+      novoStatus: 'cancelado',
+      mensagem: `Requisição #${reqObj.id} cancelada com sucesso.`
+    });
+
+    res.json({ message: 'Requisição cancelada com sucesso', requisicao: reqObj });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao cancelar requisição', error: error.message });
   }
 });
 
@@ -1023,6 +1094,21 @@ async function dispararRemessaOmie(reqObj, db, appIo = null) {
   }
 
   const departamentoNome = reqObj.departamento || reqObj.centroCusto || 'N/A';
+  let codigoDepartamentoOmie = reqObj.codigoDepartamentoOmie || null;
+  if (!codigoDepartamentoOmie && departamentoNome !== 'N/A') {
+    try {
+      const rowDep = await db.get(
+        `SELECT codigo, descricao FROM departamentos_omie WHERE codigo = ? OR UPPER(descricao) = UPPER(?) LIMIT 1`,
+        [departamentoNome, departamentoNome]
+      );
+      if (rowDep?.codigo) {
+        codigoDepartamentoOmie = rowDep.codigo;
+      }
+    } catch (eDep) {
+      console.warn('[REQUISICOES] Aviso ao buscar departamento para remessa:', eDep.message);
+    }
+  }
+
   const codigoIntegracao = `REQ-${reqObj.id}`;
 
   const produtosParaRemessa = itensRemessaOmie.map(item => ({
@@ -1034,10 +1120,15 @@ async function dispararRemessaOmie(reqObj, db, appIo = null) {
   }));
 
   try {
+    const deveConcluir = reqObj.concluirAutomaticamenteOmie === true || reqObj.concluirAutomaticamente === true;
+
     const resultado = await omieRemessaService.criarRemessa({
       codigoIntegracao,
       codigoCliente: codigoClienteOmie,
       codigoVendedor: codigoVendedorOmie,
+      codigoDepartamento: codigoDepartamentoOmie,
+      nomeDepartamento: departamentoNome,
+      concluirAutomaticamente: deveConcluir,
       codigoCategoria: '1.01.01',
       codigoProjeto: codigoProjetoOmie,
       dataPrevisao: new Date(reqObj.dataCriacao || Date.now()).toLocaleDateString('pt-BR'),
@@ -1049,12 +1140,13 @@ async function dispararRemessaOmie(reqObj, db, appIo = null) {
     let reqAtual = rowAtual ? dbRowToReq(rowAtual) : reqObj;
 
     if (!resultado.erro) {
-      console.log(`[OMIE REMESSA] ✅ Remessa criada com sucesso! nCodRem: ${resultado.dados?.nCodRem || 'N/A'}`);
+      console.log(`[OMIE REMESSA] ✅ Remessa criada com sucesso! nCodRem: ${resultado.dados?.nCodRem || 'N/A'} | Concluída: ${resultado.concluida ? 'SIM' : 'NÃO (Pendente na Omie para rateio)'}`);
       reqAtual.remessa_omie = {
         nCodRem: resultado.dados?.nCodRem || null,
         cCodIntRem: codigoIntegracao,
         dataEnvio: new Date().toISOString(),
-        status: 'enviada'
+        status: resultado.concluida ? 'concluida' : 'enviada',
+        concluida: !!resultado.concluida
       };
     } else {
       console.error(`[OMIE REMESSA] ❌ Falha ao criar remessa na Omie: ${resultado.mensagem}`);
@@ -1194,6 +1286,145 @@ router.post('/:id/reenviar-remessa', async (req, res) => {
 });
 
 // ============================================================
+// POST /sincronizar-remessas-pendentes — Sincroniza em lote remessas pendentes
+// ============================================================
+router.post('/sincronizar-remessas-pendentes', async (req, res) => {
+  try {
+    const db = await getDb();
+    const rows = await db.all(`SELECT * FROM requisicoes ORDER BY data_criacao DESC LIMIT 100`);
+    
+    let totalVerificados = 0;
+    let atualizadosParaConcluido = 0;
+
+    for (const row of rows) {
+      let reqObj = dbRowToReq(row);
+      const rem = reqObj.remessa_omie;
+
+      // Verifica apenas se tem remessa gerada e ainda não está marcada como concluída/cancelada
+      if (rem && (rem.nCodRem || rem.cCodIntRem) && !rem.concluida && rem.status !== 'cancelada') {
+        totalVerificados++;
+        try {
+          const nCodRem = Number(rem.nCodRem || 0);
+          const cCodIntRem = rem.cCodIntRem || `REQ-${row.id}`;
+          const resultado = await omieRemessaService.statusRemessa(nCodRem, cCodIntRem);
+
+          if (!resultado.erro && resultado.dados) {
+            const faturada = resultado.dados.faturada === 'S';
+            const cancelada = resultado.dados.cancelada === 'S';
+
+            if (faturada || cancelada) {
+              reqObj.remessa_omie = {
+                ...rem,
+                concluida: faturada,
+                status: faturada ? 'concluida' : 'cancelada',
+                faturada: resultado.dados.faturada || 'N',
+                cancelada: resultado.dados.cancelada || 'N',
+                numeroRemessa: resultado.dados.cNumeroRemessa || rem.numeroRemessa || null,
+                ultimaVerificacao: new Date().toISOString()
+              };
+              if (resultado.dados.ListaNfe) {
+                reqObj.remessa_omie.listaNfe = resultado.dados.ListaNfe;
+              }
+              await saveReq(db, row.id, reqObj);
+              if (faturada) atualizadosParaConcluido++;
+              console.log(`[OMIE REMESSA] 🔄 Remessa #${nCodRem || cCodIntRem} atualizada para ${faturada ? 'CONCLUÍDA' : 'CANCELADA'} via sync automático!`);
+            }
+          }
+        } catch (errCheck) {
+          console.warn(`[OMIE REMESSA] Aviso ao sincronizar status da req #${row.id}:`, errCheck.message);
+        }
+      }
+    }
+
+    if (atualizadosParaConcluido > 0) {
+      try {
+        const io = req.app.get('io');
+        if (io) io.emit('produtos_atualizados');
+      } catch (e) {}
+    }
+
+    res.json({
+      message: `Sincronização concluída. ${atualizadosParaConcluido} remessa(s) atualizada(s) para concluída.`,
+      totalVerificados,
+      atualizadosParaConcluido
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro na sincronização de remessas', error: error.message });
+  }
+});
+
+// ============================================================
+// POST /:id/atualizar-status-omie — Consulta status da remessa na Omie e atualiza
+// ============================================================
+router.post('/:id/atualizar-status-omie', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ?`, [id]);
+    if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
+
+    let reqObj = dbRowToReq(row);
+    const nCodRem = Number(reqObj.remessa_omie?.nCodRem || 0);
+    const cCodIntRem = reqObj.remessa_omie?.cCodIntRem || `REQ-${id}`;
+
+    if (!nCodRem && !cCodIntRem) {
+      return res.status(400).json({ message: 'Requisição não possui remessa Omie vinculada' });
+    }
+
+    console.log(`[OMIE REMESSA] 🔍 Consultando status na Omie da remessa nCodRem=${nCodRem || 'N/A'}, cCodIntRem=${cCodIntRem}...`);
+    const resultado = await omieRemessaService.statusRemessa(nCodRem, cCodIntRem);
+
+    if (resultado.erro) {
+      return res.status(502).json({
+        message: `Falha ao consultar status na Omie: ${resultado.mensagem}`,
+        faultcode: resultado.faultcode
+      });
+    }
+
+    const dadosStatus = resultado.dados || {};
+    const faturada = dadosStatus.faturada === 'S';
+    const cancelada = dadosStatus.cancelada === 'S';
+
+    reqObj.remessa_omie = {
+      ...(reqObj.remessa_omie || {}),
+      nCodRem: dadosStatus.nCodRem || reqObj.remessa_omie?.nCodRem || null,
+      cCodIntRem: dadosStatus.cCodIntRem || cCodIntRem,
+      concluida: faturada,
+      status: faturada ? 'concluida' : (cancelada ? 'cancelada' : 'enviada'),
+      faturada: dadosStatus.faturada || 'N',
+      cancelada: dadosStatus.cancelada || 'N',
+      numeroRemessa: dadosStatus.cNumeroRemessa || null,
+      ultimaVerificacao: new Date().toISOString()
+    };
+
+    if (dadosStatus.ListaNfe) {
+      reqObj.remessa_omie.listaNfe = dadosStatus.ListaNfe;
+    }
+
+    await saveReq(db, row.id, reqObj);
+
+    try {
+      const io = req.app.get('io');
+      if (io) io.emit('produtos_atualizados');
+    } catch (e) {}
+
+    console.log(`[OMIE REMESSA] 🎯 Status retornado pela Omie: faturada=${dadosStatus.faturada}, cancelada=${dadosStatus.cancelada}`);
+
+    res.json({
+      message: faturada 
+        ? 'Remessa faturada/concluída com sucesso na Omie!' 
+        : (cancelada ? 'Remessa cancelada na Omie' : 'Remessa ainda pendente na Omie'),
+      concluida: faturada,
+      cancelada,
+      statusOmie: dadosStatus,
+      requisicao: reqObj
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao verificar status na Omie', error: error.message });
+  }
+});
+
+// ============================================================
 // GET /status-omie — Diagnóstico de Conexão com a Omie
 // ============================================================
 router.get('/status-omie', async (req, res) => {
@@ -1226,6 +1457,95 @@ router.get('/status-omie', async (req, res) => {
 });
 
 // ============================================================
+// POST /:id/cancelar — Cancelamento de Requisição e Remessa Omie
+// ============================================================
+router.post('/:id/cancelar', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const { motivo } = req.body;
+
+    const row = await db.get(`SELECT * FROM requisicoes WHERE id = ?`, [id]);
+    if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
+
+    let reqObj = dbRowToReq(row);
+
+    if (reqObj.status === 'cancelado') {
+      return res.status(400).json({ message: 'Esta requisição já está cancelada.' });
+    }
+
+    // Trava de segurança: Se a remessa já foi concluída/faturada na Omie, NÃO pode cancelar diretamente
+    if (reqObj.remessa_omie?.concluida === true) {
+      return res.status(400).json({
+        message: 'Não é possível cancelar uma requisição cuja remessa já foi Concluída/Faturada na Omie. Para itens não utilizados, utilize a Devolução de Peças.'
+      });
+    }
+
+    // 1. Cancela a Remessa na Omie se houver remessa gerada
+    let retornoOmie = null;
+    const nCodRem = Number(reqObj.remessa_omie?.nCodRem || 0);
+    const cCodIntRem = reqObj.remessa_omie?.cCodIntRem || `REQ-${id}`;
+
+    if (nCodRem > 0 || cCodIntRem) {
+      console.log(`[OMIE REMESSA] 🚫 Solicitando cancelamento da remessa nCodRem=${nCodRem}, cCodIntRem=${cCodIntRem}...`);
+      try {
+        retornoOmie = await omieRemessaService.cancelarRemessa(nCodRem, cCodIntRem);
+        if (!retornoOmie.erro) {
+          console.log(`[OMIE REMESSA] ✅ Remessa #${nCodRem || cCodIntRem} cancelada com sucesso na Omie!`);
+        } else {
+          console.warn(`[OMIE REMESSA] ⚠️ Retorno ao cancelar remessa na Omie: ${retornoOmie.mensagem}`);
+        }
+      } catch (errCancelOmie) {
+        console.warn(`[OMIE REMESSA] Aviso ao cancelar remessa na Omie:`, errCancelOmie.message);
+      }
+    }
+
+    // 2. Estorno dos produtos no estoque local (MariaDB)
+    if (Array.isArray(reqObj.itens)) {
+      for (const item of reqObj.itens) {
+        const entregue = Number(item.quantidade_entregue ?? item.quantidade) || 0;
+        const devolvido = Number(item.devolvido) || 0;
+        const saldoAEstornar = entregue - devolvido;
+
+        if (saldoAEstornar > 0 && item.codigo) {
+          await db.run(
+            `UPDATE produtos_omie SET quantidade_estoque = quantidade_estoque + ? WHERE codigo = ?`,
+            [saldoAEstornar, item.codigo]
+          );
+          console.log(`[ESTORNO ESTOQUE] 🔄 Recomposto estoque local: +${saldoAEstornar} un de ${item.codigo}`);
+        }
+      }
+    }
+
+    // 3. Atualiza os dados da requisição
+    reqObj.status = 'cancelado';
+    reqObj.dataCancelamento = new Date().toISOString();
+    reqObj.motivoCancelamento = (motivo || 'Cancelada pelo Almoxarifado').trim();
+    if (reqObj.remessa_omie) {
+      reqObj.remessa_omie.status = 'cancelada';
+      reqObj.remessa_omie.cancelada = 'S';
+      reqObj.remessa_omie.dataCancelamento = new Date().toISOString();
+    }
+
+    await saveReq(db, id, reqObj);
+
+    // 4. Notifica via Socket.IO
+    try {
+      const io = req.app.get('io');
+      if (io) io.emit('produtos_atualizados');
+    } catch (e) {}
+
+    res.json({
+      message: 'Requisição cancelada com sucesso! Estoque recomposto e remessa cancelada.',
+      requisicao: reqObj,
+      retornoOmie
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao cancelar requisição', error: error.message });
+  }
+});
+
+// ============================================================
 // POST /:id/devolver — Devolução de Peça
 // ============================================================
 router.post('/:id/devolver', async (req, res) => {
@@ -1238,6 +1558,17 @@ router.post('/:id/devolver', async (req, res) => {
     if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
 
     let reqObj = dbRowToReq(row);
+
+    if (reqObj.status === 'cancelado') {
+      return res.status(400).json({ message: 'Esta requisição está cancelada. Não é possível devolver peças.' });
+    }
+
+    if (reqObj.remessa_omie?.nCodRem && !reqObj.remessa_omie?.concluida) {
+      return res.status(400).json({ 
+        message: 'A remessa Omie ainda está pendente. Conclua a remessa na Omie antes de registrar devoluções parciais, ou cancele a requisição caso todos os itens tenham sido devolvidos.' 
+      });
+    }
+
     let produtos = await getProdutosDb();
 
     let itemAchado = false;

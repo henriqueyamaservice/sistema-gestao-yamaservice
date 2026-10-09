@@ -50,6 +50,49 @@ const formatarDescricaoLimpa = (texto) => {
     .replace(/&gt;/g, '>');
 };
 
+const obterStatusCompraConfig = (statusCompras) => {
+  switch (statusCompras) {
+    case 'pendente_cotacao':
+    case 'em_concorrencia':
+      return {
+        label: 'Aguardando Cotação',
+        corDot: '#eab308', // 🟡 Amarelo
+        corBorda: 'rgba(234, 179, 8, 0.4)',
+        corBg: 'rgba(234, 179, 8, 0.12)'
+      };
+    case 'em_orcamento':
+    case 'aguardando_aprovacao':
+      return {
+        label: 'Em Orçamento',
+        corDot: '#f97316', // 🟠 Laranja
+        corBorda: 'rgba(249, 115, 22, 0.4)',
+        corBg: 'rgba(249, 115, 22, 0.12)'
+      };
+    case 'pedido_gerado':
+      return {
+        label: 'Pedido Feito (Omie)',
+        corDot: '#3b82f6', // 🔵 Azul
+        corBorda: 'rgba(59, 130, 246, 0.4)',
+        corBg: 'rgba(59, 130, 246, 0.12)'
+      };
+    case 'aguardando_nfe':
+    case 'concluido':
+      return {
+        label: 'Aguardando NF-e / Entrada',
+        corDot: '#a855f7', // 🟣 Roxo
+        corBorda: 'rgba(168, 85, 247, 0.4)',
+        corBg: 'rgba(168, 85, 247, 0.12)'
+      };
+    default:
+      return {
+        label: 'Aguardando Cotação',
+        corDot: '#eab308',
+        corBorda: 'rgba(234, 179, 8, 0.4)',
+        corBg: 'rgba(234, 179, 8, 0.12)'
+      };
+  }
+};
+
 const NecessidadeCompras = ({ produtos, onUpdate }) => {
   const [selecionados, setSelecionados] = useState([]);
   const [modalAvulso, setModalAvulso] = useState(false);
@@ -374,6 +417,51 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
     }
   };
 
+  const handleCancelarSolicitacao = async (prod) => {
+    const reqId = prod.pedido_compras_info?.reqId;
+    if (!reqId) {
+      alert('Não foi possível identificar o número da requisição para este item.');
+      return;
+    }
+
+    const descItem = prod.descricao || prod.codigo || 'item selecionado';
+    if (!window.confirm(`Deseja realmente cancelar a solicitação de compra da Requisição #${reqId} (${descItem})?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/requisicoes/${reqId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'cancelado',
+          status_compras: 'cancelado'
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error('Falha ao cancelar requisição no servidor');
+      }
+
+      setMensagem({
+        tipo: 'sucesso',
+        texto: `✅ Solicitação #${reqId} cancelada com sucesso! O produto foi liberado do processo de compras.`
+      });
+
+      if (onUpdate) onUpdate();
+      setTimeout(() => setMensagem(null), 5000);
+    } catch (err) {
+      console.error('Erro ao cancelar solicitação:', err);
+      setMensagem({
+        tipo: 'erro',
+        texto: `Erro ao cancelar solicitação: ${err.message}`
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Top Header */}
@@ -640,21 +728,46 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
                     </td>
                     <td>
                       <div className={styles.statusComprasContainer}>
-                        {emCompra ? (
-                          <>
-                            <span 
-                              className={styles.badgeEmCompra}
-                              title={prod.pedido_compras_info ? `Requisição #${prod.pedido_compras_info.reqId} - Solicitado por ${prod.pedido_compras_info.solicitante}` : 'Pedido em andamento no Compras'}
-                            >
-                              <ShoppingCart size={13} />
-                              Pedido Feito: {qtdPedida} {prod.unidade || 'UN'}
-                            </span>
-                            <span className={styles.statusEtapaSub}>
-                              {formatarStatusCompras(prod.pedido_compras_info?.status_compras)}
-                              {prod.pedido_compras_info?.reqId && ` • Req #${prod.pedido_compras_info.reqId}`}
-                            </span>
-                          </>
-                        ) : prod.ultimo_recebimento_info ? (
+                        {emCompra ? (() => {
+                          const statusConf = obterStatusCompraConfig(prod.pedido_compras_info?.status_compras);
+                          const reqId = prod.pedido_compras_info?.reqId;
+                          const solicitante = prod.pedido_compras_info?.solicitante;
+                          const tooltipTexto = `${qtdPedida} ${prod.unidade || 'UN'} • ${statusConf.label}${reqId ? ` (Req #${reqId})` : ''}${solicitante ? ` • Solicitado por: ${solicitante}` : ''}`;
+
+                          return (
+                            <>
+                              <span 
+                                className={styles.badgeEmCompra}
+                                title={tooltipTexto}
+                                style={{
+                                  borderColor: statusConf.corBorda,
+                                  backgroundColor: statusConf.corBg,
+                                  color: 'var(--cor-texto-principal)'
+                                }}
+                              >
+                                <span 
+                                  title={tooltipTexto}
+                                  style={{
+                                    display: 'inline-block',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: statusConf.corDot,
+                                    boxShadow: `0 0 0 2px ${statusConf.corBorda}`,
+                                    flexShrink: 0
+                                  }}
+                                />
+                                <ShoppingCart size={13} />
+                                {qtdPedida} {prod.unidade || 'UN'}
+                              </span>
+                              <span className={styles.statusEtapaSub} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: statusConf.corDot, display: 'inline-block' }} />
+                                {statusConf.label}
+                                {reqId && ` • Req #${reqId}`}
+                              </span>
+                            </>
+                          );
+                        })() : prod.ultimo_recebimento_info ? (
                           <>
                             <span 
                               className={styles.badgeRecebidoEstoque}
@@ -677,13 +790,37 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
                       </div>
                     </td>
                     <td style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-                      <button 
-                        className={styles.btnPedirItem}
-                        onClick={() => pedirItemIndividual(prod)}
-                        title={emCompra ? 'Solicitar reposição adicional deste item' : 'Solicitar este item imediatamente'}
-                      >
-                        {emCompra ? '+ Pedir Mais' : '+ Pedir'}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <button 
+                          className={styles.btnPedirItem}
+                          onClick={() => pedirItemIndividual(prod)}
+                          title={emCompra ? 'Solicitar reposição adicional deste item' : 'Solicitar este item imediatamente'}
+                        >
+                          {emCompra ? '+ Pedir Mais' : '+ Pedir'}
+                        </button>
+                        {emCompra && prod.pedido_compras_info?.reqId && (
+                          <button 
+                            type="button"
+                            onClick={() => handleCancelarSolicitacao(prod)}
+                            title="Cancelar solicitação de compra deste item"
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: 'var(--cor-erro)',
+                              padding: '5px 8px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

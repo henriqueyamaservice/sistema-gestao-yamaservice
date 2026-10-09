@@ -1,8 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Box, AlertCircle, RefreshCw, Package, Boxes, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Search, Box, AlertCircle, RefreshCw, Package, Boxes, CheckCircle, Clock, AlertTriangle, ShoppingCart } from 'lucide-react';
 import ProdutoModal from '../ProdutoModal';
 import styles from './Estoque.module.css';
 import { obterBadgeInfo, formatarQuantidadeComUnidade, formatarQuantidade, obterRotuloUnidade } from '../../../../utils/classificadorUnidades';
+
+const obterStatusCompraConfig = (statusCompras) => {
+  switch (statusCompras) {
+    case 'pendente_cotacao':
+    case 'em_concorrencia':
+      return {
+        label: 'Aguardando Cotação',
+        corDot: '#eab308', // 🟡 Amarelo
+        corBorda: 'rgba(234, 179, 8, 0.4)',
+        corBg: 'rgba(234, 179, 8, 0.1)',
+        corTexto: '#a16207'
+      };
+    case 'em_orcamento':
+    case 'aguardando_aprovacao':
+      return {
+        label: 'Em Orçamento',
+        corDot: '#f97316', // 🟠 Laranja
+        corBorda: 'rgba(249, 115, 22, 0.4)',
+        corBg: 'rgba(249, 115, 22, 0.1)',
+        corTexto: '#c2410c'
+      };
+    case 'pedido_gerado':
+      return {
+        label: 'Pedido Feito (Omie)',
+        corDot: '#3b82f6', // 🔵 Azul
+        corBorda: 'rgba(59, 130, 246, 0.4)',
+        corBg: 'rgba(59, 130, 246, 0.1)',
+        corTexto: '#1d4ed8'
+      };
+    case 'aguardando_nfe':
+    case 'concluido':
+      return {
+        label: 'Aguardando NF-e / Entrada',
+        corDot: '#a855f7', // 🟣 Roxo
+        corBorda: 'rgba(168, 85, 247, 0.4)',
+        corBg: 'rgba(168, 85, 247, 0.1)',
+        corTexto: '#7e22ce'
+      };
+    default:
+      return {
+        label: 'Aguardando Cotação',
+        corDot: '#eab308',
+        corBorda: 'rgba(234, 179, 8, 0.4)',
+        corBg: 'rgba(234, 179, 8, 0.1)',
+        corTexto: '#a16207'
+      };
+  }
+};
 
 const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
   const [busca, setBusca] = useState('');
@@ -242,21 +290,48 @@ const Estoque = ({ produtos, loading, error, fetchProdutos }) => {
                         </div>
                       </td>
                       <td className={styles['col-em-compra']}>
-                        {produto.quantidade_pedida > 0 ? (
-                          <span 
-                            title={produto.pedido_compras_info ? `Requisição #${produto.pedido_compras_info.reqId} - Solicitado por ${produto.pedido_compras_info.solicitante}` : 'Pedido em andamento no Compras'}
-                            style={{
-                            fontSize: '0.75rem', fontWeight: 'bold',
-                            color: 'var(--cor-destaque)',
-                            backgroundColor: 'rgba(255, 107, 0, 0.1)',
-                            padding: '2px 8px', borderRadius: '12px',
-                            display: 'inline-flex', alignItems: 'center', gap: '4px',
-                            whiteSpace: 'nowrap', border: '1px solid rgba(255, 107, 0, 0.2)',
-                            cursor: 'help'
-                          }}>
-                            🛒 {formatarQuantidadeComUnidade(produto.quantidade_pedida, produto.unidade)}
-                          </span>
-                        ) : (
+                        {produto.quantidade_pedida > 0 ? (() => {
+                          const statusConf = obterStatusCompraConfig(produto.pedido_compras_info?.status_compras);
+                          const reqId = produto.pedido_compras_info?.reqId;
+                          const solicitante = produto.pedido_compras_info?.solicitante;
+                          const qtdTexto = formatarQuantidadeComUnidade(produto.quantidade_pedida, produto.unidade);
+                          const tooltipTexto = `${qtdTexto} • ${statusConf.label}${reqId ? ` (Req #${reqId})` : ''}${solicitante ? ` • Solicitado por: ${solicitante}` : ''}`;
+
+                          return (
+                            <span 
+                              title={tooltipTexto}
+                              style={{
+                                fontSize: '0.78rem',
+                                fontWeight: 'bold',
+                                color: 'var(--cor-texto-principal)',
+                                backgroundColor: statusConf.corBg,
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                whiteSpace: 'nowrap',
+                                border: `1px solid ${statusConf.corBorda}`,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <span 
+                                title={tooltipTexto}
+                                style={{
+                                  display: 'inline-block',
+                                  width: '9px',
+                                  height: '9px',
+                                  borderRadius: '50%',
+                                  backgroundColor: statusConf.corDot,
+                                  boxShadow: `0 0 0 2px ${statusConf.corBorda}`,
+                                  flexShrink: 0
+                                }}
+                              />
+                              <ShoppingCart size={13} style={{ flexShrink: 0, opacity: 0.9 }} />
+                              <span>{qtdTexto}</span>
+                            </span>
+                          );
+                        })() : (
                           <span style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.8rem' }}>-</span>
                         )}
                       </td>

@@ -166,6 +166,66 @@ router.get('/departamentos', async (req, res) => {
   }
 });
 
+router.post('/departamentos', async (req, res) => {
+  try {
+    const { descricao } = req.body;
+    if (!descricao || !descricao.trim()) {
+      return res.status(400).json({ message: 'Descrição do departamento é obrigatória.' });
+    }
+
+    const descUpper = descricao.trim().toUpperCase();
+    const appKey = process.env.OMIE_APP_KEY;
+    const appSecret = process.env.OMIE_APP_SECRET;
+
+    let codigoCriado = Date.now().toString().slice(-8);
+
+    if (appKey && appSecret) {
+      try {
+        const payload = {
+          call: 'IncluirDepartamento',
+          app_key: appKey,
+          app_secret: appSecret,
+          param: [{
+            descricao: descUpper
+          }]
+        };
+
+        const resp = await fetch('https://app.omie.com.br/api/v1/geral/departamentos/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        if (data.codigo) {
+          codigoCriado = data.codigo;
+          console.log(`[DEPARTAMENTOS] ✅ Novo departamento criado na Omie: #${codigoCriado} (${descUpper})`);
+        } else if (data.faultstring) {
+          console.warn('[DEPARTAMENTOS] ⚠️ Retorno da Omie ao incluir departamento:', data.faultstring);
+        }
+      } catch (errOmie) {
+        console.warn('[DEPARTAMENTOS] ⚠️ Erro na requisição com a Omie:', errOmie.message);
+      }
+    }
+
+    const db = await getDb();
+    const isMysql = db.driver === 'mysql';
+    const sql = isMysql
+      ? `INSERT INTO departamentos_omie (codigo, descricao, dados_json) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE descricao=VALUES(descricao), dados_json=VALUES(dados_json), atualizado_em=NOW()`
+      : `INSERT INTO departamentos_omie (codigo, descricao, dados_json) VALUES (?, ?, ?) ON CONFLICT(codigo) DO UPDATE SET descricao=excluded.descricao, dados_json=excluded.dados_json, atualizado_em=CURRENT_TIMESTAMP`;
+
+    await db.run(sql, [codigoCriado, descUpper, JSON.stringify({ codigo: codigoCriado, descricao: descUpper })]);
+
+    res.status(201).json({
+      message: 'Departamento cadastrado com sucesso!',
+      departamento: { codigo: codigoCriado, descricao: descUpper }
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar departamento:', error);
+    res.status(500).json({ message: 'Erro ao cadastrar departamento', error: error.message });
+  }
+});
+
 router.get('/locais-estoque', async (req, res) => {
   try {
     const db = await getDb();

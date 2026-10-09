@@ -13,6 +13,9 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
   const [apenasDevolucoes, setApenasDevolucoes] = useState(false);
   const [processandoDevolucao, setProcessandoDevolucao] = useState(false);
   const [processandoReenvio, setProcessandoReenvio] = useState(null);
+  const [sincronizandoOmie, setSincronizandoOmie] = useState(false);
+  const [verificandoStatusId, setVerificandoStatusId] = useState(null);
+  const [processandoCancelamento, setProcessandoCancelamento] = useState(null);
 
   useEffect(() => {
     const fetchRequisicoes = async () => {
@@ -24,6 +27,25 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
           const apenasSaidas = data.filter(req => req.tipo !== 'reposicao');
           const ordenadas = apenasSaidas.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
           setRequisicoes(ordenadas);
+
+          // Auto-sincronização silenciosa em background com a Omie caso haja remessas pendentes
+          const temPendentes = ordenadas.some(r => r.remessa_omie?.nCodRem && !r.remessa_omie?.concluida && r.status !== 'cancelado');
+          if (temPendentes) {
+            fetch('/api/requisicoes/sincronizar-remessas-pendentes', { method: 'POST' })
+              .then(res => res.json())
+              .then(resData => {
+                if (resData.atualizadosParaConcluido > 0) {
+                  fetch('/api/requisicoes')
+                    .then(r => r.json())
+                    .then(novos => {
+                      const saidas = novos.filter(req => req.tipo !== 'reposicao');
+                      setRequisicoes(saidas.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao)));
+                    })
+                    .catch(() => {});
+                }
+              })
+              .catch(err => console.debug('Sync background Omie:', err));
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar requisições:", error);
@@ -51,7 +73,21 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
     else setExpandido(id);
   };
 
-  const registrarDevolucao = async (reqId, codigoProduto, quantidadeEntregue) => {
+  const registrarDevolucao = async (req, codigoProduto, quantidadeEntregue) => {
+    if (req.status === 'cancelado') {
+      alert('Esta requisição está cancelada! Não é possível devolver peças.');
+      return;
+    }
+
+    if (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida) {
+      alert(
+        `⚠️ Atenção: A remessa Omie #${req.remessa_omie.nCodRem} ainda está PENDENTE no ERP!\n\n` +
+        `• Se o funcionário devolveu tudo ou você quer cancelar a saída: use o botão "Cancelar Requisição".\n` +
+        `• Se for devolução parcial de peças: conclua a remessa na Omie primeiro (ou altere as quantidades na própria Omie antes de faturar).`
+      );
+      return;
+    }
+
     const devolucaoQtdStr = window.prompt(`Quantas unidades de ${codigoProduto} estão sendo devolvidas ao estoque?\n(Máximo: ${quantidadeEntregue})`);
     if (!devolucaoQtdStr) return;
 
@@ -63,7 +99,7 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
 
     setProcessandoDevolucao(true);
     try {
-      const response = await fetch(`/api/requisicoes/${reqId}/devolver`, {
+      const response = await fetch(`/api/requisicoes/${req.id}/devolver`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -72,17 +108,59 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
         })
       });
 
-      if (!response.ok) throw new Error('Falha ao registrar devolução no servidor');
+      if (!response.ok) {
+        const erroJson = await response.json();
+        throw new Error(erroJson.message || 'Falha ao registrar devolução no servidor');
+      }
       
       const data = await response.json();
       alert('Devolução registrada com sucesso! Estoque atualizado.');
       
       // Atualizar a lista localmente
-      setRequisicoes(prev => prev.map(r => r.id === reqId ? data.requisicao : r));
+      setRequisicoes(prev => prev.map(r => r.id === req.id ? data.requisicao : r));
     } catch (error) {
       alert('Erro: ' + error.message);
     } finally {
       setProcessandoDevolucao(false);
+    }
+  };
+
+  const cancelarRequisicao = async (req) => {
+    if (req.remessa_omie?.concluida) {
+      alert('Não é possível cancelar uma requisição cuja remessa já foi Concluída/Faturada na Omie.\nPara itens não utilizados, utilize a Devolução de Peças.');
+      return;
+    }
+
+    const confirmou = window.confirm(
+      `Tem certeza que deseja CANCELAR a Requisição #${req.numeroOS || req.id.slice(-6)}?\n\n` +
+      `• A remessa pendente #${req.remessa_omie?.nCodRem || ''} será cancelada na Omie.\n` +
+      `• O estoque de todas as peças entregues será estornado ao almoxarifado.\n` +
+      `• O status mudará para Cancelada.\n\n` +
+      `Deseja prosseguir?`
+    );
+    if (!confirmou) return;
+
+    const motivo = window.prompt('Informe o motivo do cancelamento:', 'Devolveu todas as peças antes do faturamento');
+    if (motivo === null) return;
+
+    setProcessandoCancelamento(req.id);
+    try {
+      const res = await fetch(`/api/requisicoes/${req.id}/cancelar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: motivo || 'Cancelada pelo Almoxarifado' })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Falha ao cancelar requisição');
+
+      alert('✅ Requisição cancelada com sucesso! O estoque foi estornado.');
+      if (data.requisicao) {
+        setRequisicoes(prev => prev.map(r => r.id === req.id ? data.requisicao : r));
+      }
+    } catch (err) {
+      alert('Erro ao cancelar requisição: ' + err.message);
+    } finally {
+      setProcessandoCancelamento(null);
     }
   };
 
@@ -102,6 +180,66 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
       alert('Erro ao reenviar para Omie: ' + err.message);
     } finally {
       setProcessandoReenvio(null);
+    }
+  };
+
+  const verificarStatusOmie = async (reqId, silencioso = false) => {
+    setVerificandoStatusId(reqId);
+    try {
+      const res = await fetch(`/api/requisicoes/${reqId}/atualizar-status-omie`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Falha ao verificar status na Omie');
+
+      if (data.requisicao) {
+        setRequisicoes(prev => prev.map(r => r.id === reqId ? data.requisicao : r));
+      }
+
+      if (!silencioso) {
+        if (data.concluida) {
+          alert('✅ Remessa Omie concluída/faturada! Status atualizado no sistema.');
+        } else if (data.cancelada) {
+          alert('⚠️ Remessa consta como cancelada no Omie.');
+        } else {
+          alert('ℹ️ Remessa ainda consta como PENDENTE no Omie.');
+        }
+      }
+    } catch (err) {
+      if (!silencioso) {
+        alert('Erro ao verificar status na Omie: ' + err.message);
+      }
+      console.warn('Erro ao verificar status Omie:', err.message);
+    } finally {
+      setVerificandoStatusId(null);
+    }
+  };
+
+  const sincronizarTodasRemessasPendentes = async () => {
+    setSincronizandoOmie(true);
+    try {
+      const res = await fetch('/api/requisicoes/sincronizar-remessas-pendentes', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Falha na sincronização em lote');
+
+      if (data.atualizadosParaConcluido > 0) {
+        const respList = await fetch('/api/requisicoes');
+        if (respList.ok) {
+          const listData = await respList.json();
+          const apenasSaidas = listData.filter(req => req.tipo !== 'reposicao');
+          const ordenadas = apenasSaidas.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+          setRequisicoes(ordenadas);
+        }
+        alert(`✅ Sincronização concluída! ${data.atualizadosParaConcluido} remessa(s) foram atualizadas para "Concluída".`);
+      } else {
+        alert(`ℹ️ Sincronização concluída. Nenhuma nova remessa foi concluída na Omie (${data.totalVerificados || 0} verificadas).`);
+      }
+    } catch (err) {
+      alert('Erro na sincronização com Omie: ' + err.message);
+    } finally {
+      setSincronizandoOmie(false);
     }
   };
 
@@ -203,7 +341,7 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                 <div><span class="bold">DEPTO/CENTRO:</span> ${req.centroCusto || 'NÃO INFORMADO'}</div>
                 <div><span class="bold">ORDEM DE SERVIÇO:</span> ${req.numeroOS || 'N/A'}</div>
                 <div><span class="bold">SOLICITANTE:</span> ${req.contatoCliente || 'NÃO INFORMADO'}</div>
-                ${req.remessa_omie?.nCodRem ? `<div><span class="bold">REMESSA OMIE:</span> #${req.remessa_omie.nCodRem} (PENDENTE)</div>` : ''}
+                ${req.remessa_omie?.nCodRem ? `<div><span class="bold">REMESSA OMIE:</span> #${req.remessa_omie.nCodRem} (${req.remessa_omie.concluida ? 'CONCLUÍDA' : 'PENDENTE'})</div>` : ''}
               </div>
 
               <table class="tabela-itens">
@@ -311,9 +449,10 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
     return matchData && matchDevolucao && matchTermo;
   });
 
-  const totalRequisicoes = requisicoesFiltradas.length;
-  const totalItens = requisicoesFiltradas.reduce((acc, req) => acc + (req.itens?.reduce((sum, item) => sum + (Number(item.quantidade_entregue ?? item.quantidade) || 0), 0) || 0), 0);
-  const totalValor = requisicoesFiltradas.reduce((acc, req) => acc + (req.itens?.reduce((sum, item) => sum + (Number(item.quantidade_entregue ?? item.quantidade) * Number(item.valor_unitario || 0)), 0) || 0), 0);
+  const requisicoesAtivas = requisicoesFiltradas.filter(r => r.status !== 'cancelado');
+  const totalRequisicoes = requisicoesAtivas.length;
+  const totalItens = requisicoesAtivas.reduce((acc, req) => acc + (req.itens?.reduce((sum, item) => sum + (Number(item.quantidade_entregue ?? item.quantidade) || 0), 0) || 0), 0);
+  const totalValor = requisicoesAtivas.reduce((acc, req) => acc + (req.itens?.reduce((sum, item) => sum + (Number(item.quantidade_entregue ?? item.quantidade) * Number(item.valor_unitario || 0)), 0) || 0), 0);
   const totalDevolvidos = requisicoesFiltradas.reduce((acc, req) => acc + (req.itens?.reduce((sum, item) => sum + (item.devolvido || 0), 0) || 0), 0);
 
   const exportarRelatorioConsolidado = () => {
@@ -347,6 +486,16 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
           </div>
         </div>
         <div className={styles['header-actions']}>
+          <button 
+            type="button"
+            className={styles['btn-sync-geral']} 
+            onClick={sincronizarTodasRemessasPendentes}
+            disabled={sincronizandoOmie}
+            title="Verificar na Omie se alguma remessa pendente já foi faturada/concluída"
+          >
+            <RefreshCw size={16} className={sincronizandoOmie ? styles['girando'] : ''} />
+            {sincronizandoOmie ? 'Sincronizando...' : 'Sincronizar Omie'}
+          </button>
           <button 
             className={styles['btn-primary']} 
             onClick={exportarRelatorioConsolidado}
@@ -494,13 +643,41 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                        <span className={styles['badge']}>Concluída</span>
-                        {req.remessa_omie?.status === 'enviada' && (
-                          <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
-                            Omie #{req.remessa_omie.nCodRem || 'Pendente'}
+                        {req.status === 'cancelado' ? (
+                          <span className={styles['badge-cancelada']}>Cancelada</span>
+                        ) : (
+                          <span className={styles['badge']}>Concluída</span>
+                        )}
+                        {req.remessa_omie?.nCodRem && (
+                          <span style={{
+                            fontSize: '0.72rem',
+                            background: req.status === 'cancelado' ? '#fef2f2' : (req.remessa_omie.concluida ? '#ecfdf5' : '#fef3c7'),
+                            color: req.status === 'cancelado' ? '#dc2626' : (req.remessa_omie.concluida ? '#059669' : '#b45309'),
+                            border: `1px solid ${req.status === 'cancelado' ? '#fecaca' : (req.remessa_omie.concluida ? '#a7f3d0' : '#fde68a')}`,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}>
+                            Omie #{req.remessa_omie.nCodRem} ({req.status === 'cancelado' || req.remessa_omie.status === 'cancelada' ? 'Cancelada' : (req.remessa_omie.concluida ? 'Concluída' : 'Pendente')})
+                            {req.status !== 'cancelado' && !req.remessa_omie.concluida && (
+                              <button
+                                type="button"
+                                className={styles['btn-mini-sync']}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  verificarStatusOmie(req.id);
+                                }}
+                                disabled={verificandoStatusId === req.id}
+                                title="Verificar na Omie se esta remessa já foi faturada"
+                              >
+                                <RefreshCw size={11} className={verificandoStatusId === req.id ? styles['girando'] : ''} />
+                              </button>
+                            )}
                           </span>
                         )}
-                        {req.remessa_omie?.status === 'erro' && (
+                        {req.remessa_omie?.status === 'erro' && req.status !== 'cancelado' && (
                           <span title={req.remessa_omie.mensagem} style={{ fontSize: '0.72rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', cursor: 'help' }}>
                             ⚠️ Falha Omie
                           </span>
@@ -529,9 +706,24 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                               <User size={14} /> Entregue por {req.entregador || 'Almoxarife'}
                             </div>
                             <div className={`${styles['timeline-connector']} ${styles['active']}`}></div>
-                            {req.remessa_omie?.status === 'enviada' ? (
-                              <div className={`${styles['timeline-step']} ${styles['active']}`} style={{ color: '#059669', fontWeight: 'bold' }}>
-                                <CheckCircle2 size={14} /> Omie: Remessa #{req.remessa_omie.nCodRem} (Pendente)
+                            {req.remessa_omie?.nCodRem ? (
+                              <div className={`${styles['timeline-step']} ${styles['active']}`} style={{ color: req.status === 'cancelado' ? '#dc2626' : (req.remessa_omie.concluida ? '#059669' : '#b45309'), fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                                <CheckCircle2 size={14} /> Omie: Remessa #{req.remessa_omie.nCodRem} ({req.status === 'cancelado' ? 'Cancelada' : (req.remessa_omie.concluida ? 'Concluída' : 'Pendente no ERP')})
+                                {req.status !== 'cancelado' && !req.remessa_omie.concluida && (
+                                  <button
+                                    type="button"
+                                    className={styles['btn-timeline-sync']}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      verificarStatusOmie(req.id);
+                                    }}
+                                    disabled={verificandoStatusId === req.id}
+                                    title="Consultar status desta remessa na Omie agora"
+                                  >
+                                    <RefreshCw size={12} className={verificandoStatusId === req.id ? styles['girando'] : ''} />
+                                    {verificandoStatusId === req.id ? 'Consultando...' : 'Verificar Status Omie'}
+                                  </button>
+                                )}
                               </div>
                             ) : req.remessa_omie?.status === 'erro' ? (
                               <div className={`${styles['timeline-step']}`} style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -560,10 +752,30 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                                 <RefreshCw size={14} /> Omie: Aguardando Sincronização
                               </div>
                             )}
+                            {req.status === 'cancelado' && (
+                              <>
+                                <div className={`${styles['timeline-connector']} ${styles['cancelado']}`}></div>
+                                <div className={`${styles['timeline-step']} ${styles['cancelado']}`}>
+                                  <AlertCircle size={14} /> Cancelada em {formatarData(req.dataCancelamento)} {req.motivoCancelamento ? `(${req.motivoCancelamento})` : ''}
+                                </div>
+                              </>
+                            )}
                           </div>
                           <div className={styles['itens-container-header']}>
                             <h4>Itens Retirados</h4>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                              {req.status !== 'cancelado' && !req.remessa_omie?.concluida && (
+                                <button 
+                                  type="button"
+                                  className={styles['btn-cancelar-req']} 
+                                  onClick={(e) => { e.stopPropagation(); cancelarRequisicao(req); }}
+                                  disabled={processandoCancelamento === req.id}
+                                  title="Cancelar toda a requisição e anular a remessa pendente na Omie com estorno do estoque"
+                                >
+                                  <AlertCircle size={14} />
+                                  {processandoCancelamento === req.id ? 'Cancelando...' : 'Cancelar Requisição'}
+                                </button>
+                              )}
                               <button 
                                 className={styles['btn-imprimir']} 
                                 onClick={(e) => { e.stopPropagation(); exportarParaExcel(req); }}
@@ -613,12 +825,26 @@ const RelatorioRequisicoes = ({ onVoltar }) => {
                                       {entregue} {devolvido > 0 ? <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>(-{devolvido} dev)</span> : ''}
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
-                                      {disponivelParaDevolucao > 0 ? (
+                                      {req.status === 'cancelado' ? (
+                                        <span style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: '500' }}>Cancelado / Estornado</span>
+                                      ) : disponivelParaDevolucao > 0 ? (
                                         <button 
                                           className={styles['btn-imprimir']}
-                                          style={{ background: '#f1f5f9', color: '#0f172a', padding: '4px 12px', fontSize: '0.8rem', border: '1px solid #cbd5e1' }}
-                                          onClick={(e) => { e.stopPropagation(); registrarDevolucao(req.id, item.codigo, disponivelParaDevolucao); }}
+                                          style={{
+                                            background: (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida) ? '#f8fafc' : '#f1f5f9',
+                                            color: (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida) ? '#94a3b8' : '#0f172a',
+                                            padding: '4px 12px',
+                                            fontSize: '0.8rem',
+                                            border: (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida) ? '1px dashed #cbd5e1' : '1px solid #cbd5e1',
+                                            cursor: (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida) ? 'help' : 'pointer'
+                                          }}
+                                          onClick={(e) => { e.stopPropagation(); registrarDevolucao(req, item.codigo, disponivelParaDevolucao); }}
                                           disabled={processandoDevolucao}
+                                          title={
+                                            (req.remessa_omie?.nCodRem && !req.remessa_omie?.concluida)
+                                              ? 'A remessa Omie precisa ser Concluída antes de registrar devoluções parciais. Para devolver tudo, use Cancelar Requisição.'
+                                              : 'Devolver peças ao estoque físico e registrar estorno'
+                                          }
                                         >
                                           <RotateCcw size={12} />
                                           Devolver Peça
