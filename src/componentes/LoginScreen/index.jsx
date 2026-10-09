@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, User, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import styles from './LoginScreen.module.css';
 import logo from '../../assets/YAMASERVICE.jpeg';
 import bg1 from '../../assets/login-aves.jpg';
@@ -18,6 +18,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
   }, [backgrounds.length]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,7 +33,10 @@ const LoginScreen = ({ onLoginSuccess }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({
+          username: username.trim().toLowerCase(),
+          password
+        })
       });
 
       const data = await response.json();
@@ -101,6 +105,9 @@ const LoginScreen = ({ onLoginSuccess }) => {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Digite seu usuário..."
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
             </div>
@@ -110,12 +117,21 @@ const LoginScreen = ({ onLoginSuccess }) => {
               <div className={styles.inputWrapper}>
                 <Lock size={20} className={styles.inputIcon} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Digite sua senha..."
                   required
+                  autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  className={styles.togglePasswordBtn}
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? "Ocultar senha" : "Ver senha"}
+                >
+                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                </button>
               </div>
             </div>
 

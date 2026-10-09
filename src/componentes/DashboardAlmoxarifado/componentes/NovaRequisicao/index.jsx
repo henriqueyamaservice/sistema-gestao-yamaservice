@@ -144,11 +144,25 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
 
           const nomeLogin = (usuarioLogado.nome || '').trim().toUpperCase();
           if (nomeLogin) {
-            const match = listaVends.find(v => {
+            // 1. Prioridade 1: Match 100% exato pelo nome completo
+            let match = listaVends.find(v => {
               const vNome = (v.nome || '').trim().toUpperCase();
               const vFant = (v.nome_fantasia || '').trim().toUpperCase();
-              return vNome === nomeLogin || vFant === nomeLogin || vNome.startsWith(nomeLogin) || nomeLogin.startsWith(vNome);
+              return vNome === nomeLogin || vFant === nomeLogin;
             });
+
+            // 2. Prioridade 2: Fallback por prefixo seguro (mínimo 4 caracteres)
+            if (!match && nomeLogin.length >= 4) {
+              const candidatos = listaVends.filter(v => {
+                const vNome = (v.nome || '').trim().toUpperCase();
+                return vNome.length >= 4 && (vNome.startsWith(nomeLogin) || nomeLogin.startsWith(vNome));
+              });
+              if (candidatos.length > 0) {
+                candidatos.sort((a, b) => (b.nome || '').length - (a.nome || '').length);
+                match = candidatos[0];
+              }
+            }
+
             if (match) {
               setFormulario(prev => ({
                 ...prev,
@@ -328,16 +342,31 @@ const NovaRequisicao = ({ produtos, itensIniciais = [], tipoInicial = 'saida', o
         codigoClienteOmie: match ? match.codigo_cliente_omie : (prev.codigoClienteOmie || null)
       }));
     } else if (name === 'vendedor') {
-      const valUpper = value.toUpperCase();
-      const match = vendedores.find(v =>
-        (v.nome && v.nome.trim().toUpperCase() === valUpper.trim()) ||
-        (v.nome_fantasia && v.nome_fantasia.trim().toUpperCase() === valUpper.trim()) ||
-        String(v.codigo) === valUpper.trim()
+      const valUpper = value.toUpperCase().trim();
+      // 1. Prioridade 1: Match 100% exato
+      let match = vendedores.find(v =>
+        (v.nome && v.nome.trim().toUpperCase() === valUpper) ||
+        (v.nome_fantasia && v.nome_fantasia.trim().toUpperCase() === valUpper) ||
+        String(v.codigo) === valUpper ||
+        String(v.codigoVendedorOmie) === valUpper
       );
+
+      // 2. Prioridade 2: Fallback por prefixo seguro (mínimo 4 caracteres)
+      if (!match && valUpper.length >= 4) {
+        const candidatos = vendedores.filter(v => {
+          const vNome = (v.nome || '').trim().toUpperCase();
+          return vNome.length >= 4 && (vNome.startsWith(valUpper) || valUpper.startsWith(vNome));
+        });
+        if (candidatos.length > 0) {
+          candidatos.sort((a, b) => (b.nome || '').length - (a.nome || '').length);
+          match = candidatos[0];
+        }
+      }
+
       setFormulario(prev => ({
         ...prev,
-        vendedor: valUpper,
-        entregador: valUpper,
+        vendedor: value.toUpperCase(),
+        entregador: value.toUpperCase(),
         codigoVendedorOmie: match ? (match.codigoVendedorOmie || match.codigo || null) : prev.codigoVendedorOmie
       }));
     } else if (name === 'numeroOS') {

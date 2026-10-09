@@ -69,7 +69,8 @@ function App() {
       case 'oficina': return 'apontamento';
       case 'tecnico': return 'tecnico';
       case 'chefe_setor': return 'chefe';
-      case 'almoxarife': return 'almoxarifado';
+      case 'almoxarife':
+      case 'almoxarifado': return 'almoxarifado';
       case 'compras': return 'compras';
       case 'fiscal':
       case 'recebimento_fiscal': return 'recebimento_fiscal';

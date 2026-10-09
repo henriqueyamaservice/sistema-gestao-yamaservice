@@ -97,11 +97,26 @@ router.get('/vendedores', async (req, res) => {
       try { d = JSON.parse(r.dados_json || '{}'); } catch(e){}
       const nomeUpper = (r.razao_social || '').trim().toUpperCase();
 
-      // Procura se tem match na tabela de vendedores oficiais da Omie
-      const vendOficial = rowsVend.find(v => {
+      // Procura se tem match na tabela de vendedores oficiais da Omie (Prioridade 1: Exato; Prioridade 2: Código; Prioridade 3: Prefixo seguro >= 4 letras)
+      let vendOficial = rowsVend.find(v => {
         const vNome = (v.nome || '').trim().toUpperCase();
-        return vNome === nomeUpper || vNome.startsWith(nomeUpper) || nomeUpper.startsWith(vNome);
+        return vNome === nomeUpper;
       });
+
+      if (!vendOficial) {
+        vendOficial = rowsVend.find(v => String(v.codigo) === String(r.codigo));
+      }
+
+      if (!vendOficial && nomeUpper.length >= 4) {
+        const candidatos = rowsVend.filter(v => {
+          const vNome = (v.nome || '').trim().toUpperCase();
+          return vNome.length >= 4 && (vNome.startsWith(nomeUpper) || nomeUpper.startsWith(vNome));
+        });
+        if (candidatos.length > 0) {
+          candidatos.sort((a, b) => (b.nome || '').length - (a.nome || '').length);
+          vendOficial = candidatos[0];
+        }
+      }
 
       return {
         ...d,
@@ -111,6 +126,25 @@ router.get('/vendedores', async (req, res) => {
         codigoVendedorOmie: vendOficial ? vendOficial.codigo : null
       };
     });
+
+    // Adiciona vendedores oficiais da Omie que não estejam em fornecedores_omie
+    const nomesFornSet = new Set(vendedores.map(v => (v.nome || '').trim().toUpperCase()));
+    for (const v of rowsVend) {
+      const vNome = (v.nome || '').trim().toUpperCase();
+      if (vNome && !nomesFornSet.has(vNome) && v.inativo !== 'S') {
+        let dj = {};
+        try { dj = JSON.parse(v.dados_json || '{}'); } catch(e){}
+        vendedores.push({
+          ...dj,
+          codigo: v.codigo,
+          nome: v.nome,
+          nome_fantasia: dj.nome_fantasia || v.nome,
+          codigoVendedorOmie: Number(v.codigo)
+        });
+        nomesFornSet.add(vNome);
+      }
+    }
+
     res.json(vendedores);
   } catch (error) {
     res.status(500).json({ message: 'Erro interno ao ler os vendedores do banco', error: error.message });

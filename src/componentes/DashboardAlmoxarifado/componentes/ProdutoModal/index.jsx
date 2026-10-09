@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { X, Save, Plus, Copy, Ban, Paperclip, Clock, ListTodo, Trash2, Image as ImageIcon, Search, Edit2, Check } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Save, Plus, Copy, Ban, Paperclip, Clock, ListTodo, Trash2, Image as ImageIcon, Search, Edit2, Check, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import styles from './ProdutoModal.module.css';
 import { obterBadgeInfo, formatarQuantidadeComUnidade, formatarQuantidade, obterRotuloUnidade } from '../../../../utils/classificadorUnidades';
 
@@ -8,6 +8,28 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
   const [showSubModal, setShowSubModal] = useState(false);
   const [eanValue, setEanValue] = useState(produto.ean || '');
   const [validadeValue, setValidadeValue] = useState(produto.data_validade || produto.validade || '');
+
+  // Estados de Sincronização com a Omie & Histórico
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [historicoSync, setHistoricoSync] = useState([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState(null);
+  const [saldoExibicao, setSaldoExibicao] = useState(produto.quantidade_estoque ?? 0);
+
+  const getInitialLocais = () => {
+    if (Array.isArray(produto.posicoes_estoque_omie) && produto.posicoes_estoque_omie.length > 0) {
+      return produto.posicoes_estoque_omie;
+    }
+    let dJson = {};
+    try {
+      dJson = typeof produto.dados_json === 'string' ? JSON.parse(produto.dados_json) : (produto.dados_json || {});
+    } catch {}
+    if (Array.isArray(dJson.posicoes_estoque_omie) && dJson.posicoes_estoque_omie.length > 0) {
+      return dJson.posicoes_estoque_omie;
+    }
+    return null;
+  };
+  const [locaisEstoque, setLocaisEstoque] = useState(getInitialLocais());
 
   const getInitialEndereco = () => {
     const c = produto.caracteristicas || [];
@@ -98,6 +120,63 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
       }
     } catch (err) {
       alert('Erro ao editar lote: ' + err.message);
+    }
+  };
+
+  // Carregar histórico de sincronizações deste produto
+  const carregarHistoricoSync = async () => {
+    try {
+      setLoadingHistorico(true);
+      const res = await fetch(`/api/produtos/${produto.codigo}/historico-sync`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistoricoSync(data);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar histórico de sincronização:', e);
+    } finally {
+      setLoadingHistorico(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'estoque') {
+      carregarHistoricoSync();
+    }
+  }, [activeTab]);
+
+  // Sincronizar individualmente com a Omie sob demanda
+  const handleSyncOmie = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncFeedback(null);
+      const res = await fetch(`/api/produtos/${produto.codigo}/sync-estoque`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: 'Almoxarife' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaldoExibicao(data.novoSaldo);
+        if (data.locais && data.locais.length > 0) {
+          setLocaisEstoque(data.locais);
+        }
+        setSyncFeedback({
+          tipo: 'sucesso',
+          mensagem: `Saldo sincronizado com a Omie: de ${data.saldoAnterior} para ${data.novoSaldo} (Diferença: ${data.diferenca >= 0 ? '+' : ''}${data.diferenca} ${produto.unidade || 'UN'})`
+        });
+        if (fetchProdutosGlobal) fetchProdutosGlobal();
+        carregarHistoricoSync();
+      } else {
+        throw new Error(data.message || 'Falha ao sincronizar com a Omie');
+      }
+    } catch (err) {
+      setSyncFeedback({
+        tipo: 'erro',
+        mensagem: 'Erro ao comunicar com a Omie: ' + err.message
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -203,8 +282,6 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
 
               </div>
 
-
-
             </div>
 
             {/* Seção de Abas (Tabs) */}
@@ -217,7 +294,36 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
               <div className={styles.tabContent}>
                 {activeTab === 'estoque' && (
                   <div className={styles.tabEstoque}>
-                    <p className={styles.tabInfo}>Abaixo um resumo das informações de estoque deste produto.</p>
+                    {/* Bloco de Sincronização Omie em Destaque */}
+                    <div className={styles.syncBoxOmie}>
+                      <div className={styles.syncBoxInfo}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <RefreshCw size={18} color="var(--cor-destaque)" />
+                          <strong style={{ fontSize: '0.95rem', color: 'var(--cor-texto-principal)' }}>Sincronização de Saldo com a Omie</strong>
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--cor-texto-secundario)' }}>
+                          Consulte o saldo real consolidado no ERP Omie para este produto e atualize o sistema instantaneamente.
+                        </p>
+                      </div>
+                      <button 
+                        className={styles.btnSyncOmieDestaque}
+                        onClick={handleSyncOmie}
+                        disabled={isSyncing}
+                      >
+                        <RefreshCw size={15} className={isSyncing ? styles.spin : ''} />
+                        <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Saldo Agora'}</span>
+                      </button>
+                    </div>
+
+                    {/* Feedback de Sincronização */}
+                    {syncFeedback && (
+                      <div className={syncFeedback.tipo === 'sucesso' ? styles.alertSucesso : styles.alertErro}>
+                        {syncFeedback.tipo === 'sucesso' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                        <span>{syncFeedback.mensagem}</span>
+                      </div>
+                    )}
+
+                    <p className={styles.tabInfo}>Abaixo o detalhamento das posições de estoque deste produto.</p>
 
                     <table className={styles.tabelaGenerica}>
                       <thead>
@@ -230,29 +336,130 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td>PADRÃO - Local de Estoque Padrão</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                          <td className={styles.textRight}>0</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                        </tr>
-                        <tr className={styles.rowHighlight}>
-                          <td>01 - Almoxarifado</td>
-                          <td className={styles.textRight}><strong>{produto.quantidade_estoque || 0} {produto.unidade}</strong></td>
-                          <td className={styles.textRight}>{produto.estoque_minimo || 0}</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                        </tr>
-                        <tr>
-                          <td>02 - Armazém de Matéria Prima</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                          <td className={styles.textRight}>0</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                          <td className={styles.textRight}>0 {produto.unidade}</td>
-                        </tr>
+                        {locaisEstoque && locaisEstoque.length > 0 ? (
+                          locaisEstoque.map((loc, idx) => (
+                            <tr key={loc.nIdlocal || idx} className={loc.saldo > 0 ? styles.rowHighlight : ''}>
+                              <td>{loc.local}</td>
+                              <td className={styles.textRight}>
+                                <strong style={{ color: loc.saldo > 0 ? 'var(--cor-destaque)' : 'inherit', fontSize: '0.95rem' }}>
+                                  {loc.saldo} {produto.unidade || 'UN'}
+                                </strong>
+                              </td>
+                              <td className={styles.textRight}>{loc.minimo ?? 0}</td>
+                              <td className={styles.textRight}>{loc.previsaoEntrada ?? 0} {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>{loc.previsaoSaida ?? 0} {produto.unidade || 'UN'}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <>
+                            <tr>
+                              <td>PADRÃO - Local de Estoque Padrão</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>0</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                            </tr>
+                            <tr className={styles.rowHighlight}>
+                              <td>01 - Almoxarifado Central (Consolidado Omie)</td>
+                              <td className={styles.textRight}>
+                                <strong style={{ color: 'var(--cor-destaque)', fontSize: '0.95rem' }}>
+                                  {saldoExibicao} {produto.unidade || 'UN'}
+                                </strong>
+                              </td>
+                              <td className={styles.textRight}>{produto.estoque_minimo || 0}</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                            </tr>
+                            <tr>
+                              <td>02 - Armazém de Matéria Prima</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>0</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                              <td className={styles.textRight}>0 {produto.unidade || 'UN'}</td>
+                            </tr>
+                          </>
+                        )}
                       </tbody>
                     </table>
+
+                    {/* Histórico de Sincronizações com a Omie */}
+                    <div className={styles.historicoSyncSecao}>
+                      <div className={styles.historicoSyncHeader}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Clock size={16} color="var(--cor-destaque)" />
+                          <h4 style={{ margin: 0, fontSize: '0.92rem', color: 'var(--cor-texto-principal)' }}>Histórico de Sincronizações (Omie)</h4>
+                        </div>
+                        <button 
+                          className={styles.btnRecarregarHistorico}
+                          onClick={carregarHistoricoSync}
+                          disabled={loadingHistorico}
+                          title="Recarregar histórico"
+                        >
+                          <RefreshCw size={13} className={loadingHistorico ? styles.spin : ''} />
+                        </button>
+                      </div>
+
+                      {loadingHistorico ? (
+                        <p style={{ color: 'var(--cor-texto-secundario)', fontSize: '0.85rem', margin: '10px 0' }}>Carregando histórico...</p>
+                      ) : historicoSync.length === 0 ? (
+                        <div className={styles.historicoVazio}>
+                          <p style={{ margin: 0 }}>Nenhuma sincronização registrada ainda para este produto.</p>
+                          <small style={{ color: 'var(--cor-texto-secundario)' }}>Clique em "Sincronizar Saldo Agora" para registrar a primeira conferência.</small>
+                        </div>
+                      ) : (
+                        <div className={styles.tabelaHistoricoWrapper}>
+                          <table className={styles.tabelaGenerica}>
+                            <thead>
+                              <tr>
+                                <th>Data / Hora</th>
+                                <th>Origem</th>
+                                <th>Responsável</th>
+                                <th className={styles.textRight}>Saldo Anterior</th>
+                                <th className={styles.textRight}>Novo Saldo</th>
+                                <th className={styles.textRight}>Variação</th>
+                                <th style={{ textAlign: 'center' }}>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {historicoSync.map(item => (
+                                <tr key={item.id}>
+                                  <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                                    {new Date(item.criado_em).toLocaleString('pt-BR')}
+                                  </td>
+                                  <td>
+                                    <span className={item.origem === 'AUTOMATICO_NOTURNO' ? styles.badgeOrigemAuto : styles.badgeOrigemManual}>
+                                      {item.origem === 'AUTOMATICO_NOTURNO' ? 'Rotina Noturna' : 'Manual'}
+                                    </span>
+                                  </td>
+                                  <td style={{ fontSize: '0.82rem' }}>
+                                    <strong>{item.usuario || 'Sistema'}</strong>
+                                  </td>
+                                  <td className={styles.textRight} style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>
+                                    {item.saldo_anterior ?? '-'}
+                                  </td>
+                                  <td className={styles.textRight} style={{ fontSize: '0.85rem', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                                    {item.saldo_novo ?? '-'}
+                                  </td>
+                                  <td className={styles.textRight} style={{ 
+                                    fontSize: '0.85rem', 
+                                    fontFamily: 'monospace', 
+                                    fontWeight: 'bold',
+                                    color: (item.diferenca > 0 ? 'var(--cor-sucesso)' : (item.diferenca < 0 ? 'var(--cor-erro)' : 'var(--cor-texto-secundario)')) 
+                                  }}>
+                                    {item.diferenca !== null ? `${item.diferenca > 0 ? '+' : ''}${item.diferenca}` : '-'}
+                                  </td>
+                                  <td style={{ textAlign: 'center' }}>
+                                    <span className={item.status === 'SUCESSO' ? styles.badgeStatusSucesso : styles.badgeStatusErro}>
+                                      {item.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
 
                     {produto.lotes && produto.lotes.length > 0 && (
                       <div style={{ marginTop: '24px' }}>
@@ -288,6 +495,7 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
                     )}
                   </div>
                 )}
+
 
                 {activeTab === 'caracteristicas' && (
                   <div className={styles.tabCaracteristicas}>
@@ -336,6 +544,15 @@ const ProdutoModal = ({ produto, onClose, fetchProdutosGlobal }) => {
           <div className={styles.actionSidebar}>
             <button className={styles.actionBtn} onClick={handleSave} disabled={isSaving}>
               <Save size={18} /> {isSaving ? 'Salvando...' : 'Salvar'}
+            </button>
+            <button 
+              className={`${styles.actionBtn} ${styles.btnSyncOmie}`} 
+              onClick={handleSyncOmie} 
+              disabled={isSyncing}
+              title="Consultar saldo atual em tempo real na Omie"
+            >
+              <RefreshCw size={18} className={isSyncing ? styles.spin : ''} /> 
+              {isSyncing ? 'Sincronizando...' : 'Sincronizar Omie'}
             </button>
             <button className={`${styles.actionBtn} ${styles.btnExcluir}`}><Trash2 size={18} /> Excluir</button>
           </div>

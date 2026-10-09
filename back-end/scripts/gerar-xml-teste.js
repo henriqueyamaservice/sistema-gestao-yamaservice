@@ -1,8 +1,8 @@
 import fs from 'fs';
 
-const fornecedorCnpj = "12345678000190"; // CNPJ de teste
-const fornecedorNome = "FORNECEDOR TESTE LTDA";
-const valorTotal = "1500.00";
+const fornecedorCpf = "73161756215"; // CPF do Francisco de Jesus Silva
+const fornecedorNome = "FRANCISCO DE JESUS SILVA";
+const valorTotal = "35.00";
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
@@ -17,7 +17,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
         <dhEmi>2026-10-02T10:00:00-03:00</dhEmi>
       </ide>
       <emit>
-        <CNPJ>${fornecedorCnpj}</CNPJ>
+        <CPF>${fornecedorCpf}</CPF>
         <xNome>${fornecedorNome}</xNome>
         <enderEmit>
           <xLgr>RUA TESTE</xLgr>
@@ -40,37 +40,19 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
       </dest>
       <det nItem="1">
         <prod>
-          <cProd>PRD001</cProd>
+          <cProd>PRD0000021</cProd>
           <cEAN>SEM GTIN</cEAN>
-          <xProd>PRODUTO DE TESTE 1</xProd>
+          <xProd>TESTE DE NITROGENIO</xProd>
           <NCM>84212300</NCM>
           <CFOP>5102</CFOP>
           <uCom>UN</uCom>
-          <qCom>10.0000</qCom>
-          <vUnCom>50.0000</vUnCom>
-          <vProd>500.00</vProd>
+          <qCom>1.0000</qCom>
+          <vUnCom>35.0000</vUnCom>
+          <vProd>35.00</vProd>
           <cEANTrib>SEM GTIN</cEANTrib>
           <uTrib>UN</uTrib>
-          <qTrib>10.0000</qTrib>
-          <vUnTrib>50.0000</vUnTrib>
-          <indTot>1</indTot>
-        </prod>
-      </det>
-      <det nItem="2">
-        <prod>
-          <cProd>PRD002</cProd>
-          <cEAN>SEM GTIN</cEAN>
-          <xProd>PRODUTO DE TESTE 2</xProd>
-          <NCM>84212300</NCM>
-          <CFOP>5102</CFOP>
-          <uCom>PC</uCom>
-          <qCom>5.0000</qCom>
-          <vUnCom>200.0000</vUnCom>
-          <vProd>1000.00</vProd>
-          <cEANTrib>SEM GTIN</cEANTrib>
-          <uTrib>PC</uTrib>
-          <qTrib>5.0000</qTrib>
-          <vUnTrib>200.0000</vUnTrib>
+          <qTrib>1.0000</qTrib>
+          <vUnTrib>35.0000</vUnTrib>
           <indTot>1</indTot>
         </prod>
       </det>
@@ -84,7 +66,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
           <vST>0.00</vST>
           <vFCPST>0.00</vFCPST>
           <vFCPSTRet>0.00</vFCPSTRet>
-          <vProd>1500.00</vProd>
+          <vProd>35.00</vProd>
           <vFrete>0.00</vFrete>
           <vSeg>0.00</vSeg>
           <vDesc>0.00</vDesc>
@@ -103,9 +85,9 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
     <infProt>
       <tpAmb>1</tpAmb>
       <verAplic>SP_NFE_PL_009_V4</verAplic>
-      <chNFe>35230112345678000190550010000001231000001234</chNFe>
+      <chNFe>3523011234567800019055001000000135000001234</chNFe>
       <dhRecbto>2026-10-02T10:01:00-03:00</dhRecbto>
-      <nProt>135230000000001</nProt>
+      <nProt>135030000000001</nProt>
       <digVal>abc123def456ghi789=</digVal>
       <cStat>100</cStat>
       <xMotivo>Autorizado o uso da NF-e</xMotivo>

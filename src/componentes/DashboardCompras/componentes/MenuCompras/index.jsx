@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, ListChecks, Truck, Building2, Scale, Calculator, PackagePlus, Wrench, FileText, FileWarning, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ListChecks, Truck, Building2, Scale, Calculator, PackagePlus, Wrench, FileText, FileWarning, ChevronLeft, ChevronRight, Archive } from 'lucide-react';
 import styles from './MenuCompras.module.css';
 import logoYama from '../../../../assets/YAMASERVICE.jpeg';
 import ThemeToggle from '../../../ThemeToggle';
@@ -86,6 +86,7 @@ const MenuCompras = ({ view, setView }) => {
               {!isCollapsed && <span>Orçamentos</span>}
             </button>
           </li>
+
           <li>
             <button 
               className={`${styles['menu-item']} ${view === 'compras' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
@@ -102,6 +103,15 @@ const MenuCompras = ({ view, setView }) => {
             >
               <PackagePlus size={20} style={{ flexShrink: 0 }} />
               {!isCollapsed && <span>Entrada no Estoque</span>}
+            </button>
+          </li>
+          <li>
+            <button 
+              className={`${styles['menu-item']} ${view === 'arquivocotacoes' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
+              onClick={() => setView('arquivocotacoes')}
+            >
+              <Archive size={20} style={{ flexShrink: 0 }} />
+              {!isCollapsed && <span>Arquivo de Cotações</span>}
             </button>
           </li>
           <li>

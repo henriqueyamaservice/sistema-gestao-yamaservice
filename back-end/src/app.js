@@ -29,6 +29,7 @@ import usuariosRoutes from './routes/usuariosRoutes.js';
 import servicosKitsRoutes from './routes/servicosKitsRoutes.js';
 import iaOrcamentoRoutes from './routes/iaOrcamentoRoutes.js';
 import recebimentoFiscalRoutes from './routes/recebimentoFiscalRoutes.js';
+import cotacoesArquivadasRoutes from './routes/cotacoesArquivadasRoutes.js';
 
 const app = express();
 
@@ -49,8 +50,8 @@ const checklistDir = path.join(dataDir, 'checklist');
 const certificadosDir = path.join(dataDir, 'certificados');
 
 [
-  dataDir, almoxarifadoDir, omieCollectionDir, uploadsDir, 
-  dashboardOsDir, frotaCombustivelDir, geradoresDir, 
+  dataDir, almoxarifadoDir, omieCollectionDir, uploadsDir,
+  dashboardOsDir, frotaCombustivelDir, geradoresDir,
   comprasDir, projetosDir, calendarioDir, checklistDir, certificadosDir
 ].forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -84,6 +85,7 @@ app.use('/api/checklists', checklistRoutes);
 app.use('/api/servicos-kits', servicosKitsRoutes);
 app.use('/api/ia-orcamento', iaOrcamentoRoutes);
 app.use('/api/recebimento-fiscal', recebimentoFiscalRoutes);
+app.use('/api/cotacoes-arquivadas', cotacoesArquivadasRoutes);
 
 // Rotas mistas (fornecedores, departamentos, cotacao, calendario)
 app.use('/api', cadastrosRoutes);

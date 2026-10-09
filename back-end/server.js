@@ -1,5 +1,6 @@
 import app from './src/app.js';
 import omieProdutosService from './src/services/omieProdutosService.js';
+import omieEstoqueService from './src/services/omieEstoqueService.js';
 import { sincronizarVendedoresParaBanco } from './src/services/omieVendedoresService.js';
 import getDb from './src/config/database.js';
 
@@ -49,17 +50,39 @@ server.listen(PORT, '0.0.0.0', async () => {
     omieProdutosService.sincronizarProdutosPrd(); // Chama 5 segundos após subir o servidor
     sincronizarVendedoresParaBanco();
 
-    // Agendador manual: Roda às 07:00, 12:00, 17:00 e 00:00
-    setInterval(() => {
-      const now = new Date();
-      const hours = now.getHours();
-      const mins = now.getMinutes();
+    // Helper para obter data/hora garantida no Fuso do Brasil (UTC-3), mesmo em VPS Docker em UTC
+    function getAgoraBrasil() {
+      try {
+        const dataString = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+        return new Date(dataString);
+      } catch {
+        return new Date();
+      }
+    }
 
-      if ((hours === 7 || hours === 12 || hours === 17 || hours === 0) && mins === 0) {
-        if (!global.lastSyncTime || (now.getTime() - global.lastSyncTime) > 60000) {
-          global.lastSyncTime = now.getTime();
-          console.log(`[AGENDADOR] Iniciando sincronização automática programada para as ${hours}:00`);
+    // Agendador Inteligente com Fuso de Brasília (Blindado contra atrasos de timer)
+    setInterval(() => {
+      const brasil = getAgoraBrasil();
+      const hours = brasil.getHours();
+      const dataChaveHoje = `${brasil.getFullYear()}-${String(brasil.getMonth() + 1).padStart(2, '0')}-${String(brasil.getDate()).padStart(2, '0')}`;
+      const horaChave = `${dataChaveHoje}_H${hours}`;
+
+      // 1. Sincronização de Cadastros PRD (07:00, 12:00, 17:00, 00:00 no Brasil)
+      if (hours === 7 || hours === 12 || hours === 17 || hours === 0) {
+        if (global.lastSyncPrdHour !== horaChave) {
+          global.lastSyncPrdHour = horaChave;
+          console.log(`[AGENDADOR CADASTROS ${String(hours).padStart(2, '0')}:00 BRT] 📦 Sincronizando produtos PRD da Omie...`);
           omieProdutosService.sincronizarProdutosPrd();
+        }
+      }
+
+      // 2. Sincronização Noturna de Estoque Omie (das 19:00 às 06:00 BRT, a cada 1 hora)
+      const isPeriodoNoturno = (hours >= 19 || hours <= 6);
+      if (isPeriodoNoturno) {
+        if (global.lastSyncEstoqueHour !== horaChave) {
+          global.lastSyncEstoqueHour = horaChave;
+          console.log(`[AGENDADOR NOTURNO ${String(hours).padStart(2, '0')}:00 BRT] 🌙 Disparando varredura geral de estoque com a Omie...`);
+          omieEstoqueService.sincronizarPosicaoEstoqueGeral('AUTOMATICO_NOTURNO', `Agendador Noturno (${String(hours).padStart(2, '0')}:00)`);
         }
       }
     }, 30000); // Checa a cada 30 segundos

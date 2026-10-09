@@ -2,11 +2,12 @@ import React, { useState, useRef } from 'react';
 import { X, UploadCloud, FileText, Image as ImageIcon, Loader2, FileCheck2, Trash2 } from 'lucide-react';
 import styles from './AssistenteIAOrcamento.module.css';
 
-const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo, onTextSaved, onPrecosExtraidos }) => {
+const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo, itensRequisicao, onTextSaved, onPrecosExtraidos }) => {
   const [file, setFile] = useState(null);
   const [textoColado, setTextoColado] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExtractingText, setIsExtractingText] = useState(false);
   const fileInputRef = useRef(null);
 
   React.useEffect(() => {
@@ -14,6 +15,7 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
       setFile(null);
       setTextoColado('');
       setIsProcessing(false);
+      setIsExtractingText(false);
     }
   }, [isOpen, fornId, reqId]);
 
@@ -53,10 +55,40 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
       return;
     }
     setFile(selectedFile);
+
+    if (tipo === 'pdf') {
+      extrairTextoPdf(selectedFile);
+    }
+  };
+
+  const extrairTextoPdf = async (selectedFile) => {
+    setIsExtractingText(true);
+    try {
+      const formData = new FormData();
+      formData.append('documento', selectedFile);
+      const response = await fetch('/api/ia-orcamento/extrair-texto-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.sucesso) {
+        setTextoColado(data.texto);
+      } else {
+        alert('Erro ao ler PDF: ' + (data.erro || 'Desconhecido'));
+        clearFile();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro na comunicação com servidor.');
+      clearFile();
+    } finally {
+      setIsExtractingText(false);
+    }
   };
 
   const clearFile = () => {
     setFile(null);
+    setTextoColado('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -79,19 +111,9 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
         response = await fetch('/api/ia-orcamento/texto', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: textoColado, fornId, reqId })
+          body: JSON.stringify({ texto: textoColado, fornId, reqId, itensRequisicao })
         });
       } else {
-        const formData = new FormData();
-        formData.append('documento', file);
-        formData.append('tipoDocumento', tipo);
-        formData.append('fornId', fornId);
-        formData.append('reqId', reqId);
-        
-        response = await fetch('/api/ia-orcamento/upload', {
-          method: 'POST',
-          body: formData,
-        });
       }
 
       const responseText = await response.text();
@@ -103,11 +125,13 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
       }
 
       if (response.ok) {
-        alert(`Sucesso! A IA extraiu os preços para o Fornecedor ${fornNome}. Os valores serão aplicados na tabela.`);
         console.log("Dados extraídos pela IA:", data.dados);
         if (onPrecosExtraidos) {
           const itensExtraidos = data.dados.itens || (Array.isArray(data.dados) ? data.dados : []);
           onPrecosExtraidos(reqId, fornId, itensExtraidos);
+        }
+        if (tipo === 'pdf' && onTextSaved && data.dados.textoOriginalExtraido) {
+          onTextSaved(reqId, fornId, data.dados.textoOriginalExtraido);
         }
         onClose();
       } else {
@@ -146,63 +170,71 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
           <div>
             <p style={{ margin: '0 0 5px', fontWeight: 'bold', color: '#334155' }}>Fornecedor: {fornNome}</p>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
-              {tipo === 'pdf' ? 'Abra o PDF do Orçamento, selecione todo o texto (Ctrl+A), copie (Ctrl+C) e cole (Ctrl+V) na caixa abaixo.' : 'Envie a foto/imagem da cotação e a Inteligência Artificial preencherá os valores automaticamente.'}
+              {tipo === 'pdf' ? 'Arraste ou selecione o PDF do Orçamento. O sistema vai extrair o texto automaticamente para você sem complicação!' : 'Envie a foto/imagem da cotação e a Inteligência Artificial preencherá os valores automaticamente.'}
             </p>
           </div>
 
           {!isProcessing ? (
             <>
-              {tipo === 'pdf' ? (
-                <textarea
-                  className={styles.textAreaPDF}
-                  placeholder="Cole todo o texto do orçamento aqui..."
-                  value={textoColado}
-                  onChange={(e) => setTextoColado(e.target.value)}
-                  style={{
-                    width: '100%',
-                    height: '200px',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    resize: 'none',
-                    fontSize: '0.9rem',
-                    fontFamily: 'monospace',
-                    marginTop: '15px'
-                  }}
-                />
+              {!file ? (
+                <div 
+                  className={styles.dropzone}
+                  style={{ borderColor: isDragging ? '#9333ea' : '#c026d3', background: isDragging ? '#f3e8ff' : '#faf5ff' }}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <UploadCloud size={48} color="#9333ea" />
+                  <p>Arraste e solte o {tipo === 'pdf' ? 'PDF' : 'arquivo'} aqui</p>
+                  <span>ou clique para selecionar do computador</span>
+                  <input 
+                    type="file" 
+                    accept={acceptAttr}
+                    style={{ display: 'none' }}
+                    ref={fileInputRef}
+                    onChange={handleFileInput}
+                  />
+                </div>
               ) : (
-                <>
-                  {!file ? (
-                    <div 
-                      className={styles.dropzone}
-                      style={{ borderColor: isDragging ? '#9333ea' : '#c026d3', background: isDragging ? '#f3e8ff' : '#faf5ff' }}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <UploadCloud size={48} color="#9333ea" />
-                      <p>Arraste e solte a imagem aqui</p>
-                      <span>ou clique para selecionar do computador</span>
-                      <input 
-                        type="file" 
-                        accept={acceptAttr}
-                        style={{ display: 'none' }}
-                        ref={fileInputRef}
-                        onChange={handleFileInput}
-                      />
-                    </div>
-                  ) : (
-                    <div className={styles.fileInfo}>
-                      <FileCheck2 size={24} color="#10b981" />
-                      <div className={styles.fileName}>{file.name}</div>
-                      <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>({(file.size / 1024).toFixed(1)} KB)</span>
-                      <button className={styles.removeFile} onClick={clearFile} title="Remover Imagem">
-                        <Trash2 size={18} />
-                      </button>
+                <div className={styles.fileInfo} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <FileCheck2 size={24} color="#10b981" />
+                    <div className={styles.fileName} style={{ marginLeft: '10px' }}>{file.name}</div>
+                    <button className={styles.removeFile} onClick={clearFile} title="Remover Arquivo" style={{ marginLeft: 'auto' }}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                  
+                  {isExtractingText && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', color: '#94a3b8' }}>
+                      <Loader2 size={16} className="spin" /> <span>Lendo PDF...</span>
                     </div>
                   )}
-                </>
+
+                  {tipo === 'pdf' && textoColado && !isExtractingText && (
+                    <div style={{ width: '100%', marginTop: '15px' }}>
+                      <p style={{ margin: '0 0 5px', fontSize: '0.85rem', color: '#64748b' }}>
+                        Texto extraído do PDF (Você pode conferir ou editar antes de enviar para a IA):
+                      </p>
+                      <textarea
+                        className={styles.textAreaPDF}
+                        value={textoColado}
+                        onChange={(e) => setTextoColado(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '200px',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          resize: 'none',
+                          fontSize: '0.8rem',
+                          fontFamily: 'monospace',
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </>
           ) : (
@@ -222,7 +254,7 @@ const AssistenteIAOrcamento = ({ isOpen, onClose, reqId, fornId, fornNome, tipo,
             <button 
               className={styles.btnSubmit} 
               onClick={handleProcessarIA}
-              disabled={tipo === 'pdf' ? !textoColado.trim() : !file}
+              disabled={isExtractingText || (tipo === 'pdf' ? !textoColado.trim() : !file)}
             >
               {getIcon()}
               Extrair Preços com IA

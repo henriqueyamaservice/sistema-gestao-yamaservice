@@ -6,24 +6,32 @@
 
 .dockContainer {
   position: fixed;
-  bottom: 14px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   pointer-events: none;
   overflow: visible !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  touch-action: none;
 }
 
-/* Quando minimizado, o dock desliza suavemente para baixo */
+/* Quando minimizado, o menu desce rente ao rodapé da tela */
+.dockContainer.minimized {
+  bottom: 4px;
+}
+
 .dockContainer.minimized .dockBar {
-  transform: translateY(130%) scale(0.92);
-  opacity: 0;
-  pointer-events: none;
+  display: none !important;
+}
+
+.isDragging {
+  user-select: none !important;
+  cursor: grabbing !important;
 }
 
 .dockBar {
@@ -137,6 +145,15 @@
 
 
 
+/* Barra de Controle Superior */
+.topControlBar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  touch-action: none;
+}
+
 /* Botão de Minimizar / Expandir */
 .toggleBtn {
   pointer-events: auto;
@@ -150,12 +167,28 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 0.2s ease;
   user-select: none;
+  touch-action: none;
+}
+
+.dragGrip {
+  display: flex;
+  align-items: center;
+  color: var(--cor-texto-secundario);
+  opacity: 0.6;
+  cursor: grab;
+  padding-right: 1px;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.toggleBtn:hover .dragGrip {
+  opacity: 1;
+  color: #fff;
 }
 
 [data-theme="light"] .toggleBtn {
@@ -174,9 +207,43 @@
   background-color: var(--cor-destaque);
   color: #fff;
   border-color: var(--cor-destaque);
-  padding: 6px 15px;
-  font-size: 0.76rem;
+  padding: 5px 14px;
+  font-size: 0.75rem;
   box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+}
+
+.toggleBtn.minimizedBtn .dragGrip {
+  color: #fff;
+  opacity: 0.85;
+}
+
+/* Botão de Resetar Posição */
+.resetPosBtn {
+  pointer-events: auto;
+  background-color: rgba(26, 30, 34, 0.9);
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.resetPosBtn:hover {
+  background-color: var(--cor-destaque);
+  color: #fff;
+  border-color: var(--cor-destaque);
+  transform: scale(1.1);
+}
+
+[data-theme="light"] .resetPosBtn {
+  background-color: rgba(255, 255, 255, 0.92);
 }
 
 /* =========================================================

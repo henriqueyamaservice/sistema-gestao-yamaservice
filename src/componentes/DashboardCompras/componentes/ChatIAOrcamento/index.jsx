@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Bot, Send, User, Loader2, Sparkles, DollarSign, Zap, PackageOpen, ChevronRight, CheckCircle, Printer, Check, RefreshCw } from 'lucide-react';
 import styles from './index.module.css';
+import logoYamaguchi from '../../../../assets/kazunorio.png';
 
 // Monta o prompt do especialista e dados completos da requisição
 export const montarPromptContexto = (req, textosCotacoes, fornecedores) => {
@@ -55,7 +56,19 @@ export const montarPromptContexto = (req, textosCotacoes, fornecedores) => {
 
   req.itens.forEach(item => {
     const cotacoesValidas = (item.cotacoes || []).filter(c => c.valorUnitario && Number(c.valorUnitario) > 0);
-    const qtd = Number(item.quantidade) || 1;
+    const baseQtd = Number(item.quantidade) || 1;
+
+    const calcularSubtotalReal = (c, qtd) => {
+      const tipo = c.tipoUnidade || 'Unidade';
+      const qtdInterna = Number(c.quantidadePacote) || 1;
+      let qtdComprar = qtd;
+      if (['Pacote', 'Caixa', 'Galao', 'Galão', 'Rolo', 'Tambor'].includes(tipo)) {
+        qtdComprar = Math.ceil(qtd / (qtdInterna > 0 ? qtdInterna : 1));
+      }
+      const descItem = Number(c.desconto) || 0;
+      const descGeral = Number(c.descontoGeral) || 0;
+      return (Number(c.valorUnitario) * qtdComprar) * (1 - descItem / 100) * (1 - descGeral / 100);
+    };
 
     // Track para fornecedor completo
     cotacoesValidas.forEach(c => {
@@ -64,21 +77,21 @@ export const montarPromptContexto = (req, textosCotacoes, fornecedores) => {
         fornecedoresCompletosMap[fKey] = { fornId: fKey, count: 0, total: 0, itens: [] };
       }
       fornecedoresCompletosMap[fKey].count += 1;
-      const sub = Number(c.valorUnitario) * qtd;
+      const sub = calcularSubtotalReal(c, baseQtd);
       fornecedoresCompletosMap[fKey].total += sub;
       fornecedoresCompletosMap[fKey].itens.push({ item, cot: c, sub });
     });
 
     if (cotacoesValidas.length > 0) {
-      // Menor preço
-      const menorCot = [...cotacoesValidas].sort((a, b) => Number(a.valorUnitario) - Number(b.valorUnitario))[0];
-      const subMenor = Number(menorCot.valorUnitario) * qtd;
+      // Menor preço (calcula pelo subtotal para ser fiel ao pacote/desconto)
+      const menorCot = [...cotacoesValidas].sort((a, b) => calcularSubtotalReal(a, baseQtd) - calcularSubtotalReal(b, baseQtd))[0];
+      const subMenor = calcularSubtotalReal(menorCot, baseQtd);
       totalMenorCusto += subMenor;
       menorCustoItens.push({ item, cot: menorCot, sub: subMenor });
 
       // Menor prazo
       const maisRapidaCot = [...cotacoesValidas].sort((a, b) => (Number(a.previsaoDias) || 99) - (Number(b.previsaoDias) || 99))[0];
-      const subRapida = Number(maisRapidaCot.valorUnitario) * qtd;
+      const subRapida = calcularSubtotalReal(maisRapidaCot, baseQtd);
       totalMaiorRapidez += subRapida;
       maiorRapidezItens.push({ item, cot: maisRapidaCot, sub: subRapida });
     }
@@ -175,6 +188,47 @@ const ChatConsultorGlobal = ({
   const scrollRef = useRef(null);
 
   const reqId = req?.id;
+
+  const [salvandoArquivo, setSalvandoArquivo] = useState(false);
+
+  const salvarCotacaoNoArquivo = async () => {
+    if (!cenarioDetalhe || !cenarioDetalhe.detalhes) return;
+    setSalvandoArquivo(true);
+    
+    const tabelaArray = [];
+    cenarioDetalhe.detalhes.split('\n').filter(line => line.trim()).forEach(line => {
+      const colunas = line.split('|').map(c => c.trim());
+      if (colunas.length >= 5) {
+        tabelaArray.push([colunas[0], colunas[1], colunas[2], colunas[3], colunas[4], colunas[5] || '-']);
+      }
+    });
+
+    try {
+      const res = await fetch('/api/cotacoes-arquivadas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requisicao_id: String(reqId),
+          fornecedor_id: 'VARIOS',
+          fornecedor_nome: cenarioDetalhe.titulo,
+          tipo_arquivamento: 'SALVO_USUARIO',
+          dados_json: { titulo: cenarioDetalhe.titulo, resumo: cenarioDetalhe.estrategia, tabela: tabelaArray },
+          texto_original_pdf: '', 
+          usuario_salvamento: 'Comprador (IA)' 
+        })
+      });
+      if (res.ok) {
+        alert('Cotação salva com sucesso na Biblioteca de Orçamentos!');
+      } else {
+        alert('Erro ao salvar cotação no arquivo.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erro de conexão ao salvar cotação.');
+    } finally {
+      setSalvandoArquivo(false);
+    }
+  };
   const mensagens = useMemo(() => {
     return (reqId && historicoPorReq[reqId]) || [];
   }, [reqId, historicoPorReq]);
@@ -446,6 +500,7 @@ const ChatConsultorGlobal = ({
       <div className={styles.modal}>
         <div className={styles.header}>
           <div className={styles.titleArea}>
+            <img src={logoYamaguchi} alt="Logo Yamaguchi" style={{ height: '36px', marginRight: '15px', objectFit: 'contain' }} />
             <div className={styles.iconWrapper}>
               <Sparkles size={22} color="#fff" />
             </div>
@@ -573,12 +628,9 @@ const ChatConsultorGlobal = ({
             <div id="print-area-modal" style={{ padding: '24px 30px' }}>
 
               {/* Cabeçalho no padrão Omie que aparece apenas na impressão */}
-              <div className={styles.printHeaderOnly} style={{ display: 'none', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+              <div className="printHeaderOnly" style={{ display: 'none', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
                 <div style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg viewBox="0 0 100 100" width="80" height="80">
-                    <path d="M50 0 C22.4 0 0 22.4 0 50 C0 77.6 22.4 100 50 100 C77.6 100 100 77.6 100 50 C100 22.4 77.6 0 50 0 Z" fill="#84cc16" />
-                    <path d="M50 20 C33.4 20 20 33.4 20 50 C20 66.6 33.4 80 50 80 C66.6 80 80 66.6 80 50 C80 33.4 66.6 20 50 20 Z" fill="#0ea5e9" />
-                  </svg>
+                  <img src={logoYamaguchi} alt="Logo Yamaguchi" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 </div>
                 <div style={{ textAlign: 'right', lineHeight: '1.4', fontSize: '11px', color: '#000' }}>
                   <strong style={{ fontSize: '16px' }}>KAZUNORI YAMAGUCHI</strong><br />
@@ -757,6 +809,15 @@ const ChatConsultorGlobal = ({
                   style={{ background: 'transparent', color: 'var(--cor-texto-secundario)', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
                 >
                   Fechar
+                </button>
+                <button
+                  onClick={salvarCotacaoNoArquivo}
+                  disabled={salvandoArquivo}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--cor-destaque)', color: 'var(--cor-texto-inverso)', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 'bold', cursor: salvandoArquivo ? 'not-allowed' : 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', opacity: salvandoArquivo ? 0.6 : 1 }}
+                  onMouseOver={e => !salvandoArquivo && (e.currentTarget.style.filter = 'brightness(1.1)')} 
+                  onMouseOut={e => !salvandoArquivo && (e.currentTarget.style.filter = 'brightness(1)')}
+                >
+                  <Check size={18} /> {salvandoArquivo ? 'Salvando...' : 'Salvar no Arquivo'}
                 </button>
                 <button
                   onClick={() => {

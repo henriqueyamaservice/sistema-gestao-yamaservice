@@ -107,6 +107,46 @@ export async function sincronizarVendedoresParaBanco(dbInstance = null) {
 }
 
 /**
+ * Helper para encontrar o vendedor oficial mais compatível com priorização de match 100% exato.
+ */
+function encontrarMelhorMatchVendedor(rows, alvoStr, alvoLimpo) {
+  if (!rows || rows.length === 0) return null;
+
+  // 1. Match exato por código
+  let match = rows.find(v => {
+    const codV = String(v.codigo || '').trim();
+    return codV === alvoStr || (alvoLimpo && codV === alvoLimpo);
+  });
+  if (match) return match;
+
+  // 2. Match 100% exato por nome
+  match = rows.find(v => (v.nome || '').trim().toUpperCase() === alvoStr);
+  if (match) return match;
+
+  // 3. Match 100% exato por nome limpo (sem caracteres especiais)
+  if (alvoLimpo) {
+    match = rows.find(v => (v.nome || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '') === alvoLimpo);
+    if (match) return match;
+  }
+
+  // 4. Fallback por prefixo seguro (apenas se alvoStr tiver no mínimo 4 caracteres)
+  if (alvoStr.length >= 4) {
+    const candidatos = rows.filter(v => {
+      const nomeV = (v.nome || '').trim().toUpperCase();
+      return nomeV.length >= 4 && (nomeV.startsWith(alvoStr) || alvoStr.startsWith(nomeV));
+    });
+
+    if (candidatos.length > 0) {
+      // Prioriza o nome mais longo e específico para evitar casar com abreviações curtas
+      candidatos.sort((a, b) => (b.nome || '').length - (a.nome || '').length);
+      return candidatos[0];
+    }
+  }
+
+  return null;
+}
+
+/**
  * Busca um vendedor válido na Omie pelo nome ou tenta auto-cadastrar.
  * Se o funcionário não for um vendedor oficial na Omie, retorna null para não travar a Remessa!
  * 
@@ -133,19 +173,7 @@ export async function buscarVendedorValidoOmie(nomeOuCodigo, dbInstance = null) 
     }
 
     if (rows && rows.length > 0) {
-      const match = rows.find(v => {
-        const nomeV = (v.nome || '').trim().toUpperCase();
-        const nomeVLimpo = nomeV.replace(/[^A-Z0-9]/g, '');
-        const codV = String(v.codigo || '');
-        return (
-          codV === alvoStr ||
-          codV === alvoLimpo ||
-          nomeV === alvoStr ||
-          (alvoLimpo && nomeVLimpo === alvoLimpo) ||
-          nomeV.startsWith(alvoStr) ||
-          alvoStr.startsWith(nomeV)
-        );
-      });
+      const match = encontrarMelhorMatchVendedor(rows, alvoStr, alvoLimpo);
 
       if (match?.codigo) {
         console.log(`[OMIE VENDEDORES] ✅ Vendedor oficial Omie encontrado: #${match.codigo} - ${match.nome}`);
@@ -160,19 +188,7 @@ export async function buscarVendedorValidoOmie(nomeOuCodigo, dbInstance = null) 
   try {
     await sincronizarVendedoresParaBanco(db);
     const rows = await db.all(`SELECT * FROM vendedores_omie`);
-    const match = rows.find(v => {
-      const nomeV = (v.nome || '').trim().toUpperCase();
-      const nomeVLimpo = nomeV.replace(/[^A-Z0-9]/g, '');
-      const codV = String(v.codigo || '');
-      return (
-        codV === alvoStr ||
-        codV === alvoLimpo ||
-        nomeV === alvoStr ||
-        (alvoLimpo && nomeVLimpo === alvoLimpo) ||
-        nomeV.startsWith(alvoStr) ||
-        alvoStr.startsWith(nomeV)
-      );
-    });
+    const match = encontrarMelhorMatchVendedor(rows, alvoStr, alvoLimpo);
 
     if (match?.codigo) {
       console.log(`[OMIE VENDEDORES] ✅ Vendedor oficial Omie encontrado pós-sync: #${match.codigo} - ${match.nome}`);

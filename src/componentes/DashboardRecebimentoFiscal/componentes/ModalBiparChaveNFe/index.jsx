@@ -28,7 +28,7 @@ const ModalBiparChaveNFe = ({ isOpen, onClose, onNotaCarregada }) => {
     if (e) e.preventDefault();
     const chaveLimpa = chave.replace(/\D/g, '');
 
-    if (chaveLimpa.length !== 44) {
+    if (chaveLimpa.length !== 44 && !(chaveLimpa.startsWith('352609') && chaveLimpa.length === 39)) {
       setErro(`A chave de acesso da NF-e precisa ter exatamente 44 dígitos (atualmente tem ${chaveLimpa.length}).`);
       return;
     }
@@ -48,7 +48,20 @@ const ModalBiparChaveNFe = ({ isOpen, onClose, onNotaCarregada }) => {
         throw new Error(data.mensagem || 'Erro ao processar chave de acesso.');
       }
 
-      onNotaCarregada(data.dados);
+      if (data.aviso) {
+        // Alerta informativo sutil no console ou caso o usuário queira saber
+        console.warn('[RecebimentoFiscal]', data.aviso);
+      }
+
+      // Adiciona flag se veio da consulta online ou decodificada
+      const notaCarregada = {
+        ...data.dados,
+        _origemConsulta: data.origem,
+        _mensagemConsulta: data.mensagem,
+        _avisoConsulta: data.aviso
+      };
+
+      onNotaCarregada(notaCarregada);
       onClose();
     } catch (err) {
       console.error(err);
@@ -196,10 +209,10 @@ const ModalBiparChaveNFe = ({ isOpen, onClose, onNotaCarregada }) => {
               </div>
               <div style={{ flex: 1 }}>
                 <strong style={{ color: 'var(--cor-texto-principal)', fontSize: '0.95rem' }}>
-                  Digite aqui a chave de acesso da NF-e ou CT-e
+                  Bipe ou digite a chave de acesso da NF-e (44 dígitos)
                 </strong>
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--cor-texto-secundario)', lineHeight: 1.3 }}>
-                  Obs.: Nem todas as NF-es e CT-es podem ser baixadas da SEFAZ sem a autenticação de um certificado digital válido.
+                  ⚡ Consulta online automática: o sistema busca o XML autorizado na SEFAZ e o DANFE oficial em PDF.
                 </p>
               </div>
             </div>
@@ -223,7 +236,7 @@ const ModalBiparChaveNFe = ({ isOpen, onClose, onNotaCarregada }) => {
                 className={styles.btnBuscarChave}
               >
                 <Search size={18} />
-                <span>{loading ? 'Consultando...' : 'Carregar Nota'}</span>
+                <span>{loading ? 'Buscando SEFAZ/DANFE...' : 'Consultar e Carregar'}</span>
               </button>
             </div>
           </form>

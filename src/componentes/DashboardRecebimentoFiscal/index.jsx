@@ -3,7 +3,7 @@ import {
   FileCheck, Clock, CheckCircle2, AlertTriangle, Search,
   Barcode, ArrowRight, ExternalLink, Package, ShieldAlert,
   FileText, CloudDownload, PackageCheck, RefreshCw, Building2,
-  ShieldCheck
+  ShieldCheck, UploadCloud
 } from 'lucide-react';
 import MenuRecebimentoFiscal from './componentes/MenuRecebimentoFiscal';
 import ModalBiparChaveNFe from './componentes/ModalBiparChaveNFe';
@@ -12,9 +12,10 @@ import ModalConfigCertificadoSefaz from './componentes/ModalConfigCertificadoSef
 import styles from './DashboardRecebimentoFiscal.module.css';
 
 const DashboardRecebimentoFiscal = () => {
-  const [abaAtiva, setAbaAtiva] = useState('aguardando'); // 'aguardando' | 'recebidos'
+  const [abaAtiva, setAbaAtiva] = useState('aguardando'); // 'aguardando' | 'recebidos' | 'finalizados'
   const [pendentes, setPendentes] = useState([]);
   const [concluidas, setConcluidas] = useState([]);
+  const [finalizadas, setFinalizadas] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,20 +45,23 @@ const DashboardRecebimentoFiscal = () => {
 
   const carregarDados = async () => {
     try {
-      const [resPend, resConc, resProd, resForn] = await Promise.all([
+      const [resPend, resConc, resFin, resProd, resForn] = await Promise.all([
         fetch('/api/recebimento-fiscal/pendentes'),
         fetch('/api/recebimento-fiscal/concluidas'),
+        fetch('/api/recebimento-fiscal/finalizadas'),
         fetch('/api/produtos'),
         fetch('/api/fornecedores')
       ]);
 
       const dataPend = await resPend.json();
       const dataConc = await resConc.json();
+      const dataFin = await resFin.json();
       const dataProd = await resProd.json();
       const dataForn = await resForn.json();
 
       setPendentes(dataPend.requisicoes || []);
       setConcluidas(dataConc.requisicoes || []);
+      setFinalizadas(dataFin.requisicoes || []);
       setProdutos(dataProd || []);
       setFornecedores(dataForn || []);
       setLoading(false);
@@ -228,6 +232,43 @@ const DashboardRecebimentoFiscal = () => {
     setModalConferenciaAberto(true);
   };
 
+  const handleUploadXmlParaPedido = async (e, req) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.xml')) {
+      alert('Por favor, selecione um arquivo no formato .XML.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const xmlString = event.target.result;
+        const res = await fetch('/api/recebimento-fiscal/upload-xml', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ xmlString })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.erro) {
+          throw new Error(data.mensagem || 'Falha ao processar arquivo XML.');
+        }
+
+        // Incorpora o ID da requisição para que o modal saiba qual é o pedido
+        const notaComReq = { ...data.dados, requisicaoSugeridaId: req.id, requisicaoObj: req, requisicaoId: req.id, vinculoFixo: true };
+        setNotaEmConferencia(notaComReq);
+        setModalConferenciaAberto(true);
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Erro ao ler arquivo XML.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null; // Reseta o input
+  };
+
   // Filtragem de texto
   const aplicarFiltro = (lista) => {
     if (!filtroTexto.trim()) return lista;
@@ -244,19 +285,17 @@ const DashboardRecebimentoFiscal = () => {
 
   const isAbaAguardando = abaAtiva === 'aguardando' || abaAtiva === 'aguardando_almoxarifado';
   const isAbaRecebidos = abaAtiva === 'recebidos' || abaAtiva === 'recebidos_almoxarifado';
+  const isAbaFinalizadas = abaAtiva === 'finalizados';
 
   return (
     <div className={styles.dashboardContainer}>
       <MenuRecebimentoFiscal
-        view={isAbaAguardando ? 'aguardando' : 'recebidos'}
+        view={abaAtiva}
         setView={(v) => setAbaAtiva(v)}
         pendentesCount={pendentes.length}
         concluidasCount={concluidas.length}
-        onAbrirModalBipagem={() => setModalBipagemAberto(true)}
-        onSincronizarOmie={handleSincronizarOmie}
-        sincronizandoOmie={sincronizandoOmie}
-        onRecarregar={handleRecarregar}
-        recarregando={recarregando}
+        finalizadasCount={finalizadas.length}
+        onAbrirConfigCertificado={() => setModalCertificadoAberto(true)}
       />
 
       <main className={styles.mainContent}>
@@ -274,7 +313,9 @@ const DashboardRecebimentoFiscal = () => {
 
           <div className={styles.headerKpis}>
             <div className={styles.kpiCard} title="Notas enviadas por Compras aguardando conferência e entrada física pelo Almoxarife">
-              <Clock size={20} className={styles.kpiIconOrange} />
+              <div className={styles.kpiIconOrange}>
+                <Clock size={26} />
+              </div>
               <div className={styles.kpiInfo}>
                 <span className={styles.kpiLabel}>Aguardando Almox.</span>
                 <span className={styles.kpiValue}>{pendentes.length}</span>
@@ -282,7 +323,9 @@ const DashboardRecebimentoFiscal = () => {
             </div>
 
             <div className={styles.kpiCard} title="Notas que já foram recebidas e estocadas no Almoxarifado">
-              <CheckCircle2 size={20} className={styles.kpiIconGreen} />
+              <div className={styles.kpiIconGreen}>
+                <CheckCircle2 size={26} />
+              </div>
               <div className={styles.kpiInfo}>
                 <span className={styles.kpiLabel}>Recebidas no Almox.</span>
                 <span className={styles.kpiValue}>{concluidas.length}</span>
@@ -358,6 +401,16 @@ const DashboardRecebimentoFiscal = () => {
             <CheckCircle2 size={16} />
             <span>Recebidos no Almoxarifado</span>
             <span className={styles.tabBadgeConcluidas}>{concluidas.length}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.abaTituloBtn} ${isAbaFinalizadas ? styles.abaTituloBtnAtiva : ''}`}
+            onClick={() => setAbaAtiva('finalizados')}
+          >
+            <ShieldCheck size={16} />
+            <span>Faturados / Concluídos</span>
+            <span className={styles.tabBadgeConcluidas}>{finalizadas.length}</span>
           </button>
         </div>
 
@@ -447,42 +500,26 @@ const DashboardRecebimentoFiscal = () => {
                       </div>
 
                       {/* 5. Ações */}
-                      <div className={styles.acoesCard}>
-                        <div className={styles.blocoChaveAguardando}>
-                          <div className={styles.inputChaveContainer}>
-                            <Barcode size={18} color="var(--cor-destaque)" />
-                            <input
-                              type="text"
-                              placeholder={chaveAtual ? `Chave: ${chaveAtual}` : "Bipe ou digite a Chave (44 dígitos)..."}
-                              value={chavesInput[req.id] !== undefined ? chavesInput[req.id] : (chaveAtual || '')}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '').slice(0, 44);
-                                setChavesInput(prev => ({ ...prev, [req.id]: val }));
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleSalvarChaveCard(req.id);
-                                }
-                              }}
-                              className={styles.inputChaveCard}
-                              maxLength={44}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSalvarChaveCard(req.id)}
-                              disabled={salvandoChaveId === req.id}
-                              className={styles.btnSalvarChaveCard}
-                              title="Salvar Chave da NF-e para o Almoxarifado"
-                            >
-                              {salvandoChaveId === req.id ? 'Salvando...' : (chaveAtual ? 'Atualizar' : 'Salvar Chave')}
-                            </button>
-                          </div>
-                          {chaveAtual && chaveAtual.length === 44 && (
-                            <span className={styles.badgeChaveValidaCard}>
-                              <CheckCircle2 size={12} /> Chave vinculada (44 dígitos)
-                            </span>
-                          )}
-                        </div>
+                      <div className={styles.acoesCard} style={{ flexWrap: 'wrap', gap: '8px', justifyContent: 'flex-end' }}>
+                        <label className={styles.btnUploadXmlCard} title="Carregar XML desta nota fiscal">
+                          <UploadCloud size={16} />
+                          <span>XML</span>
+                          <input 
+                            type="file" 
+                            accept=".xml" 
+                            style={{ display: 'none' }} 
+                            onChange={(e) => handleUploadXmlParaPedido(e, req)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => abrirConferenciaParaPedido(req)}
+                          className={styles.btnConferir}
+                          title="Visualizar dados da nota, itens e pareamento prévio"
+                        >
+                          <FileCheck size={16} />
+                          <span>Ver Detalhes</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -604,6 +641,16 @@ const DashboardRecebimentoFiscal = () => {
 
                       {/* 5. Ações */}
                       <div className={styles.acoesCard}>
+                        <label className={styles.btnUploadXmlCard} title="Carregar XML desta nota fiscal">
+                          <UploadCloud size={16} />
+                          <span>XML</span>
+                          <input 
+                            type="file" 
+                            accept=".xml" 
+                            style={{ display: 'none' }} 
+                            onChange={(e) => handleUploadXmlParaPedido(e, req)}
+                          />
+                        </label>
                         <button
                           type="button"
                           onClick={() => abrirConferenciaParaPedido(req)}
@@ -612,6 +659,88 @@ const DashboardRecebimentoFiscal = () => {
                         >
                           <FileCheck size={16} />
                           <span>Ver Detalhes / Financeiro</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* ABA 3: FATURADOS / CONCLUÍDOS (Notas já faturadas no Omie) */}
+          {isAbaFinalizadas && (
+            aplicarFiltro(finalizadas).length === 0 ? (
+              <div className={styles.emptyState}>
+                <ShieldCheck size={54} color="var(--cor-sucesso)" />
+                <h3>Nenhuma nota faturada ainda</h3>
+                <p>Notas que já foram integradas e finalizadas com sucesso no Omie aparecerão aqui.</p>
+              </div>
+            ) : (
+              <div className={styles.listaGrid}>
+                {aplicarFiltro(finalizadas).map(req => {
+                  const fornId = req.pedidos_omie?.[0]?.fornecedorId || req.fornecedorEscolhidoId;
+                  const fornInfo = getFornecedorInfo(fornId);
+                  const nota = req.nota_fiscal_vinculada || req.pedidos_omie?.[0]?.nota_fiscal_vinculada;
+                  const fornNome = nota?.emitente?.nome || fornInfo.nome;
+                  const fornDoc = formatarCpfCnpj(nota?.emitente?.cnpj_cpf || fornInfo.doc);
+                  const chave = req.chaveNfe || nota?.chaveAcesso || '';
+                  const chaveReal = chave && !chave.startsWith('352609') && chave.length === 44 ? chave : '';
+                  const numeroNF = nota?.numeroNF || req.nota_fiscal || (chaveReal ? String(parseInt(chaveReal.substring(25, 34), 10)) : null) || req.id.split('-')[0];
+                  const valorTotal = nota?.valorTotal || req.pedidos_omie?.[0]?.valorTotal || req.itens?.reduce((acc, i) => acc + (Number(i.quantidade) * Number(i.valor_unitario || 0)), 0) || 0;
+
+                  return (
+                    <div key={req.id} className={`${styles.cardItem} ${styles.cardItemConcluido}`}>
+                      {/* 1. Status */}
+                      <div className={styles.colStatus}>
+                        <span className={styles.labelPequeno}>Status</span>
+                        <span className={styles.badgeStatusSucesso}>
+                          <ShieldCheck size={14} /> Faturado
+                        </span>
+                        <span className={styles.subStatusTextoSucesso}>
+                          Integrado Omie
+                        </span>
+                      </div>
+
+                      {/* 2. Nota Fiscal */}
+                      <div className={styles.colNfe}>
+                        <span className={styles.labelPequeno}>Nota Fiscal</span>
+                        <div className={styles.nfeTituloRow}>
+                          <FileText size={15} color="var(--cor-destaque)" />
+                          <span className={styles.nfeNumero}>NF-e Nº {numeroNF}</span>
+                        </div>
+                        <div className={styles.subRequisicao}>
+                          <span>Req. #{req.id.split('-')[0]}</span>
+                          {req.numeroOS && <span className={styles.osTag}>• O.S. #{req.numeroOS}</span>}
+                        </div>
+                      </div>
+
+                      {/* 3. Fornecedor */}
+                      <div className={styles.colFornecedor}>
+                        <span className={styles.labelPequeno}>Fornecedor</span>
+                        <span className={styles.nomeFornecedor} title={fornNome}>{fornNome}</span>
+                        <span className={styles.docFornecedor}>{fornDoc}</span>
+                      </div>
+
+                      {/* 4. Valor da Nota */}
+                      <div className={styles.colValores}>
+                        <span className={styles.labelPequeno}>Valor da Nota</span>
+                        <span className={styles.valorTotal}>
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorTotal)}
+                        </span>
+                        <span className={styles.qtdItens}>{nota?.itens?.length || req.pedidos_omie?.[0]?.itens?.length || req.itens?.length || 1} item(ns)</span>
+                      </div>
+
+                      {/* 5. Ações */}
+                      <div className={styles.acoesCard}>
+                        <button
+                          type="button"
+                          onClick={() => abrirConferenciaParaPedido(req)}
+                          className={styles.btnConferir}
+                          title="Visualizar dados da nota e faturamento"
+                        >
+                          <FileCheck size={16} />
+                          <span>Ver Histórico</span>
                         </button>
                       </div>
                     </div>

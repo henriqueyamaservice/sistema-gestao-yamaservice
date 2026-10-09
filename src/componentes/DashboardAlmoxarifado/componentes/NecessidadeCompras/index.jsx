@@ -56,6 +56,7 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
   const [modalCatalogo, setModalCatalogo] = useState(false);
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
   const [projetos, setProjetos] = useState([]);
+  const [osList, setOsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState(null);
 
@@ -130,7 +131,18 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
         console.error('Erro ao buscar projetos:', err);
       }
     };
+    
+    const fetchOs = async () => {
+      try {
+        const res = await fetch('/api/os');
+        if (res.ok) setOsList(await res.json());
+      } catch (err) {
+        console.error('Erro ao buscar OS:', err);
+      }
+    };
+
     fetchProjetos();
+    fetchOs();
   }, []);
 
   const formatarStatusCompras = (status) => {
@@ -715,15 +727,20 @@ const NecessidadeCompras = ({ produtos, onUpdate }) => {
                 </div>
                 
                 <div className={styles.formGroup} style={{ flex: '1 1 200px' }}>
-                  <label>Projeto Destino</label>
+                  <label>Ordem de Serviço (OS) / Projeto</label>
                   <input 
                     type="text" 
-                    list="projetos-list"
-                    placeholder="Buscar projeto..."
+                    list="projetos-os-list"
+                    placeholder="Buscar Nº OS ou Projeto..."
                     value={projetoGlobal}
                     onChange={(e) => setProjetoGlobal(e.target.value.toUpperCase())}
                   />
-                  <datalist id="projetos-list">
+                  <datalist id="projetos-os-list">
+                    {osList.map(os => (
+                      <option key={os.id || os.numero_os || os.codigo} value={`OS-${os.numero_os || os.codigo}`}>
+                        {os.descricao}
+                      </option>
+                    ))}
                     {projetos.map(p => (
                       <option key={p.codigo} value={p.nome} />
                     ))}

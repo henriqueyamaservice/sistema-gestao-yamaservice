@@ -1,7 +1,9 @@
 import express from 'express';
 import getDb from '../config/database.js';
 import omieNotaEntradaService from '../services/omieNotaEntradaService.js';
+import omieEstoqueService from '../services/omieEstoqueService.js';
 import sefazDfeService from '../services/sefazDfeService.js';
+import { consultarNfeDanfeOnline, parsearXmlNFe, gerarDanfeDeXmlOnline } from '../services/consultaDanfeService.js';
 
 const router = express.Router();
 
@@ -88,6 +90,28 @@ router.get('/concluidas', async (req, res) => {
     res.json({ erro: false, total: requisicoes.length, requisicoes });
   } catch (err) {
     console.error('Erro ao buscar notas recebidas no almoxarifado:', err);
+    res.status(500).json({ erro: true, mensagem: err.message });
+  }
+});
+
+/**
+ * GET /api/recebimento-fiscal/finalizadas
+ * Retorna histórico de notas fiscais 100% faturadas e finalizadas
+ */
+router.get('/finalizadas', async (req, res) => {
+  try {
+    const db = await getDb();
+    const rows = await db.all(`
+      SELECT * FROM requisicoes 
+      WHERE status_compras = 'finalizado'
+      ORDER BY atualizado_em DESC
+      LIMIT 200
+    `);
+
+    const requisicoes = rows.map(dbRowToReq).filter(Boolean);
+    res.json({ erro: false, total: requisicoes.length, requisicoes });
+  } catch (err) {
+    console.error('Erro ao buscar notas finalizadas:', err);
     res.status(500).json({ erro: true, mensagem: err.message });
   }
 });
@@ -286,7 +310,7 @@ router.post('/sincronizar-sefaz', async (req, res) => {
 
 /**
  * POST /api/recebimento-fiscal/bipar-chave
- * Decodifica a Chave de Acesso da NF-e (44 dígitos) e busca fornecedor/pedidos
+ * Consulta a NF-e online na SEFAZ/DANFE via consultadanfe.com ou decodifica chave com fallback
  */
 router.post('/bipar-chave', async (req, res) => {
   try {
@@ -300,6 +324,61 @@ router.post('/bipar-chave', async (req, res) => {
       });
     }
 
+    const db = await getDb();
+
+    // 1. Tentar consultar online via consultadanfe.com (retorna XML + PDF em base64)
+    let consultaOnline = null;
+    try {
+      consultaOnline = await consultarNfeDanfeOnline(chaveLimpa);
+    } catch (eDanfe) {
+      console.warn('[RecebimentoFiscal] Erro na consulta online de DANFE:', eDanfe.message);
+    }
+
+    if (consultaOnline && consultaOnline.sucesso && consultaOnline.nota) {
+      const notaOnline = consultaOnline.nota;
+
+      // Enriquecimento do fornecedor/emitente via banco MariaDB
+      const docEmitente = limparDoc(notaOnline.emitente?.cnpj_cpf);
+      try {
+        const fornRows = await db.all(`SELECT * FROM fornecedores_omie`);
+        const fornecedor = fornRows.find(f => limparDoc(f.cnpj_cpf) === docEmitente);
+        if (fornecedor) {
+          let d = {};
+          try { d = JSON.parse(fornecedor.dados_json || '{}'); } catch(e){}
+          notaOnline.emitente.codigo_cliente_omie = fornecedor.codigo;
+          notaOnline.emitente.nome = fornecedor.nome_fantasia || fornecedor.razao_social || notaOnline.emitente.nome;
+        }
+      } catch (eForn) {}
+
+      // Busca pedido de compra em aberto correspondente
+      try {
+        const reqRows = await db.all(`
+          SELECT * FROM requisicoes 
+          WHERE status_compras IN ('pedido_gerado', 'aguardando_nfe', 'concluido')
+          ORDER BY atualizado_em DESC
+        `);
+        const abertas = reqRows.map(dbRowToReq);
+        const pedidoCorrespondente = abertas.find(r => {
+          const fornId = r.pedidos_omie?.[0]?.fornecedorId || r.fornecedorEscolhidoId;
+          const matchForn = notaOnline.emitente?.codigo_cliente_omie && String(fornId) === String(notaOnline.emitente.codigo_cliente_omie);
+          const matchChave = r.chaveNfe && limparDoc(r.chaveNfe) === chaveLimpa;
+          return matchForn || matchChave;
+        });
+
+        if (pedidoCorrespondente) {
+          notaOnline.requisicaoSugeridaId = pedidoCorrespondente.id;
+        }
+      } catch (eReq) {}
+
+      return res.json({
+        erro: false,
+        origem: 'online_sefaz',
+        mensagem: 'NF-e localizada com sucesso na SEFAZ e importada com todos os itens!',
+        dados: notaOnline
+      });
+    }
+
+    // 2. FALLBACK: Decodifica os metadados da Chave de Acesso (44 dígitos)
     const cUF = chaveLimpa.substring(0, 2);
     const aamm = chaveLimpa.substring(2, 6);
     const cnpjEmitente = chaveLimpa.substring(6, 20);
@@ -307,9 +386,6 @@ router.post('/bipar-chave', async (req, res) => {
     const serie = chaveLimpa.substring(22, 25);
     const nNF = String(parseInt(chaveLimpa.substring(25, 34), 10));
 
-    const db = await getDb();
-
-    // 1. Localizar fornecedor cadastrado pelo CNPJ ou CPF
     let fornecedor = null;
     try {
       const fornRows = await db.all(`SELECT * FROM fornecedores_omie`);
@@ -330,7 +406,6 @@ router.post('/bipar-chave', async (req, res) => {
       }
     } catch(e) {}
 
-    // 2. Verificar se existe algum pedido de compra em aberto correspondente
     const reqRows = await db.all(`
       SELECT * FROM requisicoes 
       WHERE status_compras IN ('pedido_gerado', 'aguardando_nfe', 'concluido')
@@ -346,7 +421,6 @@ router.post('/bipar-chave', async (req, res) => {
       });
     }
 
-    // Monta o objeto pré-formatado da NF-e
     const notaFormatada = {
       chaveAcesso: chaveLimpa,
       numeroNF: nNF,
@@ -373,16 +447,54 @@ router.post('/bipar-chave', async (req, res) => {
           nValor: pedidoCorrespondente?.pedidos_omie?.[0]?.valorTotal || 0
         }
       ],
-      requisicaoSugeridaId: pedidoCorrespondente?.id || null
+      requisicaoSugeridaId: pedidoCorrespondente?.id || null,
+      origemConsulta: 'chave_decodificada'
     };
+
+    const avisoMensagem = consultaOnline?.erro === 'rate_limit_exceeded'
+      ? 'Limite de consultas DANFE gratuitas atingido no momento. A nota foi aberta com os dados da chave. Você também pode anexar o arquivo XML para carregar todos os itens.'
+      : (consultaOnline?.mensagem ? `Consulta online: ${consultaOnline.mensagem}. Dados básicos decodificados da chave.` : 'Chave de Acesso decodificada com sucesso!');
 
     res.json({
       erro: false,
-      mensagem: 'Chave de Acesso decodificada com sucesso!',
+      origem: 'fallback_chave',
+      aviso: consultaOnline?.mensagem || null,
+      mensagem: avisoMensagem,
       dados: notaFormatada
     });
   } catch (err) {
     console.error('Erro ao bipar chave de NF-e:', err);
+    res.status(500).json({ erro: true, mensagem: err.message });
+  }
+});
+
+/**
+ * POST /api/recebimento-fiscal/consultar-danfe
+ * Consulta avulsa para obter PDF do DANFE ou XML via consultadanfe.com
+ */
+router.post('/consultar-danfe', async (req, res) => {
+  try {
+    const { chave } = req.body;
+    const chaveLimpa = limparDoc(chave);
+    if (chaveLimpa.length !== 44) {
+      return res.status(400).json({ erro: true, mensagem: 'Chave de acesso de 44 dígitos é obrigatória.' });
+    }
+
+    const resultado = await consultarNfeDanfeOnline(chaveLimpa);
+    if (!resultado.sucesso) {
+      return res.status(400).json({ erro: true, mensagem: resultado.mensagem, codigoErro: resultado.erro });
+    }
+
+    res.json({
+      erro: false,
+      mensagem: 'DANFE consultado com sucesso!',
+      chave: resultado.chave,
+      tipo: resultado.tipo,
+      pdf_base64: resultado.pdf_base64,
+      dados: resultado.nota
+    });
+  } catch (err) {
+    console.error('Erro ao consultar DANFE avulso:', err);
     res.status(500).json({ erro: true, mensagem: err.message });
   }
 });
@@ -398,306 +510,17 @@ router.post('/upload-xml', async (req, res) => {
       return res.status(400).json({ erro: true, mensagem: 'Conteúdo do XML não informado.' });
     }
 
-    // Extração com expressões regulares robustas para evitar dependências pesadas
-    const extrairTag = (xml, tag) => {
-      const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
-      return match ? match[1].trim() : '';
-    };
+    const notaParseada = parsearXmlNFe(xmlString);
 
-    // Chave de acesso
-    let chave = '';
-    const matchId = xmlString.match(/Id="NFe(\d{44})"/i);
-    if (matchId) {
-      chave = matchId[1];
-    } else {
-      chave = extrairTag(xmlString, 'chNFe');
-    }
-
-    // Cabeçalho ide
-    const ideXml = extrairTag(xmlString, 'ide');
-    const nNF = extrairTag(ideXml, 'nNF');
-    const serie = extrairTag(ideXml, 'serie') || '1';
-    const modelo = extrairTag(ideXml, 'mod') || '55';
-    const dhEmi = extrairTag(ideXml, 'dhEmi') || extrairTag(ideXml, 'dEmi');
-
-    // Emitente
-    const emitXml = extrairTag(xmlString, 'emit');
-    const cnpjEmit = extrairTag(emitXml, 'CNPJ') || extrairTag(emitXml, 'CPF');
-    const xNomeEmit = extrairTag(emitXml, 'xNome');
-    const ieEmit = extrairTag(emitXml, 'IE');
-    const enderEmit = extrairTag(emitXml, 'enderEmit');
-    const ufEmit = extrairTag(enderEmit, 'UF') || 'PA';
-
-    // Totais (<total> -> <ICMSTot>)
-    const totalXml = extrairTag(xmlString, 'total');
-    const icmsTotXml = extrairTag(totalXml, 'ICMSTot');
-    const vBC = parseFloat(extrairTag(icmsTotXml, 'vBC') || '0');
-    const vICMS = parseFloat(extrairTag(icmsTotXml, 'vICMS') || '0');
-    const vICMSDeson = parseFloat(extrairTag(icmsTotXml, 'vICMSDeson') || '0');
-    const vBCST = parseFloat(extrairTag(icmsTotXml, 'vBCST') || '0');
-    const vST = parseFloat(extrairTag(icmsTotXml, 'vST') || '0');
-    const vProd = parseFloat(extrairTag(icmsTotXml, 'vProd') || '0');
-    const vFrete = parseFloat(extrairTag(icmsTotXml, 'vFrete') || '0');
-    const vSeg = parseFloat(extrairTag(icmsTotXml, 'vSeg') || '0');
-    const vDesc = parseFloat(extrairTag(icmsTotXml, 'vDesc') || '0');
-    const vIPI = parseFloat(extrairTag(icmsTotXml, 'vIPI') || '0');
-    const vPIS = parseFloat(extrairTag(icmsTotXml, 'vPIS') || '0');
-    const vCOFINS = parseFloat(extrairTag(icmsTotXml, 'vCOFINS') || '0');
-    const vOutro = parseFloat(extrairTag(icmsTotXml, 'vOutro') || '0');
-    const vTotTrib = parseFloat(extrairTag(icmsTotXml, 'vTotTrib') || '0');
-    const vNF = parseFloat(extrairTag(icmsTotXml, 'vNF') || '0');
-
-    // Transporte (<transp>)
-    const transpXml = extrairTag(xmlString, 'transp');
-    const modFreteCodigo = extrairTag(transpXml, 'modFrete') || '9';
-    const mapaModFrete = {
-      '0': '0 - Contratação do Frete por conta do Remetente (CIF)',
-      '1': '1 - Contratação do Frete por conta do Destinatário (FOB)',
-      '2': '2 - Contratação do Frete por conta de Terceiros',
-      '3': '3 - Transporte Próprio por conta do Remetente',
-      '4': '4 - Transporte Próprio por conta do Destinatário',
-      '9': '9 - Sem Ocorrência de Transporte'
-    };
-    const modFreteDescricao = mapaModFrete[modFreteCodigo] || '9 - Sem Ocorrência de Transporte';
-
-    const transportaXml = extrairTag(transpXml, 'transporta');
-    const transportador = {
-      xNome: extrairTag(transportaXml, 'xNome'),
-      cnpj_cpf: extrairTag(transportaXml, 'CNPJ') || extrairTag(transportaXml, 'CPF'),
-      ie: extrairTag(transportaXml, 'IE'),
-      uf: extrairTag(transportaXml, 'UF')
-    };
-
-    const veicTranspXml = extrairTag(transpXml, 'veicTransp');
-    const veiculo = {
-      placa: extrairTag(veicTranspXml, 'placa'),
-      uf: extrairTag(veicTranspXml, 'UF'),
-      rntrc: extrairTag(veicTranspXml, 'RNTRC')
-    };
-
-    const volXml = extrairTag(transpXml, 'vol');
-    const volumes = {
-      qVol: parseFloat(extrairTag(volXml, 'qVol') || '0'),
-      esp: extrairTag(volXml, 'esp') || 'VOLUMES',
-      marca: extrairTag(volXml, 'marca') || '',
-      nVol: extrairTag(volXml, 'nVol') || '',
-      pesoL: parseFloat(extrairTag(volXml, 'pesoL') || '0'),
-      pesoB: parseFloat(extrairTag(volXml, 'pesoB') || '0'),
-      nLacre: extrairTag(volXml, 'nLacre') || ''
-    };
-
-    // Observações / Informações Adicionais (<infAdic>)
-    const infAdicXml = extrairTag(xmlString, 'infAdic');
-    const infCpl = extrairTag(infAdicXml, 'infCpl');
-    const infAdFisco = extrairTag(infAdicXml, 'infAdFisco');
-
-    // Itens da Nota (<det>)
-    const itens = [];
-    const detMatches = xmlString.match(/<det[^>]*>([\s\S]*?)<\/det>/gi) || [];
-
-    detMatches.forEach((detStr, idx) => {
-      const prodXml = extrairTag(detStr, 'prod');
-      const cProd = extrairTag(prodXml, 'cProd');
-      const cEAN = extrairTag(prodXml, 'cEAN') || 'SEM GTIN';
-      const xProd = extrairTag(prodXml, 'xProd');
-      const ncm = extrairTag(prodXml, 'NCM');
-      const cfop = extrairTag(prodXml, 'CFOP');
-      const uCom = extrairTag(prodXml, 'uCom') || 'UN';
-      const qCom = parseFloat(extrairTag(prodXml, 'qCom') || '1');
-      const vUnCom = parseFloat(extrairTag(prodXml, 'vUnCom') || '0');
-      const vProdItem = parseFloat(extrairTag(prodXml, 'vProd') || '0');
-      const vDescItem = parseFloat(extrairTag(prodXml, 'vDesc') || '0');
-
-      // Impostos do Item (<imposto>)
-      const impostoXml = extrairTag(detStr, 'imposto');
-      
-      // ICMS
-      const icmsXml = extrairTag(impostoXml, 'ICMS');
-      let cstIcms = '';
-      let origIcms = '0';
-      let modBcIcms = '3';
-      let pRedBcIcms = 0;
-      let vBcIcms = 0;
-      let pIcms = 0;
-      let vIcmsItem = 0;
-
-      // ST
-      let vBcIcmsSt = 0;
-      let pIcmsSt = 0;
-      let vIcmsSt = 0;
-
-      const subIcmsMatch = icmsXml.match(/<ICMS[0-9A-Za-z]+>([\s\S]*?)<\/ICMS[0-9A-Za-z]+>/i);
-      if (subIcmsMatch) {
-        const corpoIcms = subIcmsMatch[1];
-        cstIcms = extrairTag(corpoIcms, 'CST') || extrairTag(corpoIcms, 'CSOSN');
-        origIcms = extrairTag(corpoIcms, 'orig') || '0';
-        modBcIcms = extrairTag(corpoIcms, 'modBC') || '3';
-        pRedBcIcms = parseFloat(extrairTag(corpoIcms, 'pRedBC') || '0');
-        vBcIcms = parseFloat(extrairTag(corpoIcms, 'vBC') || '0');
-        pIcms = parseFloat(extrairTag(corpoIcms, 'pICMS') || '0');
-        vIcmsItem = parseFloat(extrairTag(corpoIcms, 'vICMS') || '0');
-
-        vBcIcmsSt = parseFloat(extrairTag(corpoIcms, 'vBCST') || '0');
-        pIcmsSt = parseFloat(extrairTag(corpoIcms, 'pICMSST') || '0');
-        vIcmsSt = parseFloat(extrairTag(corpoIcms, 'vICMSST') || '0');
+    // Tenta gerar o DANFE em PDF oficial via consultadanfe.com (/api/v1/danfe aceita XML até 5MB sem limite de data)
+    try {
+      const resDanfe = await gerarDanfeDeXmlOnline(xmlString);
+      if (resDanfe?.sucesso && resDanfe.pdf_base64) {
+        notaParseada.pdf_base64 = resDanfe.pdf_base64;
       }
-
-      // IPI
-      const ipiXml = extrairTag(impostoXml, 'IPI');
-      const vIpiItem = parseFloat(extrairTag(ipiXml, 'vIPI') || '0');
-      const pIpiItem = parseFloat(extrairTag(ipiXml, 'pIPI') || '0');
-
-      // PIS
-      const pisXml = extrairTag(impostoXml, 'PIS');
-      const vPisItem = parseFloat(extrairTag(pisXml, 'vPIS') || '0');
-      const pPisItem = parseFloat(extrairTag(pisXml, 'pPIS') || '0');
-
-      // COFINS
-      const cofinsXml = extrairTag(impostoXml, 'COFINS');
-      const vCofinsItem = parseFloat(extrairTag(cofinsXml, 'vCOFINS') || '0');
-      const pCofinsItem = parseFloat(extrairTag(cofinsXml, 'pCOFINS') || '0');
-
-      itens.push({
-        itemNumero: idx + 1,
-        codigo: cProd,
-        descricao: xProd,
-        ncm,
-        cfop,
-        ean: cEAN,
-        unidade: uCom,
-        unidadeEstoque: uCom,
-        quantidade: qCom,
-        quantidadeRecebida: qCom,
-        valorUnitario: vUnCom,
-        desconto: vDescItem,
-        valorTotal: vProdItem,
-        tributos: {
-          icms: {
-            cst: cstIcms,
-            origem: origIcms,
-            modalidadeBc: modBcIcms,
-            reducaoBcPerc: pRedBcIcms,
-            baseCalculo: vBcIcms,
-            aliquotaPerc: pIcms,
-            valor: vIcmsItem
-          },
-          st: {
-            baseCalculo: vBcIcmsSt,
-            aliquotaPerc: pIcmsSt,
-            valor: vIcmsSt
-          },
-          ipi: {
-            aliquotaPerc: pIpiItem,
-            valor: vIpiItem
-          },
-          pis: {
-            aliquotaPerc: pPisItem,
-            valor: vPisItem
-          },
-          cofins: {
-            aliquotaPerc: pCofinsItem,
-            valor: vCofinsItem
-          }
-        }
-      });
-    });
-
-    // Parcelas / Cobrança (<dup>)
-    const parcelas = [];
-    const dupMatches = xmlString.match(/<dup[^>]*>([\s\S]*?)<\/dup>/gi) || [];
-
-    if (dupMatches.length > 0) {
-      dupMatches.forEach((dupStr, idx) => {
-        const nDup = extrairTag(dupStr, 'nDup') || String(idx + 1).padStart(3, '0') + '/' + String(dupMatches.length).padStart(3, '0');
-        const dVenc = extrairTag(dupStr, 'dVenc');
-        const vDup = parseFloat(extrairTag(dupStr, 'vDup') || '0');
-
-        let dDtVencFormatada = dVenc;
-        if (dVenc && dVenc.includes('-')) {
-          const [ano, mes, dia] = dVenc.split('-');
-          dDtVencFormatada = `${dia}/${mes}/${ano}`;
-        }
-
-        parcelas.push({
-          nParcela: idx + 1,
-          nNumTitulo: nDup,
-          dDtVenc: dDtVencFormatada,
-          nValor: vDup,
-          percentual: vNF > 0 ? Number(((vDup / vNF) * 100).toFixed(1)) : 100
-        });
-      });
-    } else {
-      // Cria uma parcela única padrão de 30 dias se não houver dups no XML
-      parcelas.push({
-        nParcela: 1,
-        nNumTitulo: `${nNF}/001`,
-        dDtVenc: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
-        nValor: vNF,
-        percentual: 100
-      });
+    } catch (eDanfe) {
+      console.warn('[UploadXML] Não foi possível gerar DANFE em PDF online:', eDanfe.message);
     }
-
-    const notaParseada = {
-      chaveAcesso: chave,
-      numeroNF: nNF,
-      serie,
-      modelo,
-      dataEmissao: dhEmi || new Date().toISOString(),
-      valorTotal: vNF,
-      emitente: {
-        nome: xNomeEmit,
-        cnpj_cpf: cnpjEmit,
-        inscrEstadual: ieEmit,
-        uf: ufEmit
-      },
-      transporte: {
-        tipoFrete: modFreteDescricao,
-        previsaoEntrega: '',
-        transportador,
-        veiculo,
-        volumes
-      },
-      totaisTributos: {
-        vBC,
-        vICMS,
-        vICMSDeson,
-        vBCST,
-        vST,
-        vProd,
-        vFrete,
-        vSeg,
-        vDesc,
-        vIPI,
-        vPIS,
-        vCOFINS,
-        vOutro,
-        vTotTrib,
-        vNF,
-        vIS: 0,
-        vIBS: 0,
-        vCBS: 0
-      },
-      departamentosRateio: [
-        {
-          codigo: 'ALMOXARIFADO',
-          descricao: 'ALMOXARIFADO',
-          valor: vNF,
-          percentual: 100
-        }
-      ],
-      informacoesAdicionais: {
-        categoriaCompra: 'Compra de Material para Uso e Consumo',
-        contaCorrente: '01 - Banco Principal',
-        dataRegistro: new Date().toLocaleDateString('pt-BR'),
-        comprador: 'Setor de Compras',
-        projeto: 'ALMOXARIFADO',
-        infCpl: infCpl,
-        infAdFisco: infAdFisco
-      },
-      observacoes: infCpl || '',
-      itens,
-      parcelas
-    };
 
     res.json({
       erro: false,
@@ -726,6 +549,12 @@ router.post('/salvar-conferencia', async (req, res) => {
     if (!row) return res.status(404).json({ erro: true, mensagem: 'Requisição não encontrada.' });
 
     const reqObj = dbRowToReq(row);
+    
+    // Remove requisicaoObj para evitar crescimento exponencial do JSON no banco
+    if (nota && nota.requisicaoObj) {
+      delete nota.requisicaoObj;
+    }
+    
     reqObj.nota_fiscal_vinculada = nota;
     reqObj.mapeamento_nfe = mapeamentoItens;
     reqObj.parcelas_financeiro = parcelas;
@@ -751,7 +580,7 @@ router.post('/salvar-conferencia', async (req, res) => {
  */
 router.post('/concluir-omie', async (req, res) => {
   try {
-    const { reqId, nota, mapeamentoItens, parcelas } = req.body;
+    const { reqId, nota, mapeamentoItens, parcelas, gerarContasPagar, liberarAlmoxarifado = true } = req.body;
     if (!reqId) {
       return res.status(400).json({ erro: true, mensagem: 'ID da requisição é obrigatório.' });
     }
@@ -761,6 +590,22 @@ router.post('/concluir-omie', async (req, res) => {
     if (!row) return res.status(404).json({ erro: true, mensagem: 'Requisição não encontrada.' });
 
     const reqObj = dbRowToReq(row);
+
+    // 🔥 FASE 3: Trava de Inversão Temporal (Blindagem de Caixa)
+    // O Operador Fiscal é sumariamente impedido de faturar a nota na Omie (Contas a Pagar)
+    // se o Almoxarife ainda não descarregou e conferiu fisicamente as peças na doca.
+    const statusQueJaPassaramNoAlmoxarifado = ['recebido_almoxarifado', 'entregue', 'finalizado'];
+    const temConferenciaFisica = reqObj.itensRecebidosConfirmados || statusQueJaPassaramNoAlmoxarifado.includes(reqObj.status_compras);
+    
+    // Descomentar a trava abaixo quando o fluxo de bipagem estiver 100% alinhado
+    /*
+    if (!temConferenciaFisica) {
+      return res.status(400).json({
+        erro: true,
+        mensagem: 'FATURAMENTO BLOQUEADO 🔒: Aguarde a conferência física e bipagem da mercadoria pelo Almoxarifado antes de gerar a dívida na Omie.'
+      });
+    }
+    */
 
     // 1. Tentar localizar o código do fornecedor no Omie caso não tenha vindo
     let codFornecedorOmie = nota.emitente?.codigo_cliente_omie || reqObj.pedidos_omie?.[0]?.fornecedorId;
@@ -838,7 +683,7 @@ router.post('/concluir-omie', async (req, res) => {
           codigo_local_estoque: idLocalEstoque
         };
       }),
-      parcelas: parcelas || nota.parcelas || [],
+      parcelas: (gerarContasPagar !== false) ? (parcelas || nota.parcelas || []) : [],
       observacoes: `NF-e vinculada à Requisição #${reqId.split('-')[0]}`
     };
 
@@ -874,7 +719,13 @@ router.post('/concluir-omie', async (req, res) => {
     }
 
     // 3. Atualizar a requisição no MariaDB para avançar o ciclo
-    reqObj.status_compras = 'concluido'; // Pronto para o Almoxarifado receber
+    reqObj.status_compras = temConferenciaFisica ? 'finalizado' : 'concluido'; 
+    
+    // Remove requisicaoObj para evitar crescimento exponencial do JSON no banco
+    if (nota && nota.requisicaoObj) {
+      delete nota.requisicaoObj;
+    }
+
     reqObj.nota_fiscal_vinculada = {
       ...nota,
       status_omie: omieStatus,
@@ -894,11 +745,53 @@ router.post('/concluir-omie', async (req, res) => {
     }
 
     await db.run(`UPDATE requisicoes SET status_compras = ?, dados_json = ?, atualizado_em = ? WHERE id = ?`, [
-      'concluido',
+      reqObj.status_compras,
       JSON.stringify(reqObj),
       reqObj.atualizado_em,
       reqId
     ]);
+
+    // 4. 🔥 EFEITO CASCATA: Sincronização Imediata do Estoque Real no Omie
+    // Assim que a nota de entrada é finalizada, sincroniza instantaneamente os produtos da nota no MariaDB
+    const produtosSincronizadosCascata = [];
+    const codigosParaSync = new Set();
+
+    for (const item of (nota.itens || [])) {
+      const codMapeado = mapeamentoItens?.[item.codigo] || item.codigo;
+      if (
+        codMapeado && 
+        codMapeado !== 'ignorar' && 
+        !String(codMapeado).startsWith('NOVO-') && 
+        !String(codMapeado).startsWith('NOVO:')
+      ) {
+        codigosParaSync.add(codMapeado);
+      }
+    }
+
+    if (codigosParaSync.size > 0) {
+      console.log(`[RECEBIMENTO FISCAL] 🌊 Iniciando Efeito Cascata de Estoque para ${codigosParaSync.size} produto(s)...`);
+      for (const codProd of codigosParaSync) {
+        try {
+          const resSync = await omieEstoqueService.consultarSaldoIndividual(
+            codProd,
+            `Recebimento Fiscal (NF-e ${nota.numeroNF || 'S/N'})`
+          );
+          if (resSync && resSync.sucesso) {
+            produtosSincronizadosCascata.push({
+              codigo: codProd,
+              descricao: resSync.descricao,
+              saldoAnterior: resSync.saldoAnterior,
+              novoSaldo: resSync.novoSaldo,
+              diferenca: resSync.diferenca,
+              locais: resSync.locais
+            });
+          }
+        } catch (errSync) {
+          console.warn(`[RECEBIMENTO FISCAL] Aviso ao sincronizar ${codProd} na cascata:`, errSync.message);
+        }
+      }
+      console.log(`[RECEBIMENTO FISCAL] ✅ Efeito Cascata concluído: ${produtosSincronizadosCascata.length} produto(s) alinhados.`);
+    }
 
     // Cria ordem de recebimento físico para o almoxarifado se solicitado
     if (liberarAlmoxarifado) {
@@ -913,7 +806,7 @@ router.post('/concluir-omie', async (req, res) => {
             codigo: mapeamentoItens?.[item.codigo] || item.codigo,
             codigoNfeOriginal: item.codigo,
             descricao: item.descricao || 'Item do Pedido',
-            quantidadeEsperada: Number(item.quantidade) || 1,
+            quantidadeEsperada: Number(item.quantidadeRecebida !== undefined ? item.quantidadeRecebida : (item.quantidade || 1)),
             quantidadeRecebida: 0,
             valorUnitario: Number(item.valorUnitario || item.valor_unitario || 0),
             codigo_local_estoque: loc,
@@ -944,12 +837,20 @@ router.post('/concluir-omie', async (req, res) => {
       }
     }
 
-    // Dispara evento via WebSocket se disponível
+    // Dispara eventos via WebSocket em tempo real para todos os clientes
     const io = req.app.get('io');
     if (io) {
       io.emit('nota_fiscal_recebida', { reqId, nota: reqObj.nota_fiscal_vinculada });
       io.emit('pedidos_pendentes_atualizados');
       io.emit('recebimento_fiscal_atualizado');
+
+      if (produtosSincronizadosCascata.length > 0) {
+        io.emit('estoque_atualizado', {
+          tipo: 'RECEBIMENTO_FISCAL_CASCATA',
+          produtos: produtosSincronizadosCascata
+        });
+      }
+
       io.emit('novo_pedido_recebimento', {
         id: `REC-${reqId}`,
         fornecedor: nota.emitente?.nome || reqObj.fornecedor || reqObj.solicitante,
@@ -957,11 +858,16 @@ router.post('/concluir-omie', async (req, res) => {
       });
     }
 
+    const mensagemFinal = produtosSincronizadosCascata.length > 0
+      ? `Recebimento Fiscal concluído com sucesso! Nota fiscal integrada com a Omie e estoque de ${produtosSincronizadosCascata.length} produto(s) atualizado em cascata.`
+      : 'Recebimento Fiscal concluído com sucesso! Nota processada e liberada para o Almoxarifado.';
+
     res.json({
       erro: false,
-      mensagem: 'Recebimento Fiscal concluído com sucesso! Nota processada e liberada para o Almoxarifado.',
+      mensagem: mensagemFinal,
       statusOmie: omieStatus,
-      requisicao: reqObj
+      requisicao: reqObj,
+      produtosSincronizados: produtosSincronizadosCascata
     });
   } catch (err) {
     console.error('Erro ao concluir recebimento fiscal:', err);

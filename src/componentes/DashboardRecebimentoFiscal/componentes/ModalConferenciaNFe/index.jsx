@@ -3,7 +3,8 @@ import {
   X, FileText, CheckCircle2, AlertCircle, Plus, Trash2,
   DollarSign, PackageCheck, Building2, Calendar, Link, Ban, PlusCircle, ArrowRight,
   AlertTriangle, ShieldAlert, ArrowDownRight, Tag, Info, Clock, Truck, Zap,
-  ExternalLink, Warehouse, ChevronLeft, ChevronRight, Edit3, Check, ChevronDown, ChevronUp
+  ExternalLink, Warehouse, ChevronLeft, ChevronRight, Edit3, Check, ChevronDown, ChevronUp,
+  SlidersHorizontal, Receipt, Package
 } from 'lucide-react';
 import styles from './ModalConferenciaNFe.module.css';
 
@@ -62,6 +63,8 @@ const ModalConferenciaNFe = ({
   const [dataEmissaoNF, setDataEmissaoNF] = useState('');
   const [valorTotalNF, setValorTotalNF] = useState(0);
   const [chaveAcessoNF, setChaveAcessoNF] = useState('');
+  const [pdfBase64, setPdfBase64] = useState(null);
+  const [buscandoDanfe, setBuscandoDanfe] = useState(false);
   const [itensDaNota, setItensDaNota] = useState([]);
 
   // Transporte
@@ -178,6 +181,7 @@ const ModalConferenciaNFe = ({
       setDataEmissaoNF(nota.dataEmissao ? (nota.dataEmissao.includes('-') ? (nota.dataEmissao.includes('T') ? nota.dataEmissao.split('T')[0] : nota.dataEmissao) : nota.dataEmissao) : new Date().toISOString().split('T')[0]);
       setValorTotalNF(Number(nota.valorTotal || 0));
       setChaveAcessoNF(nota.chaveAcesso || '');
+      setPdfBase64(nota.pdf_base64 || null);
 
       const initialItens = (nota.itens && nota.itens.length > 0) ? [...nota.itens] : [
         { codigo: '', descricao: '', quantidade: 1, unidade: 'UN', valorUnitario: 0, valorTotal: 0, cfop: '1.556', codigo_local_estoque: '01' }
@@ -844,13 +848,78 @@ const ModalConferenciaNFe = ({
       const data = await res.json();
       if (!res.ok || data.erro) throw new Error(data.mensagem || 'Falha ao concluir recebimento fiscal.');
 
-      alert(`Recebimento Fiscal Concluído com Sucesso!\n\n${data.mensagem}\nStatus Omie: ${data.statusOmie || 'Processado'}`);
+      let detalheEstoque = '';
+      if (data.produtosSincronizados && data.produtosSincronizados.length > 0) {
+        detalheEstoque = '\n\nEstoque Sincronizado em Cascata (Omie):\n' +
+          data.produtosSincronizados.map(p => `• ${p.codigo}: de ${p.saldoAnterior} para ${p.novoSaldo} (${p.diferenca >= 0 ? '+' : ''}${p.diferenca})`).join('\n');
+      }
+
+      alert(`Recebimento Fiscal Concluído com Sucesso!\n\n${data.mensagem}\nStatus Omie: ${data.statusOmie || 'Processado'}${detalheEstoque}`);
       if (onConcluido) onConcluido();
       onClose();
     } catch (err) {
       setErro(err.message);
     } finally {
       setSalvando(false);
+    }
+  };
+
+  const handleVisualizarDanfe = () => {
+    if (!pdfBase64) {
+      alert('PDF do DANFE não disponível para esta nota.');
+      return;
+    }
+    try {
+      const byteCharacters = atob(pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL, '_blank');
+    } catch (err) {
+      console.error('Erro ao abrir DANFE em PDF:', err);
+      alert('Não foi possível exibir o PDF do DANFE.');
+    }
+  };
+
+  const handleBuscarDanfeOnline = async () => {
+    const chave = String(chaveAcessoNF || '').replace(/\D/g, '');
+    if (chave.length !== 44) {
+      alert('É necessária uma chave de acesso com 44 dígitos para consultar o DANFE online.');
+      return;
+    }
+    setBuscandoDanfe(true);
+    try {
+      const res = await fetch('/api/recebimento-fiscal/consultar-danfe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chave })
+      });
+      const data = await res.json();
+      if (!res.ok || data.erro) {
+        throw new Error(data.mensagem || 'Falha ao consultar DANFE online.');
+      }
+      if (data.pdf_base64) {
+        setPdfBase64(data.pdf_base64);
+        const byteCharacters = atob(data.pdf_base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+      } else {
+        alert('A consulta respondeu, mas não encontrou o PDF do DANFE.');
+      }
+    } catch (err) {
+      alert('Aviso DANFE: ' + err.message);
+    } finally {
+      setBuscandoDanfe(false);
     }
   };
 
@@ -868,12 +937,45 @@ const ModalConferenciaNFe = ({
               <p>Validação da nota, de-para dos itens e conciliação de parcelas</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className={styles.btnClose}>
-            <X size={20} />
-          </button>
+          <div className={styles.headerRight}>
+            {pdfBase64 ? (
+              <button
+                type="button"
+                onClick={handleVisualizarDanfe}
+                className={styles.btnDanfePdf}
+                title="Visualizar ou imprimir DANFE oficial em PDF"
+              >
+                <FileText size={16} />
+                <span>Visualizar DANFE (PDF)</span>
+              </button>
+            ) : (
+              chaveAcessoNF?.replace(/\D/g, '').length === 44 && (
+                <button
+                  type="button"
+                  onClick={handleBuscarDanfeOnline}
+                  disabled={buscandoDanfe}
+                  className={styles.btnDanfeBuscar}
+                  title="Buscar DANFE oficial na SEFAZ"
+                >
+                  <ExternalLink size={16} />
+                  <span>{buscandoDanfe ? 'Consultando...' : 'Buscar DANFE Online'}</span>
+                </button>
+              )
+            )}
+            <button type="button" onClick={onClose} className={styles.btnClose}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className={styles.body} ref={bodyRef}>
+          {nota?._avisoConsulta && (
+            <div style={{ color: '#d97706', background: 'rgba(245, 158, 11, 0.12)', padding: '8px 14px', borderRadius: '8px', borderLeft: '3px solid #f59e0b', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem' }}>
+              <AlertTriangle size={16} />
+              <span>{nota._avisoConsulta}</span>
+            </div>
+          )}
+
           {erro && (
             <div style={{ color: 'var(--cor-erro)', background: 'rgba(239, 68, 68, 0.1)', padding: '10px 14px', borderRadius: '8px', borderLeft: '3px solid var(--cor-erro)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
               <AlertCircle size={18} />
@@ -1229,15 +1331,16 @@ const ModalConferenciaNFe = ({
               className={`${styles.tabBtn} ${abaAtiva === 'itens' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('itens')}
             >
-              <PackageCheck size={18} />
-              <span>Itens da NF-e ({itensDaNota?.length || 0})</span>
+              <PackageCheck size={15} />
+              <span>Itens da NF-e</span>
+              <span className={styles.tabBadge}>{itensDaNota?.length || 0}</span>
             </button>
             <button
               type="button"
               className={`${styles.tabBtn} ${abaAtiva === 'transporte' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('transporte')}
             >
-              <Truck size={18} />
+              <Truck size={15} />
               <span>Transporte</span>
             </button>
             <button
@@ -1245,7 +1348,7 @@ const ModalConferenciaNFe = ({
               className={`${styles.tabBtn} ${abaAtiva === 'totais' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('totais')}
             >
-              <DollarSign size={18} />
+              <DollarSign size={15} />
               <span>Totais</span>
             </button>
             <button
@@ -1253,23 +1356,25 @@ const ModalConferenciaNFe = ({
               className={`${styles.tabBtn} ${abaAtiva === 'parcelas' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('parcelas')}
             >
-              <Calendar size={18} />
-              <span>Parcelas ({parcelas.length})</span>
+              <Calendar size={15} />
+              <span>Parcelas</span>
+              <span className={styles.tabBadge}>{parcelas.length}</span>
             </button>
             <button
               type="button"
               className={`${styles.tabBtn} ${abaAtiva === 'departamentos' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('departamentos')}
             >
-              <Building2 size={18} />
-              <span>Departamentos ({departamentosRateio.length})</span>
+              <Building2 size={15} />
+              <span>Departamentos</span>
+              <span className={styles.tabBadge}>{departamentosRateio.length}</span>
             </button>
             <button
               type="button"
               className={`${styles.tabBtn} ${abaAtiva === 'info_adicionais' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('info_adicionais')}
             >
-              <Info size={18} />
+              <Info size={15} />
               <span>Informações Adicionais</span>
             </button>
             <button
@@ -1277,7 +1382,7 @@ const ModalConferenciaNFe = ({
               className={`${styles.tabBtn} ${abaAtiva === 'observacoes' ? styles.tabBtnActive : ''}`}
               onClick={() => mudarAba('observacoes')}
             >
-              <FileText size={18} />
+              <FileText size={15} />
               <span>Observações</span>
             </button>
           </div>
@@ -1295,20 +1400,20 @@ const ModalConferenciaNFe = ({
 
               {/* Barra de Ações e Legenda no estilo Omie */}
               <div className={styles.barraAcoesTabela}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Info size={16} color="var(--cor-destaque)" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Info size={14} color="var(--cor-destaque)" />
                   <span>Selecione abaixo de que forma deseja importar cada um dos itens da NF-e:</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <div className={styles.barraAcoesLegenda}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cor-sucesso)' }}>
-                      <CheckCircle2 size={13} /> Itens associados
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--cor-sucesso)' }}>
+                      <CheckCircle2 size={12} /> Itens associados
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#38bdf8' }}>
-                      <PlusCircle size={13} /> Cadastrar novo produto
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#38bdf8' }}>
+                      <PlusCircle size={12} /> Cadastrar novo produto
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cor-erro)' }}>
-                      <Ban size={13} /> Ignorar importação
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--cor-erro)' }}>
+                      <Ban size={12} /> Ignorar importação
                     </span>
                   </div>
                   <button
@@ -1316,8 +1421,9 @@ const ModalConferenciaNFe = ({
                     onClick={handleAdicionarItem}
                     className={styles.btnAdicionarParcela}
                     title="Adicionar mais um item à nota fiscal"
+                    style={{ padding: '4px 8px', fontSize: '0.78rem' }}
                   >
-                    <Plus size={15} />
+                    <Plus size={13} />
                     <span>+ Adicionar Item</span>
                   </button>
                 </div>
@@ -1327,15 +1433,15 @@ const ModalConferenciaNFe = ({
                 <thead>
                   <tr>
                     <th style={{ width: '45px', textAlign: 'center' }}>Item</th>
-                    <th style={{ width: '110px' }}>Código Forn.</th>
-                    <th style={{ minWidth: '220px' }}>Descrição na Nota</th>
-                    <th style={{ width: '80px', textAlign: 'center' }}>Qtd</th>
-                    <th style={{ width: '100px', textAlign: 'right' }}>V. Unit.</th>
-                    <th style={{ width: '110px', textAlign: 'right' }}>Total</th>
-                    <th style={{ width: '190px' }}>CFOP Entrada</th>
-                    <th style={{ width: '220px' }}>Local Estoque</th>
-                    <th style={{ minWidth: '320px' }}>Situação / Produto no Estoque</th>
-                    <th style={{ width: '50px', textAlign: 'center' }}>Ações</th>
+                    <th style={{ width: '95px' }}>Código Forn.</th>
+                    <th style={{ minWidth: '200px' }}>Descrição na Nota</th>
+                    <th style={{ width: '70px', textAlign: 'center' }}>Qtd</th>
+                    <th style={{ width: '85px', textAlign: 'right' }}>V. Unit.</th>
+                    <th style={{ width: '95px', textAlign: 'right' }}>Total</th>
+                    <th style={{ width: '165px' }}>CFOP Entrada</th>
+                    <th style={{ width: '175px' }}>Local Estoque</th>
+                    <th style={{ minWidth: '250px' }}>Situação / Produto no Estoque</th>
+                    <th style={{ width: '110px', textAlign: 'center' }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1347,22 +1453,8 @@ const ModalConferenciaNFe = ({
 
                     return (
                       <tr key={idx}>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '3px' }}>
-                            <span style={{ fontWeight: 'bold', color: 'var(--cor-destaque)', fontSize: '0.95rem' }}>{idx + 1}</span>
-                            <button
-                              type="button"
-                              className={styles.btnPreencherItemOmie}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setItemIndexEdicao(idx);
-                              }}
-                              title="Preencher a CFOP de Entrada, Quantidade Recebida e demais informações"
-                            >
-                              <Edit3 size={11} />
-                              <span>Preencher CFOP, Tributos e Dados</span>
-                            </button>
-                          </div>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={styles.itemBadge}>#{idx + 1}</span>
                         </td>
                         <td style={{ fontFamily: 'monospace' }}>
                           <input
@@ -1370,8 +1462,8 @@ const ModalConferenciaNFe = ({
                             value={item.codigo || ''}
                             onChange={(e) => handleItemPropChange(idx, 'codigo', e.target.value)}
                             placeholder="Cód."
-                            className={styles.campoInput}
-                            style={{ width: '85px', fontFamily: 'monospace', fontSize: '0.8rem', padding: '4px 6px' }}
+                            className={styles.campoInputTabela}
+                            style={{ fontFamily: 'monospace' }}
                           />
                         </td>
                         <td>
@@ -1380,8 +1472,8 @@ const ModalConferenciaNFe = ({
                             value={item.descricao || ''}
                             onChange={(e) => handleItemPropChange(idx, 'descricao', e.target.value)}
                             placeholder="Descrição do produto na nota..."
-                            className={styles.campoInput}
-                            style={{ minWidth: '170px', fontWeight: '600', fontSize: '0.85rem', padding: '4px 6px' }}
+                            className={styles.campoInputTabela}
+                            style={{ fontWeight: '600' }}
                           />
                         </td>
                         <td style={{ textAlign: 'center' }}>
@@ -1391,11 +1483,11 @@ const ModalConferenciaNFe = ({
                             step="any"
                             value={item.quantidade}
                             onChange={(e) => handleItemPropChange(idx, 'quantidade', e.target.value)}
-                            className={styles.campoInput}
-                            style={{ width: '65px', textAlign: 'center', fontWeight: 'bold', padding: '4px 4px' }}
+                            className={styles.campoInputTabela}
+                            style={{ textAlign: 'center', fontWeight: 'bold' }}
                           />
                           {qtdRecebida !== item.quantidade && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--cor-erro)', fontWeight: 'bold', marginTop: '2px' }}>
+                            <div style={{ fontSize: '0.70rem', color: 'var(--cor-erro)', fontWeight: 'bold', marginTop: '2px' }}>
                               NF: {item.quantidade}
                             </div>
                           )}
@@ -1407,16 +1499,16 @@ const ModalConferenciaNFe = ({
                             step="0.01"
                             value={item.valorUnitario || 0}
                             onChange={(e) => handleItemPropChange(idx, 'valorUnitario', e.target.value)}
-                            className={styles.campoInput}
-                            style={{ width: '85px', textAlign: 'right', padding: '4px 6px' }}
+                            className={styles.campoInputTabela}
+                            style={{ textAlign: 'right' }}
                           />
                         </td>
-                        <td style={{ textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap', fontSize: '0.78rem' }}>
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valorTotal || (item.quantidade * (item.valorUnitario || 0)))}
                         </td>
                         <td>
                           <select
-                            className={styles.selectCfop}
+                            className={styles.selectTabela}
                             value={cfops[cod] || '1.556'}
                             onChange={(e) => handleCfopChange(cod, e.target.value)}
                             title="CFOP de Entrada no Omie"
@@ -1431,7 +1523,7 @@ const ModalConferenciaNFe = ({
                         </td>
                         <td>
                           <select
-                            className={styles.selectCfop}
+                            className={styles.selectTabela}
                             value={locaisEstoque[cod] || '01'}
                             onChange={(e) => handleLocalEstoqueChange(cod, e.target.value)}
                             title="Local de Estoque Omie (locais_estoque_omie)"
@@ -1468,72 +1560,62 @@ const ModalConferenciaNFe = ({
                                 onClick={() => handleMapeamentoChange(cod, 'ASSOCIAR:')}
                                 className={`${styles.btnAcaoItem} ${styles.btnAssociar}`}
                               >
-                                <Link size={14} /> Associar
+                                <Link size={12} /> Associar
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleMapeamentoChange(cod, `NOVO:${item.descricao || cod}`)}
                                 className={`${styles.btnAcaoItem} ${styles.btnNovo}`}
                               >
-                                <PlusCircle size={14} /> Novo Produto
+                                <PlusCircle size={12} /> Novo Produto
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleMapeamentoChange(cod, 'ignorar')}
                                 className={`${styles.btnAcaoItem} ${styles.btnIgnorar}`}
                               >
-                                <Ban size={14} /> Ignorar
+                                <Ban size={12} /> Ignorar
                               </button>
                             </div>
                           ) : selected === 'ignorar' ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: 'var(--cor-erro)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Ban size={14} /> Ignorado na importação
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ color: 'var(--cor-erro)', fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Ban size={12} /> Ignorado na importação
                               </span>
-                              <button type="button" onClick={() => handleMapeamentoChange(cod, '')} style={{ background: 'transparent', border: 'none', color: 'var(--cor-texto-secundario)', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline' }}>Alterar</button>
+                              <button type="button" onClick={() => handleMapeamentoChange(cod, '')} className={styles.btnAlterarItem}>Alterar</button>
                             </div>
                           ) : selected.startsWith('NOVO:') ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <PlusCircle size={14} /> Novo: {selected.substring(5)}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <PlusCircle size={12} /> Novo: {selected.substring(5)}
                               </span>
-                              <button type="button" onClick={() => handleMapeamentoChange(cod, '')} style={{ background: 'transparent', border: 'none', color: 'var(--cor-texto-secundario)', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline' }}>Alterar</button>
+                              <button type="button" onClick={() => handleMapeamentoChange(cod, '')} className={styles.btnAlterarItem}>Alterar</button>
                             </div>
                           ) : selected === 'ASSOCIAR:' ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <input
                                 list="produtos-almoxarifado-fiscal"
                                 autoFocus
                                 value=""
                                 onChange={(e) => handleMapeamentoChange(cod, e.target.value)}
                                 placeholder="Digite código ou descrição..."
-                                className={styles.inputAssociar}
+                                className={styles.campoInputTabela}
+                                style={{ minWidth: '180px' }}
                               />
                               <button type="button" onClick={() => handleMapeamentoChange(cod, '')} style={{ background: 'transparent', border: 'none', color: 'var(--cor-texto-secundario)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }} title="Cancelar">
-                                <X size={14} />
+                                <X size={13} />
                               </button>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{
-                                color: 'var(--cor-sucesso)',
-                                fontWeight: '600',
-                                fontSize: '0.82rem',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: 'rgba(16, 185, 129, 0.1)',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                                padding: '4px 10px',
-                                borderRadius: '6px'
-                              }}>
-                                <CheckCircle2 size={14} />
-                                <span>Associado com o produto <strong>{matchedProd ? `${matchedProd.codigo} - ${matchedProd.descricao}` : selected}</strong></span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <span className={styles.itemAssociadoBadge} title={matchedProd ? `${matchedProd.codigo} - ${matchedProd.descricao}` : selected}>
+                                <CheckCircle2 size={12} />
+                                <span>Associado com {matchedProd ? `${matchedProd.codigo} - ${matchedProd.descricao}` : selected}</span>
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleMapeamentoChange(cod, 'ASSOCIAR:')}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--cor-texto-secundario)', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline' }}
+                                className={styles.btnAlterarItem}
                                 title="Alterar produto associado"
                               >
                                 Alterar
@@ -1544,23 +1626,36 @@ const ModalConferenciaNFe = ({
                                 style={{ background: 'transparent', border: 'none', color: 'var(--cor-erro)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }}
                                 title="Desvincular"
                               >
-                                <X size={14} />
+                                <X size={12} />
                               </button>
                             </div>
                           )}
                         </td>
                         <td style={{ textAlign: 'center' }}>
-                          {itensDaNota.length > 1 && (
+                          <div className={styles.acoesLinhaWrapper}>
                             <button
                               type="button"
-                              onClick={() => handleRemoverItem(idx, cod)}
-                              className={styles.btnRemoverLinha}
-                              title="Remover este item da nota"
-                              style={{ background: 'transparent', border: 'none', color: 'var(--cor-erro)', cursor: 'pointer', padding: '4px' }}
+                              className={styles.btnEditarTributosLinha}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setItemIndexEdicao(idx);
+                              }}
+                              title="Preencher CFOP, Tributos (ICMS, ST, IPI, PIS, COFINS) e Dados Detalhados no Omie"
                             >
-                              <Trash2 size={16} />
+                              <SlidersHorizontal size={12} />
+                              <span>Tributos</span>
                             </button>
-                          )}
+                            {itensDaNota.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoverItem(idx, cod)}
+                                className={styles.btnRemoverLinha}
+                                title="Remover este item da nota"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1575,8 +1670,8 @@ const ModalConferenciaNFe = ({
             <div className={styles.parcelasSecao}>
               <div className={styles.parcelasHeader}>
                 <div>
-                  <h4 style={{ margin: 0, color: 'var(--cor-texto-principal)' }}>Vencimentos do Contas a Pagar</h4>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--cor-texto-secundario)' }}>
+                  <h4 style={{ margin: 0, color: 'var(--cor-texto-principal)', fontSize: '0.85rem', fontWeight: '700' }}>Vencimentos do Contas a Pagar</h4>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: 'var(--cor-texto-secundario)' }}>
                     Estes valores serão lançados no Financeiro da Omie para agendamento do pagamento.
                   </p>
                 </div>
@@ -1585,7 +1680,7 @@ const ModalConferenciaNFe = ({
                   onClick={handleAdicionarParcela}
                   className={styles.btnAdicionarParcela}
                 >
-                  <Plus size={16} />
+                  <Plus size={14} />
                   <span>+ Adicionar Parcela</span>
                 </button>
               </div>
@@ -1595,7 +1690,7 @@ const ModalConferenciaNFe = ({
                 <div className={styles.painelAbatimentoParcelas}>
                   <div className={styles.painelAbatimentoTexto}>
                     <div className={styles.painelAbatimentoTitulo}>
-                      <DollarSign size={18} color="var(--cor-sucesso)" />
+                      <DollarSign size={16} color="var(--cor-sucesso)" />
                       <span>Conciliação Financeira de Falta Física</span>
                     </div>
                     <span className={styles.painelAbatimentoSub}>
@@ -1613,14 +1708,15 @@ const ModalConferenciaNFe = ({
                         onClick={handleAplicarAbatimento}
                         className={styles.btnAplicarAbatimento}
                         title="Descontar o valor da falta na primeira parcela do Contas a Pagar"
+                        style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                       >
-                        <Zap size={14} />
+                        <Zap size={13} />
                         <span>Aplicar Abatimento de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorAbatimentoSugerido)}</span>
                       </button>
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className={styles.badgeAbatimentoAplicado}>
-                          <CheckCircle2 size={14} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className={styles.badgeAbatimentoAplicado} style={{ padding: '3px 8px', fontSize: '0.75rem' }}>
+                          <CheckCircle2 size={13} />
                           <span>Desconto de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parcelas[0].descontoAbatimento)} Aplicado</span>
                         </span>
                         <button
@@ -1628,6 +1724,7 @@ const ModalConferenciaNFe = ({
                           onClick={handleDesfazerAbatimento}
                           className={styles.btnDesfazerAbatimento}
                           title="Voltar ao valor integral da nota"
+                          style={{ fontSize: '0.75rem' }}
                         >
                           Desfazer Desconto
                         </button>
@@ -1641,17 +1738,19 @@ const ModalConferenciaNFe = ({
                 <table className={styles.tabelaParcelas}>
                   <thead>
                     <tr>
-                      <th style={{ width: '80px' }}>Parcela</th>
+                      <th style={{ width: '60px', textAlign: 'center' }}>Parcela</th>
                       <th style={{ width: '150px' }}>Número do Título</th>
                       <th>Data de Vencimento</th>
-                      <th style={{ width: '180px' }}>Valor (R$)</th>
-                      <th style={{ width: '50px' }}></th>
+                      <th style={{ width: '160px' }}>Valor (R$)</th>
+                      <th style={{ width: '45px', textAlign: 'center' }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {parcelas.map((parc, idx) => (
                       <tr key={idx}>
-                        <td style={{ fontWeight: 'bold' }}>{idx + 1}ª</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={styles.itemBadge}>{idx + 1}ª</span>
+                        </td>
                         <td>
                           <input
                             type="text"
@@ -1678,7 +1777,7 @@ const ModalConferenciaNFe = ({
                             className={styles.inputTabela}
                           />
                           {parc.descontoAbatimento > 0 && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--cor-sucesso)', fontWeight: 'bold', marginTop: '3px' }}>
+                            <div style={{ fontSize: '0.70rem', color: 'var(--cor-sucesso)', fontWeight: 'bold', marginTop: '2px' }}>
                               - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parc.descontoAbatimento)} (Abatimento por falta)
                             </div>
                           )}
@@ -1690,7 +1789,7 @@ const ModalConferenciaNFe = ({
                             className={styles.btnRemoverLinha}
                             title="Remover parcela"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={13} />
                           </button>
                         </td>
                       </tr>
@@ -1706,7 +1805,7 @@ const ModalConferenciaNFe = ({
             <div className={styles.secaoAba}>
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <Truck size={16} /> Modalidade do Frete e Previsão de Entrega
+                  <Truck size={14} /> Modalidade do Frete e Previsão de Entrega
                 </h5>
                 <div className={styles.gridCampos2}>
                   <div className={styles.campoGrupo}>
@@ -1739,7 +1838,7 @@ const ModalConferenciaNFe = ({
 
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <Building2 size={16} /> Dados do Transportador
+                  <Building2 size={14} /> Dados do Transportador
                 </h5>
                 <div className={styles.gridCampos2}>
                   <div className={styles.campoGrupo}>
@@ -1788,7 +1887,7 @@ const ModalConferenciaNFe = ({
 
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <Truck size={16} /> Veículo de Transporte
+                  <Truck size={14} /> Veículo de Transporte
                 </h5>
                 <div className={styles.gridCampos3}>
                   <div className={styles.campoGrupo}>
@@ -1827,7 +1926,7 @@ const ModalConferenciaNFe = ({
 
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <PackageCheck size={16} /> Volumes Transportados
+                  <PackageCheck size={14} /> Volumes Transportados
                 </h5>
                 <div className={styles.gridCampos4}>
                   <div className={styles.campoGrupo}>
@@ -1907,195 +2006,263 @@ const ModalConferenciaNFe = ({
               <div className={styles.cardTotalDestaque}>
                 <div>
                   <div className={styles.cardTotalDestaqueLabel}>Valor Total da Nota Fiscal (NF-e)</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--cor-texto-secundario)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--cor-texto-secundario)', marginTop: '2px' }}>
                     Soma de produtos, frete, impostos e acréscimos subtraídos os descontos
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '1.2rem', color: 'var(--cor-destaque)', fontWeight: 'bold' }}>R$</span>
+                <div className={styles.inputMoedaWrapper} style={{ height: '34px', borderColor: 'var(--cor-destaque)', width: '180px' }}>
+                  <span className={styles.moedaPrefixo} style={{ color: 'var(--cor-destaque)', fontWeight: '800', fontSize: '0.85rem' }}>R$</span>
                   <input
                     type="number"
                     step="0.01"
                     value={totaisTributos.vNF !== undefined ? totaisTributos.vNF : (valorTotalNF || 0)}
                     onChange={(e) => handleTotaisTributosChange('vNF', parseFloat(e.target.value) || 0)}
-                    className={`${styles.campoInput} ${styles.campoInputDestaque}`}
-                    style={{ fontSize: '1.35rem', fontWeight: '800', width: '190px', textAlign: 'right' }}
+                    className={`${styles.inputTotais} ${styles.inputDestaqueProdutos}`}
+                    style={{ fontSize: '1.15rem', fontWeight: '800' }}
                   />
                 </div>
               </div>
 
+              {/* Bloco 1: ICMS e Substituição Tributária (ST) */}
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <DollarSign size={16} /> Bases de Cálculo e Impostos Principais
+                  <DollarSign size={14} /> ICMS e Substituição Tributária (ST)
                 </h5>
-                <div className={styles.gridCampos4}>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Base de Cálculo ICMS</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vBC ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vBC', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                <div className={styles.gridTotais5}>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Base de Cálculo ICMS">Base de Cálculo ICMS</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vBC ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vBC', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor do ICMS</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vICMS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vICMS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor do ICMS">Valor do ICMS</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vICMS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vICMS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>ICMS Desonerado</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vICMSDeson ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vICMSDeson', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="ICMS Desonerado">ICMS Desonerado</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vICMSDeson ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vICMSDeson', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Base de Cálculo ICMS ST</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vBCST ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vBCST', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Base de Cálculo ICMS ST">Base de Cálculo ICMS ST</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vBCST ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vBCST', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor do ICMS ST</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vST ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vST', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Total dos Produtos</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vProd ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vProd', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor do Frete</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vFrete ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vFrete', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor do Seguro</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vSeg ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vSeg', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Desconto Total</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vDesc ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vDesc', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Total do IPI</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vIPI ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vIPI', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Total do PIS</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vPIS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vPIS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Total da COFINS</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vCOFINS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vCOFINS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
-                  </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor Aprox. Tributos (IBPT)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vTotTrib ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vTotTrib', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor do ICMS ST">Valor do ICMS ST</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vST ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vST', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* Bloco 2: Valores da Operação e Despesas */}
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <Info size={16} /> Reforma Tributária (Emenda Constitucional 132/2023)
+                  <Package size={14} /> Valores da Operação e Despesas Acessórias
                 </h5>
-                <div className={styles.gridCampos3}>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor de IS (Imposto Seletivo)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vIS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vIS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                <div className={styles.gridTotais4}>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Total dos Produtos">Total dos Produtos</label>
+                    <div className={styles.inputMoedaWrapper} style={{ borderColor: 'rgba(255, 107, 0, 0.4)' }}>
+                      <span className={styles.moedaPrefixo} style={{ color: 'var(--cor-destaque)', fontWeight: '800' }}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vProd ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vProd', parseFloat(e.target.value) || 0)}
+                        className={`${styles.inputTotais} ${styles.inputDestaqueProdutos}`}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor de IBS (Bens e Serviços)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vIBS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vIBS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor do Frete">Valor do Frete</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vFrete ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vFrete', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.campoGrupo}>
-                    <label className={styles.campoLabel}>Valor de CBS (Bens e Serviços)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={totaisTributos.vCBS ?? 0}
-                      onChange={(e) => handleTotaisTributosChange('vCBS', parseFloat(e.target.value) || 0)}
-                      className={styles.campoInput}
-                    />
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor do Seguro">Valor do Seguro</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vSeg ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vSeg', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Desconto Total">Desconto Total</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vDesc ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vDesc', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bloco 3: Tributos Federais e Outros Encargos */}
+              <div className={styles.secaoBloco}>
+                <h5 className={styles.secaoBlocoTitulo}>
+                  <Receipt size={14} /> Tributos Federais e Outros Encargos
+                </h5>
+                <div className={styles.gridTotais4}>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Total do IPI">Total do IPI</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vIPI ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vIPI', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Total do PIS">Total do PIS</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vPIS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vPIS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Total da COFINS">Total da COFINS</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vCOFINS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vCOFINS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor Aprox. Tributos (IBPT)">Valor Aprox. Tributos (IBPT)</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vTotTrib ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vTotTrib', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bloco 4: Reforma Tributária */}
+              <div className={styles.secaoBloco}>
+                <h5 className={styles.secaoBlocoTitulo}>
+                  <Info size={14} /> Reforma Tributária (Emenda Constitucional 132/2023)
+                </h5>
+                <div className={styles.gridTotais3}>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor de IS (Imposto Seletivo)">Valor de IS (Imposto Seletivo)</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vIS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vIS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor de IBS (Bens e Serviços)">Valor de IBS (Bens e Serviços)</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vIBS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vIBS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.campoGrupoTotais}>
+                    <label className={styles.campoLabelTotais} title="Valor de CBS (Bens e Serviços)">Valor de CBS (Bens e Serviços)</label>
+                    <div className={styles.inputMoedaWrapper}>
+                      <span className={styles.moedaPrefixo}>R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={totaisTributos.vCBS ?? 0}
+                        onChange={(e) => handleTotaisTributosChange('vCBS', parseFloat(e.target.value) || 0)}
+                        className={styles.inputTotais}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2106,12 +2273,12 @@ const ModalConferenciaNFe = ({
           {abaAtiva === 'departamentos' && (
             <div className={styles.secaoAba}>
               <div className={styles.secaoBloco}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
                     <h5 className={styles.secaoBlocoTitulo} style={{ borderBottom: 'none', paddingBottom: 0 }}>
-                      <Building2 size={16} /> Rateio de Custos por Departamento (Omie)
+                      <Building2 size={14} /> Rateio de Custos por Departamento (Omie)
                     </h5>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--cor-texto-secundario)' }}>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: 'var(--cor-texto-secundario)' }}>
                       Distribua o custo total da nota entre os centros de custo cadastrados no ERP Omie.
                     </p>
                   </div>
@@ -2121,7 +2288,7 @@ const ModalConferenciaNFe = ({
                       value={deptSelecionadoParaAdicionar}
                       onChange={(e) => setDeptSelecionadoParaAdicionar(e.target.value)}
                       className={styles.campoInput}
-                      style={{ minWidth: '220px' }}
+                      style={{ minWidth: '190px', height: '28px', fontSize: '0.78rem' }}
                     >
                       <option value="">-- Selecione o Departamento --</option>
                       {listaDepartamentos.map(d => (
@@ -2135,23 +2302,23 @@ const ModalConferenciaNFe = ({
                       onClick={handleAdicionarRateio}
                       disabled={!deptSelecionadoParaAdicionar}
                       className={styles.btnSubmodalSalvar}
-                      style={{ padding: '7px 14px' }}
+                      style={{ padding: '4px 10px', height: '28px', fontSize: '0.78rem' }}
                     >
-                      <Plus size={16} />
+                      <Plus size={13} />
                       <span>Adicionar Rateio</span>
                     </button>
                   </div>
                 </div>
 
-                <div className={styles.tabelaContainer} style={{ marginTop: '1rem' }}>
+                <div className={styles.tabelaContainer} style={{ marginTop: '0.75rem' }}>
                   <table className={styles.tabelaDepartamentos}>
                     <thead>
                       <tr>
-                        <th style={{ width: '120px' }}>Código</th>
+                        <th style={{ width: '100px' }}>Código</th>
                         <th>Departamento / Centro de Custo</th>
-                        <th style={{ width: '160px' }}>Percentual (%)</th>
-                        <th style={{ width: '200px' }}>Valor Rateado (R$)</th>
-                        <th style={{ width: '60px', textAlign: 'center' }}></th>
+                        <th style={{ width: '130px' }}>Percentual (%)</th>
+                        <th style={{ width: '160px' }}>Valor Rateado (R$)</th>
+                        <th style={{ width: '40px', textAlign: 'center' }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2165,7 +2332,7 @@ const ModalConferenciaNFe = ({
                               step="0.01"
                               value={rateio.percentual}
                               onChange={(e) => handleRateioChange(idx, 'percentual', e.target.value)}
-                              className={styles.campoInput}
+                              className={styles.inputTabela}
                             />
                           </td>
                           <td>
@@ -2174,7 +2341,7 @@ const ModalConferenciaNFe = ({
                               step="0.01"
                               value={rateio.valor}
                               onChange={(e) => handleRateioChange(idx, 'valor', e.target.value)}
-                              className={styles.campoInput}
+                              className={styles.inputTabela}
                             />
                           </td>
                           <td style={{ textAlign: 'center' }}>
@@ -2184,7 +2351,7 @@ const ModalConferenciaNFe = ({
                               className={styles.btnRemoverLinha}
                               title="Remover departamento"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={13} />
                             </button>
                           </td>
                         </tr>
@@ -2198,11 +2365,11 @@ const ModalConferenciaNFe = ({
 
                         return (
                           <tr style={{ background: 'var(--cor-fundo-sutil)', fontWeight: 'bold' }}>
-                            <td colSpan={2} style={{ textAlign: 'right', padding: '10px 12px' }}>Totais do Rateio:</td>
-                            <td style={{ color: isEquilibrado ? 'var(--cor-sucesso)' : 'var(--cor-erro)', padding: '10px 12px' }}>
+                            <td colSpan={2} style={{ textAlign: 'right', padding: '6px 10px', fontSize: '0.75rem' }}>Totais do Rateio:</td>
+                            <td style={{ color: isEquilibrado ? 'var(--cor-sucesso)' : 'var(--cor-erro)', padding: '6px 10px', fontSize: '0.78rem' }}>
                               {totalPerc.toFixed(2)}%
                             </td>
-                            <td style={{ color: 'var(--cor-destaque)', padding: '10px 12px' }}>
+                            <td style={{ color: 'var(--cor-destaque)', padding: '6px 10px', fontSize: '0.78rem' }}>
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalVal)}
                             </td>
                             <td></td>
@@ -2221,9 +2388,9 @@ const ModalConferenciaNFe = ({
             <div className={styles.secaoAba}>
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <Info size={16} /> Classificação e Dados Adicionais da Operação
+                  <Info size={14} /> Classificação e Dados Adicionais da Operação
                 </h5>
-                <div className={styles.gridCampos2}>
+                <div className={styles.gridCampos3}>
                   <div className={styles.campoGrupo}>
                     <label className={styles.campoLabel}>Categoria da Compra (Omie)</label>
                     <input
@@ -2280,12 +2447,12 @@ const ModalConferenciaNFe = ({
 
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <FileText size={16} /> Informações Complementares da Nota (infCpl)
+                  <FileText size={14} /> Informações Complementares da Nota (infCpl)
                 </h5>
                 <div className={styles.campoGrupo}>
                   <label className={styles.campoLabel}>Texto gravado pelo emissor no XML</label>
                   <textarea
-                    rows={4}
+                    rows={3}
                     value={infoAdicionais.infCpl || ''}
                     onChange={(e) => setInfoAdicionais({ ...infoAdicionais, infCpl: e.target.value })}
                     className={styles.campoTextarea}
@@ -2297,11 +2464,11 @@ const ModalConferenciaNFe = ({
               {infoAdicionais.infAdFisco && (
                 <div className={styles.secaoBloco}>
                   <h5 className={styles.secaoBlocoTitulo}>
-                    <FileText size={16} /> Informações de Interesse do Fisco (infAdFisco)
+                    <FileText size={14} /> Informações de Interesse do Fisco (infAdFisco)
                   </h5>
                   <div className={styles.campoGrupo}>
                     <textarea
-                      rows={3}
+                      rows={2}
                       readOnly
                       value={infoAdicionais.infAdFisco}
                       className={`${styles.campoTextarea} ${styles.campoInputDisabled}`}
@@ -2317,14 +2484,14 @@ const ModalConferenciaNFe = ({
             <div className={styles.secaoAba}>
               <div className={styles.secaoBloco}>
                 <h5 className={styles.secaoBlocoTitulo}>
-                  <FileText size={16} /> Observações Internas do Recebimento Fiscal
+                  <FileText size={14} /> Observações Internas do Recebimento Fiscal
                 </h5>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--cor-texto-secundario)' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cor-texto-secundario)' }}>
                   Estas anotações são armazenadas no sistema para histórico de conferência, justificativas de divergência ou instruções para a equipe.
                 </p>
-                <div className={styles.campoGrupo} style={{ marginTop: '0.5rem' }}>
+                <div className={styles.campoGrupo} style={{ marginTop: '0.35rem' }}>
                   <textarea
-                    rows={6}
+                    rows={4}
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
                     placeholder="Digite observações sobre esta nota fiscal, fornecedor ou conferência física..."

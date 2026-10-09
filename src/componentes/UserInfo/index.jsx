@@ -30,10 +30,11 @@ const UserInfo = ({ isCollapsed = false, inline = false }) => {
   const formatRole = (role) => {
     if (role === 'admin') return 'Administrador';
     if (role === 'diretor') return 'Diretoria';
-    if (role === 'os') return 'Gestor de O.S.';
+    if (role === 'os') return 'O.S / Controle Combustivel';
     if (role === 'chefe_setor') return 'Chefe de Setor';
-    if (role === 'almoxarife') return 'Almoxarifado';
+    if (role === 'almoxarife' || role === 'almoxarifado') return 'Almoxarifado';
     if (role === 'compras') return 'Compras';
+    if (role === 'recebimento_fiscal' || role === 'fiscal') return 'Recebimento Fiscal';
     if (role === 'apontamento' || role === 'oficina') return 'Colaborador';
     if (role === 'tecnico') return 'Técnico';
     if (role === 'motorista') return 'Motorista';

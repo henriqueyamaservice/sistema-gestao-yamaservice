@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import omieProdutosService from '../services/omieProdutosService.js';
+import omieEstoqueService from '../services/omieEstoqueService.js';
 import { buscarHistoricoComprasOmie } from '../services/omieComprasService.js';
 import getDb from '../config/database.js';
 import { obterCadastro } from '../services/cadastrosSyncService.js';
@@ -730,157 +731,84 @@ router.post('/:codigo/descarte', async (req, res) => {
   }
 });
 
-// Cache global simples para não ficar puxando os locais toda hora
-let locaisCache = null;
-let locaisCacheTime = 0;
+// ============================================================================
+// ROTAS DE SINCRONIZAÇÃO DE ESTOQUE COM A OMIE & AUDITORIA
+// ============================================================================
 
-async function getOmieStock(codigo, id_prod) {
-  const OMIE_APP_KEY = process.env.OMIE_APP_KEY;
-  const OMIE_APP_SECRET = process.env.OMIE_APP_SECRET;
-  
-  if (!OMIE_APP_KEY || !OMIE_APP_SECRET) throw new Error("Chaves da Omie ausentes");
-
-  // Pega os locais de estoque usando cache (válido por 1 hora)
-  if (!locaisCache || (Date.now() - locaisCacheTime > 3600000)) {
-    const locaisUrl = 'https://app.omie.com.br/api/v1/estoque/local/';
-    const locaisRes = await fetch(locaisUrl, {
-      method: 'POST',
-      headers: { 'Content-type': 'application/json' },
-      body: JSON.stringify({
-        call: "ListarLocaisEstoque",
-        app_key: OMIE_APP_KEY,
-        app_secret: OMIE_APP_SECRET,
-        param: [{ nPagina: 1, nRegPorPagina: 50 }]
-      })
-    });
-    
-    const locaisData = await locaisRes.json();
-    if (!locaisData.locaisEncontrados) throw new Error("Não foi possível listar os locais de estoque da Omie.");
-    locaisCache = locaisData.locaisEncontrados;
-    locaisCacheTime = Date.now();
-  }
-  
-  let saldoTotal = 0;
-  const consultaUrl = 'https://app.omie.com.br/api/v1/estoque/consulta/';
-  
-  // Para cada local, consulta o saldo em blocos (concorrência controlada de 4 em 4) para ser muito mais rápido
-  const chunkSize = 4;
-  for (let i = 0; i < locaisCache.length; i += chunkSize) {
-    const chunk = locaisCache.slice(i, i + chunkSize);
-    
-    const promises = chunk.map(local => 
-      fetch(consultaUrl, {
-        method: 'POST',
-        headers: { 'Content-type': 'application/json' },
-        body: JSON.stringify({
-          call: "PosicaoEstoque",
-          app_key: OMIE_APP_KEY,
-          app_secret: OMIE_APP_SECRET,
-          param: [{
-            id_prod: id_prod,
-            codigo_local_estoque: local.codigo_local_estoque,
-            data: ""
-          }]
-        })
-      }).then(r => r.json()).catch(err => {
-        console.warn(`Aviso: Erro no local ${local.codigo_local_estoque}:`, err.message);
-        return {};
-      })
-    );
-    
-    const results = await Promise.all(promises);
-    for (const data of results) {
-      if (data.saldo) saldoTotal += data.saldo;
-    }
-    
-    // Pequeno delay entre blocos de 4 para não ofender o Rate Limit da Omie
-    if (i + chunkSize < locaisCache.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-  
-  return saldoTotal;
-}
-
-// ROTA PARA SINCRONIZAR SALDO DE UM ÚNICO PRODUTO
-router.get('/:codigo/sync-estoque', async (req, res) => {
+// ROTA PARA CONSULTAR HISTÓRICO GERAL DE SINCRONIZAÇÃO
+router.get('/historico-sync/geral', async (req, res) => {
   try {
-    const { codigo } = req.params;
-    
-    let produtos = await getProdutosDb();
-    
-    const prodIndex = produtos.findIndex(p => p.codigo === codigo);
-    if (prodIndex === -1) {
-      return res.status(404).json({ message: 'Produto não encontrado.' });
-    }
-    
-    const produto = produtos[prodIndex];
-    const saldoTotal = await getOmieStock(produto.codigo, produto.codigo_produto);
-    
-    produtos[prodIndex].quantidade_estoque = saldoTotal;
-    
-    const db = await getDb();
-    if (db.driver === 'mysql') {
-      await db.run(
-        `UPDATE produtos_omie SET quantidade_estoque = ?, dados_json = ?, atualizado_em = NOW() WHERE codigo = ?`,
-        [saldoTotal, JSON.stringify(produtos[prodIndex]), codigo]
-      );
-    } else {
-      await db.run(
-        `UPDATE produtos_omie SET quantidade_estoque = ?, dados_json = ?, atualizado_em = CURRENT_TIMESTAMP WHERE codigo = ?`,
-        [saldoTotal, JSON.stringify(produtos[prodIndex]), codigo]
-      );
-    }
-    
-    return res.json({ message: 'Saldo atualizado da Omie com sucesso!', saldo: saldoTotal, produto: produtos[prodIndex] });
-    
+    const limit = parseInt(req.query.limit) || 50;
+    const historico = await omieEstoqueService.obterHistorico(null, limit);
+    res.json(historico);
   } catch (error) {
-    console.error('Erro ao sincronizar estoque Omie:', error);
-    res.status(500).json({ message: 'Erro ao comunicar com a Omie', error: error.message });
+    console.error('Erro ao buscar histórico geral de sincronização:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// ROTA PARA SINCRONIZAR TODOS (BULK) - Rota demorada, ideal chamar via Background ou UI com Timeout alto
+// ROTA PARA CONSULTAR HISTÓRICO DE UM PRODUTO ESPECÍFICO
+router.get('/:codigo/historico-sync', async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    const limit = parseInt(req.query.limit) || 20;
+    const historico = await omieEstoqueService.obterHistorico(codigo, limit);
+    res.json(historico);
+  } catch (error) {
+    console.error(`Erro ao buscar histórico de sincronização do produto ${req.params.codigo}:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ROTA PARA SINCRONIZAR SALDO DE UM ÚNICO PRODUTO (GET e POST)
+const handleSyncIndividual = async (req, res) => {
+  try {
+    const { codigo } = req.params;
+    const usuario = req.body?.usuario || req.query?.usuario || 'Almoxarife';
+
+    const resultado = await omieEstoqueService.consultarSaldoIndividual(codigo, usuario);
+
+    // Notifica em tempo real os clientes conectados via Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('estoque_atualizado', {
+        codigo,
+        quantidade_estoque: resultado.novoSaldo,
+        atualizado_em: resultado.atualizadoEm
+      });
+    }
+
+    return res.json({
+      message: 'Saldo atualizado da Omie com sucesso!',
+      ...resultado
+    });
+  } catch (error) {
+    console.error(`Erro ao sincronizar produto ${req.params.codigo} com a Omie:`, error);
+    res.status(500).json({ message: 'Erro ao comunicar com a Omie', error: error.message });
+  }
+};
+
+router.get('/:codigo/sync-estoque', handleSyncIndividual);
+router.post('/:codigo/sync-estoque', handleSyncIndividual);
+
+// ROTA PARA SINCRONIZAR TODOS (BULK / DISPARO MANUAL GERAL)
 router.post('/sync-todos-estoque', async (req, res) => {
   try {
-    const { limit = 50 } = req.body; // Puxar lote de 50 produtos para não travar muito
-    
-    let produtos = await getProdutosDb();
-    
-    let processados = 0;
-    for (let i = 0; i < Math.min(limit, produtos.length); i++) {
-      if (!produtos[i].codigo_produto) continue; // Pula se não tiver ID da Omie
-      
-      try {
-        const saldo = await getOmieStock(produtos[i].codigo, produtos[i].codigo_produto);
-        produtos[i].quantidade_estoque = saldo;
-        processados++;
-      } catch (err) {
-        console.error(`Erro ao syncar ${produtos[i].codigo}:`, err.message);
-      }
+    const usuario = req.body?.usuario || 'Administrador';
+    const limitePaginas = req.body?.limitePaginas || null;
+    const resultado = await omieEstoqueService.sincronizarPosicaoEstoqueGeral('MANUAL_PAINEL', usuario, limitePaginas);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('estoque_atualizado', { tipo: 'TODOS' });
     }
-    
-    const db = await getDb();
-    for (let i = 0; i < Math.min(limit, produtos.length); i++) {
-      if (!produtos[i].codigo_produto) continue;
-      if (db.driver === 'mysql') {
-        await db.run(
-          `UPDATE produtos_omie SET quantidade_estoque = ?, dados_json = ?, atualizado_em = NOW() WHERE codigo = ?`,
-          [produtos[i].quantidade_estoque, JSON.stringify(produtos[i]), produtos[i].codigo]
-        );
-      } else {
-        await db.run(
-          `UPDATE produtos_omie SET quantidade_estoque = ?, dados_json = ?, atualizado_em = CURRENT_TIMESTAMP WHERE codigo = ?`,
-          [produtos[i].quantidade_estoque, JSON.stringify(produtos[i]), produtos[i].codigo]
-        );
-      }
-    }
-    
-    return res.json({ message: `Sincronização em lote concluída. ${processados} produtos atualizados.` });
+
+    return res.json(resultado);
   } catch (error) {
-    console.error('Erro na sincronização em lote:', error);
+    console.error('Erro na sincronização em lote de estoque:', error);
     res.status(500).json({ message: 'Erro na sincronização em lote', error: error.message });
   }
 });
 
 export default router;
+

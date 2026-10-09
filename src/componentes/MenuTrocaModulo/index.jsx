@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Package, ShoppingCart, FileText, UserCheck, ShieldCheck,
-  Wrench, Settings, Clock, ChevronDown, ChevronUp, Layers, Car, Fuel, FileCheck
+  Wrench, Settings, Clock, ChevronDown, ChevronUp, Layers, Car, Fuel, FileCheck,
+  GripHorizontal, RotateCcw
 } from 'lucide-react';
 import styles from './index.module.css';
 
@@ -91,37 +92,157 @@ const MODULOS = [
 
 const MenuTrocaModulo = ({ moduloAtivo, setModuloAtivo }) => {
   const [minimizado, setMinimizado] = useState(false);
+  const [posicao, setPosicao] = useState(null); // { x: number, y: number }
+  const [arrastando, setArrastando] = useState(false);
+
+  const containerRef = useRef(null);
+  const dragInfoRef = useRef({
+    ativo: false,
+    startX: 0,
+    startY: 0,
+    initialElemX: 0,
+    initialElemY: 0,
+    hasMoved: false
+  });
 
   const moduloAtual = MODULOS.find(m => m.id === moduloAtivo) || MODULOS[0];
 
+  const handlePointerDown = (e) => {
+    if (e.button !== 0) return; // Apenas clique com botão esquerdo
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    dragInfoRef.current = {
+      ativo: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialElemX: rect.left,
+      initialElemY: rect.top,
+      hasMoved: false
+    };
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragInfoRef.current.ativo) return;
+
+    const deltaX = e.clientX - dragInfoRef.current.startX;
+    const deltaY = e.clientY - dragInfoRef.current.startY;
+
+    if (!dragInfoRef.current.hasMoved && Math.hypot(deltaX, deltaY) > 5) {
+      dragInfoRef.current.hasMoved = true;
+      setArrastando(true);
+    }
+
+    if (dragInfoRef.current.hasMoved) {
+      const container = containerRef.current;
+      const width = container ? container.offsetWidth : 260;
+      const height = container ? container.offsetHeight : 50;
+
+      const maxX = window.innerWidth - width - 8;
+      const maxY = window.innerHeight - height - 6;
+
+      const novoX = Math.max(8, Math.min(maxX, dragInfoRef.current.initialElemX + deltaX));
+      const novoY = Math.max(8, Math.min(maxY, dragInfoRef.current.initialElemY + deltaY));
+
+      setPosicao({ x: novoX, y: novoY });
+    }
+  };
+
+  const handlePointerUp = (e) => {
+    if (!dragInfoRef.current.ativo) return;
+
+    const hadMoved = dragInfoRef.current.hasMoved;
+    dragInfoRef.current.ativo = false;
+    setArrastando(false);
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    // Reseta hasMoved após pequeno timeout para evitar disparo de onClick acidental
+    if (hadMoved) {
+      setTimeout(() => {
+        dragInfoRef.current.hasMoved = false;
+      }, 50);
+    }
+  };
+
+  const handleToggleClick = (e) => {
+    if (dragInfoRef.current.hasMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setMinimizado(prev => !prev);
+  };
+
+  const resetarPosicao = (e) => {
+    e.stopPropagation();
+    setPosicao(null);
+  };
+
+  const inlineStyle = posicao ? {
+    left: `${posicao.x}px`,
+    top: `${posicao.y}px`,
+    bottom: 'auto',
+    transform: 'none',
+    transition: arrastando ? 'none' : 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+  } : {};
+
   return (
-    <div className={`${styles.dockContainer} ${minimizado ? styles.minimized : ''}`}>
-      {/* Botão de Alternância Minimizar / Expandir */}
-      {minimizado ? (
-        <button
-          type="button"
-          className={`${styles.toggleBtn} ${styles.minimizedBtn}`}
-          onClick={() => setMinimizado(false)}
-          title="Expandir menu de módulos"
+    <div
+      ref={containerRef}
+      className={`${styles.dockContainer} ${minimizado ? styles.minimized : ''} ${arrastando ? styles.isDragging : ''}`}
+      style={inlineStyle}
+    >
+      {/* Botão de Alternância Minimizar / Expandir + Alça de Arraste */}
+      <div className={styles.topControlBar}>
+        <div
+          className={`${styles.toggleBtn} ${minimizado ? styles.minimizedBtn : ''}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onClick={handleToggleClick}
+          title="Arraste para mover pela tela ou clique para recolher/expandir"
         >
-          <Layers size={14} />
-          <span>
-            Módulo: <strong>{moduloAtual.nome}</strong>
-            {moduloAtual.isBeta && <span className={styles.minimizedBeta}>Beta</span>}
+          <span className={styles.dragGrip} title="Segure e arraste para qualquer lugar">
+            <GripHorizontal size={13} />
           </span>
-          <ChevronUp size={14} />
-        </button>
-      ) : (
-        <button
-          type="button"
-          className={styles.toggleBtn}
-          onClick={() => setMinimizado(true)}
-          title="Minimizar menu"
-        >
-          <ChevronDown size={13} />
-          <span>Minimizar Menu</span>
-        </button>
-      )}
+
+          {minimizado ? (
+            <>
+              <Layers size={13} />
+              <span>
+                Módulo: <strong>{moduloAtual.nome}</strong>
+                {moduloAtual.isBeta && <span className={styles.minimizedBeta}>Beta</span>}
+              </span>
+              <ChevronUp size={13} />
+            </>
+          ) : (
+            <>
+              <ChevronDown size={12} />
+              <span>Minimizar Menu</span>
+            </>
+          )}
+        </div>
+
+        {posicao && (
+          <button
+            type="button"
+            className={styles.resetPosBtn}
+            onClick={resetarPosicao}
+            title="Voltar para a posição padrão no rodapé"
+          >
+            <RotateCcw size={11} />
+          </button>
+        )}
+      </div>
 
       {/* Barra Dock Flutuante */}
       <div className={styles.dockBar}>

@@ -28,12 +28,23 @@ dist-ssr
 *.sln
 *.sw?
 
-# Regras, Agentes AI e Contratos Locais
+# AI Agents, Regras e Instrucoes Locais (Sigilo Total)
+.agents
 .agents/
-
-.AGENTS.md
-
+.agents/**
+**/.agents
+**/.agents/
+**/.agents/**
+AGENTS.md
+**/AGENTS.md
+agents.md
+**/agents.md
+agente.md
 **/agente.md
+AGENTE.md
+**/AGENTE.md
+.AGENTS.md
+**/.AGENTS.md
 CONTRATO_API.md
 
 # Certificados Digitais SEFAZ (seguranca)
@@ -44,11 +55,6 @@ CONTRATO_API.md
 *.cer
 *.crt
 **/certificados/
-
-# AI Agents & Regras (Sigilo)
-AGENTS.md
-**/AGENTS.md
-.agents/
 
 # Arquivos de Teste Mock
 *.xml

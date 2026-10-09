@@ -73,6 +73,57 @@
   color: var(--cor-texto-secundario);
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btnDanfePdf {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #16a34a;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnDanfePdf:hover {
+  background: rgba(34, 197, 94, 0.22);
+  transform: translateY(-1px);
+}
+
+.btnDanfeBuscar {
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-destaque);
+  color: var(--cor-destaque);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btnDanfeBuscar:hover:not(:disabled) {
+  background: rgba(255, 107, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.btnDanfeBuscar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btnClose {
   background: transparent;
   border: none;
@@ -158,14 +209,15 @@
 }
 
 /* Seção de Abas Internas */
+/* Seção de Abas Internas */
 .tabsNav {
   display: flex;
   align-items: center;
   gap: 6px;
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 10px;
-  padding: 6px;
+  border-radius: 8px;
+  padding: 5px 8px;
   flex-wrap: wrap; /* TODAS AS 7 ABAS SEMPRE VISÍVEIS */
   position: sticky;
   top: 0;
@@ -176,31 +228,46 @@
 .tabBtn {
   background: transparent;
   border: 1px solid transparent;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 0.88rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.80rem;
   font-weight: 600;
-  color: var(--cor-texto-secundario);
+  color: var(--cor-texto-principal);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tabBtn:hover {
-  background: var(--cor-fundo-sutil);
-  color: var(--cor-texto-principal);
+  background: var(--cor-fundo-sutil-forte);
+  color: var(--cor-destaque);
 }
 
 .tabBtnActive {
   background: var(--cor-fundo-cartao);
   color: var(--cor-destaque);
-  border-color: rgba(255, 107, 0, 0.35);
+  border-color: rgba(255, 107, 0, 0.45);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   font-weight: 700;
+}
+
+.tabBadge {
+  background: rgba(255, 107, 0, 0.12);
+  color: var(--cor-destaque);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.tabBtnActive .tabBadge {
+  background: rgba(255, 107, 0, 0.18);
+  color: var(--cor-destaque);
 }
 
 /* Tabela de Itens */
@@ -214,43 +281,161 @@
 .tabela {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .tabela th {
   background: var(--cor-fundo-secundario);
-  padding: 10px 12px;
+  padding: 7px 8px;
   text-align: left;
   color: var(--cor-texto-secundario);
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.3px;
   border-bottom: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap;
 }
 
 .tabela td {
-  padding: 10px 12px;
+  padding: 5px 8px;
   border-bottom: 1px solid var(--cor-borda-cartao);
   color: var(--cor-texto-principal);
+  vertical-align: middle;
+}
+
+.itemBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 4px;
+  border-radius: 5px;
+  background: rgba(255, 107, 0, 0.12);
+  color: var(--cor-destaque);
+  font-weight: 800;
+  font-size: 0.78rem;
+  font-family: monospace;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.campoInputTabela {
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 5px;
+  padding: 3px 6px;
+  color: var(--cor-texto-principal);
+  font-size: 0.78rem;
+  height: 28px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.campoInputTabela:focus {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.2);
+}
+
+.selectTabela {
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 5px;
+  padding: 2px 6px;
+  color: var(--cor-texto-principal);
+  font-size: 0.76rem;
+  font-weight: 600;
+  height: 28px;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.selectTabela:focus {
+  border-color: var(--cor-destaque);
+}
+
+.acoesLinhaWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btnEditarTributosLinha {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  height: 26px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnEditarTributosLinha:hover {
+  background: rgba(255, 107, 0, 0.15);
+  color: var(--cor-destaque);
+  border-color: rgba(255, 107, 0, 0.4);
+}
+
+.itemAssociadoBadge {
+  color: var(--cor-sucesso);
+  font-weight: 600;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 2px 7px;
+  border-radius: 5px;
+  line-height: 1.3;
+}
+
+.btnAlterarItem {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  font-size: 0.72rem;
+  text-decoration: underline;
+  padding: 1px 3px;
+  transition: color 0.15s ease;
+}
+
+.btnAlterarItem:hover {
+  color: var(--cor-destaque);
 }
 
 .acoesItemWrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .btnAcaoItem {
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.78rem;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 0.73rem;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  height: 26px;
   transition: all 0.2s ease;
 }
 
@@ -275,11 +460,13 @@
 .inputAssociar {
   background: var(--cor-fundo-principal);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 5px;
+  padding: 3px 8px;
   color: var(--cor-texto-principal);
-  font-size: 0.85rem;
-  min-width: 220px;
+  font-size: 0.80rem;
+  height: 28px;
+  box-sizing: border-box;
+  min-width: 180px;
   outline: none;
 }
 
@@ -295,18 +482,18 @@
   border: 1px solid var(--cor-borda-cartao);
   border-bottom: none;
   border-radius: 8px 8px 0 0;
-  padding: 10px 14px;
-  font-size: 0.82rem;
+  padding: 8px 12px;
+  font-size: 0.78rem;
   color: var(--cor-texto-secundario);
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .barraAcoesLegenda {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 0.8rem;
+  gap: 12px;
+  font-size: 0.75rem;
   flex-wrap: wrap;
 }
 
@@ -364,27 +551,33 @@
 .parcelasSecao {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  background: var(--cor-fundo-cartao);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 0.85rem 1.15rem;
 }
 
 .parcelasHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .btnAdicionarParcela {
   background: transparent;
   border: 1px dashed var(--cor-destaque);
   color: var(--cor-destaque);
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.2s ease;
 }
 
@@ -395,31 +588,41 @@
 .tabelaParcelas {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.78rem;
 }
 
 .tabelaParcelas th {
   background: var(--cor-fundo-secundario);
-  padding: 8px 12px;
+  padding: 6px 10px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   color: var(--cor-texto-secundario);
   border-bottom: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap;
 }
 
 .tabelaParcelas td {
-  padding: 8px 12px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-principal);
+  vertical-align: middle;
 }
 
 .inputTabela {
   background: var(--cor-fundo-principal);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 5px;
+  padding: 3px 6px;
   color: var(--cor-texto-principal);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  height: 28px;
+  box-sizing: border-box;
   width: 100%;
   outline: none;
+  transition: border-color 0.2s;
 }
 
 .inputTabela:focus {
@@ -447,18 +650,19 @@
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 8px 14px;
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .checkboxLabel {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.80rem;
   font-weight: 600;
   color: var(--cor-texto-principal);
 }
@@ -711,7 +915,66 @@
   gap: 4px;
 }
 
-/* Botão Omie: Preencher a CFOP de Entrada, Quantidade Recebida e demais informações */
+/* Badge Numérico Limpo da Coluna Item */
+.itemBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255, 107, 0, 0.12);
+  color: var(--cor-destaque);
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 107, 0, 0.25);
+}
+
+/* Botão Compacto na Coluna Ações: Tributos & Detalhes Fiscais */
+.btnEditarTributosLinha {
+  background: rgba(255, 107, 0, 0.08);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  color: var(--cor-destaque);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  height: 28px;
+  box-sizing: border-box;
+}
+
+.btnEditarTributosLinha:hover {
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.25);
+}
+
+/* Input Compacto Padronizado para Células da Tabela */
+.campoInputTabela {
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  color: var(--cor-texto-principal);
+  outline: none;
+  transition: border-color 0.2s;
+  height: 30px;
+  box-sizing: border-box;
+}
+
+.campoInputTabela:focus {
+  border-color: var(--cor-destaque);
+}
+
+/* Botão Omie Legado */
 .btnPreencherItemOmie {
   background: rgba(255, 107, 0, 0.08);
   border: 1px solid rgba(255, 107, 0, 0.25);
@@ -1101,42 +1364,47 @@
 
 .gridCampos2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.65rem 0.85rem;
 }
 
 .gridCampos3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.65rem 0.85rem;
 }
 
 .campoGrupo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .campoLabel {
-  font-size: 0.78rem;
+  font-size: 0.70rem;
   font-weight: 700;
   color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .campoInput {
   background: var(--cor-fundo-principal);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 0.85rem;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 0.80rem;
+  height: 28px;
+  box-sizing: border-box;
   color: var(--cor-texto-principal);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
 }
 
 .campoInput:focus {
   border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.2);
 }
 
 .campoInputDisabled {
@@ -1217,35 +1485,35 @@
 .secaoAba {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.85rem;
   background: var(--cor-fundo-cartao);
   border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 0.85rem 1.15rem;
 }
 
 .secaoBloco {
   background: var(--cor-fundo-secundario);
   border: 1px solid var(--cor-borda-cartao);
   border-radius: 8px;
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.65rem;
 }
 
 .secaoBlocoTitulo {
-  font-size: 0.85rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--cor-destaque);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   border-bottom: 1px solid var(--cor-borda-cartao);
-  padding-bottom: 8px;
+  padding-bottom: 5px;
 }
 
 /* Sub-abas tributárias do Item */
@@ -1291,22 +1559,22 @@
   background: linear-gradient(135deg, rgba(255, 107, 0, 0.12), rgba(255, 107, 0, 0.04));
   border: 1px solid rgba(255, 107, 0, 0.35);
   border-radius: 8px;
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .cardTotalDestaqueLabel {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--cor-texto-principal);
 }
 
 .cardTotalDestaqueValor {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--cor-destaque);
 }
@@ -1315,46 +1583,161 @@
 .tabelaDepartamentos {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.78rem;
 }
 
 .tabelaDepartamentos th {
   background: var(--cor-fundo-secundario);
-  padding: 8px 12px;
+  padding: 6px 10px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   color: var(--cor-texto-secundario);
   border-bottom: 1px solid var(--cor-borda-cartao);
+  white-space: nowrap;
 }
 
 .tabelaDepartamentos td {
-  padding: 10px 12px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--cor-borda-cartao);
-  font-size: 0.85rem;
+  color: var(--cor-texto-principal);
+  vertical-align: middle;
 }
 
 .gridCampos4 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.65rem 0.85rem;
 }
 
 .campoTextarea {
   background: var(--cor-fundo-principal);
   border: 1px solid var(--cor-borda-cartao);
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 0.85rem;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 0.80rem;
   color: var(--cor-texto-principal);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   width: 100%;
+  box-sizing: border-box;
   resize: vertical;
-  min-height: 80px;
+  min-height: 55px;
   font-family: inherit;
 }
 
 .campoTextarea:focus {
   border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.2);
+}
+
+/* Grids e Campos Especializados para a Aba Totais */
+.gridTotais5 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.gridTotais4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.gridTotais3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.campoGrupoTotais {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campoLabelTotais {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inputMoedaWrapper {
+  display: flex;
+  align-items: center;
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 6px;
+  height: 32px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.inputMoedaWrapper:focus-within {
+  border-color: var(--cor-destaque);
+  box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.25);
+}
+
+.moedaPrefixo {
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-fundo-sutil-forte);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--cor-borda-cartao);
+  user-select: none;
+}
+
+.inputTotais {
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+  width: 100%;
+  text-align: right;
+  outline: none;
+}
+
+.inputDestaqueProdutos {
+  color: var(--cor-destaque);
+}
+
+.cardTotalDestaque {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.10) 0%, rgba(255, 107, 0, 0.03) 100%);
+  border: 1px solid rgba(255, 107, 0, 0.4);
+  border-radius: 8px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.cardTotalDestaqueTitulo {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--cor-destaque);
+  letter-spacing: 0.2px;
+}
+
+.cardTotalDestaqueSub {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  margin-top: 2px;
 }
 
 

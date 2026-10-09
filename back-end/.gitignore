@@ -2,3 +2,13 @@ node_modules/
 .env
 logs/
 data/
+
+# AI Agents & Regras (Sigilo)
+AGENTS.md
+**/AGENTS.md
+agents.md
+**/agents.md
+agente.md
+**/agente.md
+.agents/
+.agents/**

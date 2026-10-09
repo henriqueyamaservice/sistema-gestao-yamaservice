@@ -61,8 +61,8 @@ router.post('/login', async (req, res) => {
 
     const db = await getDb();
     
-    // Check if user exists
-    const user = await db.get(`SELECT * FROM usuarios WHERE username = ?`, [username]);
+    // Check if user exists (case-insensitive para tolerar maiúsculas/minúsculas no login)
+    const user = await db.get(`SELECT * FROM usuarios WHERE LOWER(username) = LOWER(?)`, [username.trim()]);
     
     if (!user) {
       registrarFalhaLogin(clientIp);

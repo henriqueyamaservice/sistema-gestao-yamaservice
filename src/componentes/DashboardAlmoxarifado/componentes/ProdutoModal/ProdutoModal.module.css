@@ -540,3 +540,246 @@
 .btnConfirmar:hover {
   background: rgba(249, 115, 22, 0.1);
 }
+
+/* ==========================================================================
+   BARRA LATERAL DE AÇÕES (actionSidebar)
+   ========================================================================== */
+.actionSidebar {
+  width: 170px;
+  background: var(--cor-fundo-secundario);
+  border-left: 1px solid var(--cor-borda-cartao);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: var(--cor-destaque-hover);
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSyncOmie {
+  background: var(--cor-fundo-sutil-forte);
+  color: var(--cor-texto-principal);
+  border: 1px solid var(--cor-borda-cartao);
+}
+
+.btnSyncOmie:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--cor-destaque);
+  border-color: var(--cor-destaque);
+}
+
+.btnExcluir {
+  background: transparent;
+  color: var(--cor-erro);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  margin-top: auto;
+}
+
+.btnExcluir:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--cor-erro);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   BLOCO DE SINCRONIZAÇÃO OMIE (Na aba Estoque)
+   ========================================================================== */
+.syncBoxOmie {
+  background: var(--cor-fundo-secundario);
+  border: 1px solid var(--cor-borda-cartao);
+  border-left: 4px solid var(--cor-destaque);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.syncBoxInfo {
+  flex: 1;
+  min-width: 250px;
+}
+
+.btnSyncOmieDestaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cor-destaque);
+  color: var(--cor-texto-inverso);
+  border: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnSyncOmieDestaque:hover:not(:disabled) {
+  background: var(--cor-destaque-hover);
+  transform: translateY(-1px);
+}
+
+.btnSyncOmieDestaque:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alertSucesso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--cor-sucesso);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  animation: slideIn 0.2s ease-out;
+}
+
+.alertErro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--cor-erro);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  animation: slideIn 0.2s ease-out;
+}
+
+/* ==========================================================================
+   SEÇÃO DO HISTÓRICO DE AUDITORIA DE SINCRONIZAÇÃO
+   ========================================================================== */
+.historicoSyncSecao {
+  margin-top: 24px;
+  border-top: 1px solid var(--cor-borda-cartao);
+  padding-top: 16px;
+}
+
+.historicoSyncHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btnRecarregarHistorico {
+  background: transparent;
+  border: 1px solid var(--cor-borda-cartao);
+  color: var(--cor-texto-secundario);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnRecarregarHistorico:hover {
+  background: var(--cor-fundo-sutil);
+  color: var(--cor-texto-principal);
+}
+
+.historicoVazio {
+  background: var(--cor-fundo-cartao);
+  border: 1px dashed var(--cor-borda-cartao);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.tabelaHistoricoWrapper {
+  border: 1px solid var(--cor-borda-cartao);
+  border-radius: 8px;
+  overflow-x: auto;
+  max-height: 220px;
+  background: var(--cor-fundo-cartao);
+}
+
+.badgeOrigemAuto {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badgeOrigemManual {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--cor-destaque);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badgeStatusSucesso {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--cor-sucesso);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.badgeStatusErro {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--cor-erro);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}

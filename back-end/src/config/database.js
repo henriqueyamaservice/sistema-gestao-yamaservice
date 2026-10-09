@@ -382,6 +382,39 @@ async function initTablesMysql(db) {
     );
   `);
 
+  // 11. Cotações Arquivadas / Salvas
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS cotacoes_arquivadas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      requisicao_id VARCHAR(191),
+      fornecedor_id VARCHAR(191),
+      fornecedor_nome VARCHAR(255),
+      tipo_arquivamento VARCHAR(50),
+      dados_json LONGTEXT,
+      texto_original_pdf LONGTEXT,
+      usuario_salvamento VARCHAR(191),
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // 12. Histórico de Sincronização de Estoque com a Omie
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS historico_sincronizacao_estoque (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tipo VARCHAR(50),
+      codigo_produto VARCHAR(191),
+      descricao_produto VARCHAR(255),
+      saldo_anterior DOUBLE,
+      saldo_novo DOUBLE,
+      diferenca DOUBLE,
+      origem VARCHAR(50),
+      usuario VARCHAR(191),
+      status VARCHAR(50),
+      detalhes TEXT,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // --- MIGRAÇÃO AUTOMÁTICA DE json_collections PARA servicos_kits ---
   try {
     const rowOld = await db.get(`SELECT dados FROM json_collections WHERE colecao = 'servicos_kits'`);

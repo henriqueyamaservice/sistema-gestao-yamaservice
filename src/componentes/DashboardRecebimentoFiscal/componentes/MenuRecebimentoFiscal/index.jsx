@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
-  Clock, CheckCircle2, Barcode, CloudDownload, RefreshCw,
-  ChevronLeft, ChevronRight, FileText, Building2, ShieldCheck
+  Clock, CheckCircle2,
+  ChevronLeft, ChevronRight, ShieldCheck
 } from 'lucide-react';
 import styles from './MenuRecebimentoFiscal.module.css';
 import logoYama from '../../../../assets/YAMASERVICE.jpeg';
@@ -14,14 +14,8 @@ const MenuRecebimentoFiscal = ({
   setView,
   pendentesCount = 0,
   concluidasCount = 0,
-  onAbrirModalBipagem,
-  onSincronizarOmie,
-  sincronizandoOmie = false,
-  onSincronizarSefaz,
-  sincronizandoSefaz = false,
-  onAbrirConfigCertificado,
-  onRecarregar,
-  recarregando = false
+  finalizadasCount = 0,
+  onAbrirConfigCertificado
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -93,70 +87,42 @@ const MenuRecebimentoFiscal = ({
             </button>
           </li>
 
-          <li className={styles.divisorMenu}></li>
-
-          {/* Ações Rápidas Fiscais */}
           <li>
             <button
-              className={`${styles['menu-item']} ${styles.menuAcaoEspecial} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={onAbrirModalBipagem}
-              title="Bipar código de barras do DANFE (44 dígitos), carregar arquivo XML ou lançar recibo"
-            >
-              <Barcode size={20} style={{ flexShrink: 0 }} />
-              {!isCollapsed && <span>+ Bipar / Ler NF-e</span>}
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={`${styles['menu-item']} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={onSincronizarOmie}
-              disabled={sincronizandoOmie}
-              title="Consultar novas notas fiscais cadastradas no CNPJ da empresa na Omie"
-            >
-              <CloudDownload size={20} style={{ flexShrink: 0 }} className={sincronizandoOmie ? styles.spin : ''} />
-              {!isCollapsed && (
-                <span>{sincronizandoOmie ? 'Consultando...' : 'Buscar na Omie (CNPJ)'}</span>
-              )}
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={`${styles['menu-item']} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={onSincronizarSefaz}
-              disabled={sincronizandoSefaz}
-              title="Consultar notas fiscais emitidas no CPF diretamente na SEFAZ Nacional (DFe)"
-            >
-              <Building2 size={20} style={{ flexShrink: 0 }} className={sincronizandoSefaz ? styles.spin : ''} />
-              {!isCollapsed && (
-                <span>{sincronizandoSefaz ? 'Consultando SEFAZ...' : 'Buscar na SEFAZ (CPF)'}</span>
-              )}
-            </button>
-          </li>
-
-          <li>
-            <button
-              className={`${styles['menu-item']} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={onAbrirConfigCertificado}
-              title="Configurar Certificado Digital A1 (.pfx) da SEFAZ"
+              className={`${styles['menu-item']} ${view === 'finalizados' ? styles['active'] : ''} ${isCollapsed ? styles.collapsedCenter : ''}`}
+              onClick={() => setView('finalizados')}
+              title="Notas fiscais 100% faturadas e integradas com o sistema Omie"
             >
               <ShieldCheck size={20} style={{ flexShrink: 0 }} />
-              {!isCollapsed && <span>Certificado SEFAZ</span>}
+              {!isCollapsed && (
+                <>
+                  <span>Faturados / Concluídos</span>
+                  {finalizadasCount > 0 && (
+                    <span className={`${styles.badgeContador} ${styles.badgeFaturado}`}>
+                      {finalizadasCount}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
           </li>
 
-          <li>
-            <button
-              className={`${styles['menu-item']} ${isCollapsed ? styles.collapsedCenter : ''}`}
-              onClick={onRecarregar}
-              disabled={recarregando}
-              title="Recarregar dados do servidor"
-            >
-              <RefreshCw size={20} style={{ flexShrink: 0 }} className={recarregando ? styles.spin : ''} />
-              {!isCollapsed && <span>Atualizar Dados</span>}
-            </button>
-          </li>
+          {onAbrirConfigCertificado && (
+            <>
+              <li className={styles.divisorMenu}></li>
+
+              <li>
+                <button
+                  className={`${styles['menu-item']} ${isCollapsed ? styles.collapsedCenter : ''}`}
+                  onClick={onAbrirConfigCertificado}
+                  title="Configurar Certificado Digital A1 (.pfx) da SEFAZ"
+                >
+                  <ShieldCheck size={20} style={{ flexShrink: 0 }} />
+                  {!isCollapsed && <span>Certificado SEFAZ</span>}
+                </button>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
 

@@ -142,7 +142,7 @@
 
 .inputWrapper input {
   width: 100%;
-  padding: 14px 14px 14px 44px;
+  padding: 14px 44px 14px 44px;
   border: 2px solid var(--cor-borda-cartao);
   border-radius: 10px;
   background-color: var(--cor-fundo-cartao);
@@ -150,12 +150,34 @@
   font-size: 1rem;
   transition: all 0.2s ease;
   outline: none;
+  text-transform: none !important;
 }
 
 .inputWrapper input:focus {
   border-color: var(--cor-destaque);
   box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.1);
   background-color: var(--cor-fundo-principal);
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s ease, transform 0.1s ease;
+  z-index: 2;
+}
+
+.togglePasswordBtn:hover {
+  color: var(--cor-destaque);
+  transform: scale(1.1);
 }
 
 .loginButton {

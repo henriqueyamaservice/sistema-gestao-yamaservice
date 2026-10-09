@@ -59,10 +59,19 @@ async function criarPedidoCompra(opcoes) {
 
   console.log(`[OMIE PEDIDO DE COMPRA] 🛒 Gerando pedido para o fornecedor ${codigoFornecedor} com ${itens.length} itens...`);
 
+  let dDtPrevisao = '';
+  if (opcoes.dataPrevisao) {
+    const [ano, mes, dia] = opcoes.dataPrevisao.split('-');
+    dDtPrevisao = `${dia}/${mes}/${ano}`;
+  }
+
   const param = {
     cabecalho_incluir: {
       nCodFor: codigoFornecedor,
-      cCodIntPed: `P-${Date.now().toString().slice(-8)}`
+      cCodIntPed: `P-${Date.now().toString().slice(-8)}`,
+      cNumPedido: opcoes.numeroPedido || `COMPRA-${Date.now().toString().slice(-6)}`,
+      cObs: opcoes.observacaoCabecalho || '',
+      dDtPrevisao: dDtPrevisao || undefined
     },
     produtos_incluir: itens.map((item, index) => ({
       cCodIntItem: `I-${Date.now().toString().slice(-8)}-${index}`,

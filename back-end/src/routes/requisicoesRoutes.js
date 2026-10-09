@@ -332,7 +332,7 @@ router.post('/', async (req, res) => {
     const nomeVendedor = (novaRequisicao.vendedor || novaRequisicao.entregador || '').trim();
     if (nomeVendedor || novaRequisicao.codigoVendedorOmie) {
       try {
-        const v = await buscarVendedorValidoOmie(nomeVendedor || novaRequisicao.codigoVendedorOmie, db);
+        const v = await buscarVendedorValidoOmie(novaRequisicao.codigoVendedorOmie || nomeVendedor, db);
         if (v?.codigo) {
           novaRequisicao.codigoVendedorOmie = Number(v.codigo);
           console.log(`[REQUISICOES] 🎯 Vendedor Omie validado antecipadamente: #${v.codigo} (${v.nome})`);
@@ -611,11 +611,7 @@ router.post('/:id/avancar-etapa', async (req, res) => {
     if (!row) return res.status(404).json({ message: 'Requisição não encontrada' });
 
     let reqObj = dbRowToReq(row);
-    reqObj.status_compras = novoStatus;
-    reqObj.historico_status = reqObj.historico_status || [];
-    reqObj.historico_status.push({ status: novoStatus, data: new Date().toISOString() });
-
-    // Atualiza a Omie para Faturamento pelo Fornecedor
+    // Atualiza a Omie PRIMEIRO para 'Faturamento pelo Fornecedor'
     if (novoStatus === 'concluido' && reqObj.pedidos_omie) {
       console.log(`[COMPRAS] 🚀 Iniciando avanço de etapa na Omie para 'Faturamento pelo Fornecedor' (Etapa 20)...`);
       for (const pedido of reqObj.pedidos_omie) {
@@ -624,17 +620,26 @@ router.post('/:id/avancar-etapa', async (req, res) => {
             const resultOmie = await omiePedidosService.alterarEtapaPedido(pedido.numeroPedido, '20');
             if (resultOmie.erro) {
               console.error(`[COMPRAS] 🚨 Falha na Omie para o pedido ${pedido.numeroPedido}: ${resultOmie.mensagem || resultOmie.faultcode}`);
+              // Bloqueia a gravação local se a Omie falhou!
+              return res.status(500).json({ message: `Falha na integração com a Omie (Pedido ${pedido.numeroPedido}): ${resultOmie.mensagem || resultOmie.faultcode}` });
             } else {
               console.log(`[COMPRAS] ✅ Mágica feita! Pedido ${pedido.numeroPedido} agora está aguardando Faturamento (Etapa 20) na Omie!`);
             }
           } catch (e) {
             console.error(`[COMPRAS] 🚨 Erro de conexão ao alterar etapa na Omie para o pedido ${pedido.numeroPedido}:`, e.message);
+            // Bloqueia a gravação local se houve queda de rede!
+            return res.status(500).json({ message: `Erro de rede ao comunicar com a Omie (Pedido ${pedido.numeroPedido}): ${e.message}` });
           }
         } else {
           console.log(`[COMPRAS] ⚠️ Ignorando pedido com ID inválido: ${pedido.numeroPedido}`);
         }
       }
     }
+
+    // Só atualiza o banco local se a Omie confirmou tudo (Transação Atômica Lógica)
+    reqObj.status_compras = novoStatus;
+    reqObj.historico_status = reqObj.historico_status || [];
+    reqObj.historico_status.push({ status: novoStatus, data: new Date().toISOString() });
 
     await saveReq(db, id, reqObj);
 
@@ -688,15 +693,19 @@ router.post('/:id/gerar-pedidos', async (req, res) => {
 
       const tipo = cotacaoVencedora.tipoUnidade || 'Unidade';
       const qtdInterna = Number(cotacaoVencedora.quantidadePacote) || 1;
+      
       let qtdComprar = Number(itemReq.quantidade);
-      if (tipo === 'Pacote' || tipo === 'Caixa') {
-        qtdComprar = Math.ceil(itemReq.quantidade / (qtdInterna > 0 ? qtdInterna : 1));
+      let valorUnitarioBase = Number(cotacaoVencedora.valorUnitario);
+
+      if (tipo === 'Pacote' || tipo === 'Caixa' || tipo === 'Galao' || tipo === 'Galão' || tipo === 'Rolo' || tipo === 'Tambor') {
+        const pacotesNecessarios = Math.ceil(itemReq.quantidade / (qtdInterna > 0 ? qtdInterna : 1));
+        qtdComprar = pacotesNecessarios * qtdInterna; // Converte para a quantidade base da Omie (ex: 2 rolos de 50m = 100m)
+        valorUnitarioBase = valorUnitarioBase / (qtdInterna > 0 ? qtdInterna : 1); // Fatiando o preço da embalagem para 1 unidade base
       }
 
       const descItem = Number(cotacaoVencedora.desconto) || 0;
       const descGeral = Number(cotacaoVencedora.descontoGeral) || 0;
-      let valorUnitarioComDesconto = Number(cotacaoVencedora.valorUnitario);
-      valorUnitarioComDesconto = valorUnitarioComDesconto * (1 - descItem / 100) * (1 - descGeral / 100);
+      let valorUnitarioComDesconto = valorUnitarioBase * (1 - descItem / 100) * (1 - descGeral / 100);
 
       let obs = [];
       if (cotacaoVencedora.marca) obs.push(`Marca: ${cotacaoVencedora.marca}`);
@@ -714,34 +723,68 @@ router.post('/:id/gerar-pedidos', async (req, res) => {
       });
     });
 
-    const pedidosGerados = [];
+    reqObj.pedidos_omie = reqObj.pedidos_omie || [];
+    console.log(`\n[EFEITO CASCATA] 🚀 Iniciando Geração de Pedidos para a Requisição #${id}...`);
 
     for (const [fornecedorId, detalhes] of Object.entries(itensPorFornecedor)) {
+      // Trava de Segurança: Se já gerou antes e não foi erro, pula (evita duplicação)
+      const jaGerado = reqObj.pedidos_omie.find(p => p.fornecedorId === fornecedorId && !String(p.numeroPedido).startsWith('ERRO-OMIE'));
+      if (jaGerado) {
+        console.log(`[EFEITO CASCATA] 🛡️ Anti-Duplicidade: Pedido Omie já existe para o Fornecedor ${fornecedorId} (${jaGerado.numeroPedido}). Posição ignorada.`);
+        continue;
+      }
+
+      const idCurto = String(id).slice(-6); // Pega só os 6 últimos dígitos
+      
+      console.log(`[EFEITO CASCATA] 🔗 Disparando Omie para criar pedido de compra (Fornecedor ID: ${fornecedorId})...`);
+      
+      let obsCabecalho = [];
+      if (reqObj.categoriaCompra) obsCabecalho.push(`Categoria da Compra: ${reqObj.categoriaCompra}`);
+      if (reqObj.projetoDestino) obsCabecalho.push(`OS / Projeto Destino: ${reqObj.projetoDestino}`);
+      if (reqObj.sugestaoEntrega) {
+        const [ano, mes, dia] = reqObj.sugestaoEntrega.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        obsCabecalho.push(`Sugestão de Entrega: ${dataFormatada}`);
+      }
+
       const resultadoOmie = await omiePedidosService.criarPedidoCompra({
         codigoFornecedor: Number(fornecedorId),
         etapa: "10",
-        itens: detalhes
+        itens: detalhes,
+        numeroPedido: `REQ-${idCurto}`,
+        observacaoCabecalho: obsCabecalho.join(' | '),
+        dataPrevisao: reqObj.sugestaoEntrega
       });
 
       let numeroPedidoOmie = `ERRO-OMIE-${Math.floor(Math.random() * 10000)}`;
       if (!resultadoOmie.erro && resultadoOmie.dados && (resultadoOmie.dados.nCodPed || resultadoOmie.dados.numero_pedido || resultadoOmie.dados.cNumero)) {
         numeroPedidoOmie = resultadoOmie.dados.nCodPed || resultadoOmie.dados.numero_pedido || resultadoOmie.dados.cNumero;
+        console.log(`[EFEITO CASCATA] ✅ Pedido criado na Omie com Sucesso! (Código: ${numeroPedidoOmie})`);
       } else {
-        console.error(`[COMPRAS] 🚨 Erro ao gerar pedido na Omie! Retorno completo:`, JSON.stringify(resultadoOmie, null, 2));
+        console.error(`[EFEITO CASCATA] 🚨 Erro ao gerar pedido na Omie! Retorno completo:`, JSON.stringify(resultadoOmie, null, 2));
       }
 
       const valorTotal = detalhes.reduce((acc, i) => acc + (i.quantidade * i.valor_unitario), 0);
-      pedidosGerados.push({ fornecedorId, numeroPedido: numeroPedidoOmie, resultado_omie: resultadoOmie, itens: detalhes, valorTotal });
+      
+      // Limpa tentativa de erro anterior, se houver
+      reqObj.pedidos_omie = reqObj.pedidos_omie.filter(p => p.fornecedorId !== fornecedorId);
+      
+      // Salva o novo pedido gerado
+      reqObj.pedidos_omie.push({ fornecedorId, numeroPedido: numeroPedidoOmie, resultado_omie: resultadoOmie, itens: detalhes, valorTotal });
+      
+      // 🔥 EFEITO CASCATA - SALVAMENTO SÍNCRONO PÓS-OMIE (Anti-Duplicidade)
+      console.log(`[EFEITO CASCATA] 💾 Salvando pedido ${numeroPedidoOmie} no Banco Local imediatamente para blindar contra quedas...`);
+      await saveReq(db, id, reqObj);
     }
 
     reqObj.status_compras = 'pedido_gerado';
-    reqObj.pedidos_omie = pedidosGerados;
     reqObj.historico_status = reqObj.historico_status || [];
     reqObj.historico_status.push({ status: 'pedido_gerado', data: new Date().toISOString() });
 
+    console.log(`[EFEITO CASCATA] 🎉 Todos os pedidos gerados e cravados no banco de dados! Fim do ciclo.`);
     await saveReq(db, id, reqObj);
 
-    res.json({ message: 'Pedidos gerados com sucesso na Omie', pedidosGerados, requisicao: reqObj });
+    res.json({ message: 'Pedidos processados e gerados com sucesso na Omie', pedidosGerados: reqObj.pedidos_omie, requisicao: reqObj });
   } catch (error) {
     console.error("Erro ao gerar pedidos:", error);
     res.status(500).json({ message: 'Erro ao gerar pedidos na Omie', error: error.message });
@@ -919,7 +962,7 @@ async function dispararRemessaOmie(reqObj, db, appIo = null) {
 
   if (nomeVendedor || reqObj.codigoVendedorOmie || reqObj.vendedorCodigo) {
     try {
-      const v = await buscarVendedorValidoOmie(nomeVendedor || reqObj.codigoVendedorOmie || reqObj.vendedorCodigo, db);
+      const v = await buscarVendedorValidoOmie(reqObj.codigoVendedorOmie || reqObj.vendedorCodigo || nomeVendedor, db);
       if (v?.codigo) {
         codigoVendedorOmie = Number(v.codigo);
         reqObj.codigoVendedorOmie = codigoVendedorOmie;
@@ -1313,7 +1356,7 @@ router.post('/:id/simular-nfe', async (req, res) => {
     // Para cada pedido, vincula a nota simulada
     reqObj.pedidos_omie = reqObj.pedidos_omie.map(pedido => {
       const forn = fornecedores.find(f => String(f.codigo_cliente_omie) === String(pedido.fornecedorId));
-      const chaveAleatoria = '352609' + String(id).slice(-8).padStart(8, '0') + '55001000' + String(Math.floor(100000 + Math.random() * 900000)) + '100' + String(Math.floor(10000000 + Math.random() * 90000000));
+      const chaveAleatoria = '352609' + String(id).slice(-14).padStart(14, '0') + '55001' + String(Math.floor(100000000 + Math.random() * 900000000)) + '1' + String(Math.floor(10000000 + Math.random() * 90000000)) + '1';
       
       const notaSimulada = {
         chaveAcesso: chaveAleatoria,

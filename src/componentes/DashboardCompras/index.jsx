@@ -7,6 +7,7 @@ import Compras from './componentes/Compras';
 import EntradaEstoque from './componentes/EntradaEstoque';
 import ManutencaoEstoque from './componentes/ManutencaoEstoque';
 import DivergenciasDevolucao from './componentes/DivergenciasDevolucao';
+import ArquivoCotacoes from './componentes/ArquivoCotacoes';
 import styles from './DashboardCompras.module.css';
 
 const DashboardCompras = () => {
@@ -24,6 +25,7 @@ const DashboardCompras = () => {
         {view === 'entrada' && <EntradaEstoque setView={setView} />}
         {view === 'manutencao' && <ManutencaoEstoque setView={setView} />}
         {view === 'divergencias' && <DivergenciasDevolucao setView={setView} />}
+        {view === 'arquivocotacoes' && <ArquivoCotacoes />}
       </main>
     </div>
   );

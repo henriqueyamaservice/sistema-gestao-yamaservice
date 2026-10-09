@@ -79,7 +79,7 @@ const MenuOs = ({ viewMode, setViewMode, abaCombustivel, setAbaCombustivel, abaR
           {!isCollapsed && (
             <div className={styles.brand}>
               <h2>YAMASERVICE</h2>
-              <p>Ordens de Serviço</p>
+              <p>O.S / Controle Combustível</p>
             </div>
           )}
         </div>

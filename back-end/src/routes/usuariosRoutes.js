@@ -8,8 +8,16 @@ const router = express.Router();
 // Função auxiliar para verificar permissão de criação
 const podeCriarRole = (criadorRole, novoRole) => {
   if (criadorRole === 'admin') return true;
-  if (criadorRole === 'os' && ['chefe_setor', 'almoxarifado', 'compras', 'os'].includes(novoRole)) return true;
-  if (criadorRole === 'chefe_setor' && novoRole === 'tecnico') return true;
+  if (criadorRole === 'os') {
+    return [
+      'chefe_setor', 'almoxarife', 'almoxarifado', 'compras',
+      'recebimento_fiscal', 'fiscal', 'apontamento', 'oficina',
+      'tecnico', 'motorista', 'frentista', 'funcionario', 'os'
+    ].includes(novoRole);
+  }
+  if (criadorRole === 'chefe_setor') {
+    return ['tecnico', 'apontamento', 'oficina', 'motorista', 'frentista'].includes(novoRole);
+  }
   return false;
 };
 
@@ -33,10 +41,10 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 
     // Regras de visualização (Segurança):
-    // Chefe só vê seus técnicos e outros membros do seu setor
+    // Chefe de setor vê todos os membros da sua equipe/setor
     if (req.user.role === 'chefe_setor') {
-      query += ' AND setor = ? AND role = ?';
-      params.push(req.user.setor, 'tecnico');
+      query += ' AND setor = ?';
+      params.push(req.user.setor);
     }
 
     const usuarios = await db.all(query, params);

@@ -5,6 +5,7 @@ import { deduplicarCotacoes } from '../../../../utils/cotacoesHelper';
 import AssistenteIAOrcamento from '../AssistenteIAOrcamento';
 import ChatConsultorGlobal from '../ChatIAOrcamento';
 import styles from './Orcamentos.module.css';
+import logoYamaguchi from '../../../../assets/kazunorio.png';
 
 // Sub-componente Autocomplete declarado FORA de Orcamentos para evitar perda de foco e re-montagem
 const FornecedorAutocomplete = ({ reqId, fornecedores, valorSelecionado, setValorSelecionado, onOpenModal }) => {
@@ -152,7 +153,7 @@ const Orcamentos = ({ setView }) => {
 
   // States para Cadastro de Novo Fornecedor
   const [modalFornecedorAberto, setModalFornecedorAberto] = useState(false);
-  const [novoForn, setNovoForn] = useState({ razao_social: '', nome_fantasia: '', cnpj_cpf: '' });
+  const [novoForn, setNovoForn] = useState({ razao_social: '', nome_fantasia: '', cnpj_cpf: '', email: '', cep: '', endereco: '', cidade: '', estado: '' });
   const [salvandoFornecedor, setSalvandoFornecedor] = useState(false);
   const [reqIdParaNovoFornecedor, setReqIdParaNovoFornecedor] = useState(null);
 
@@ -180,6 +181,8 @@ const Orcamentos = ({ setView }) => {
   };
 
   const handlePrecosExtraidos = (reqId, fornId, itensExtraidos) => {
+    console.log("handlePrecosExtraidos -> itensExtraidos:", itensExtraidos);
+
     // Clona o array original para consumirmos no fallback
     const itensPendentes = [...itensExtraidos];
 
@@ -190,8 +193,9 @@ const Orcamentos = ({ setView }) => {
       const novosItens = r.itens.map(itemReq => {
         if (itensPendentes.length === 0) return itemReq;
 
-        // Tenta achar match exato/parcial
-        let matchIdx = itensPendentes.findIndex(ie => 
+        // 1) Match por código (conciliado pela IA); 2) match por descrição
+        let matchIdx = itensPendentes.findIndex(ie => ie.codigo && String(ie.codigo) === String(itemReq.codigo));
+        if (matchIdx === -1) matchIdx = itensPendentes.findIndex(ie => 
           itemReq.descricao.toLowerCase().includes(ie.descricao?.toLowerCase() || '') ||
           ie.descricao?.toLowerCase().includes(itemReq.descricao.toLowerCase())
         );
@@ -201,39 +205,46 @@ const Orcamentos = ({ setView }) => {
 
         const itemEncontrado = itensPendentes.splice(matchIdx, 1)[0];
 
-        if (itemEncontrado && itemEncontrado.valorUnitario) {
-          mudouAlgum = true;
-          const novasCotacoes = [...(itemReq.cotacoes || [])];
-          const cotExistente = novasCotacoes.findIndex(c => String(c.fornecedorId) === String(fornId));
+        if (itemEncontrado) {
+          const valorExtraido = Number(itemEncontrado.valorUnitario || itemEncontrado.preco || itemEncontrado.precoUnitario || itemEncontrado.Unitário || itemEncontrado.valor);
           
-          const marcaFinal = detectarMarca(itemEncontrado, itemReq);
+          if (valorExtraido && !isNaN(valorExtraido)) {
+            mudouAlgum = true;
+            const novasCotacoes = [...(itemReq.cotacoes || [])].map(c => ({...c}));
+            const cotExistente = novasCotacoes.findIndex(c => String(c.fornecedorId) === String(fornId));
+            
+            const marcaFinal = detectarMarca(itemEncontrado, itemReq);
 
-          if (cotExistente >= 0) {
-            novasCotacoes[cotExistente].valorUnitario = itemEncontrado.valorUnitario;
-            if (itemEncontrado.previsaoDias) novasCotacoes[cotExistente].previsaoDias = itemEncontrado.previsaoDias;
-            novasCotacoes[cotExistente].marca = marcaFinal !== '-' ? marcaFinal : (novasCotacoes[cotExistente].marca || '');
-          } else {
-            novasCotacoes.push({
-              fornecedorId: String(fornId),
-              valorUnitario: itemEncontrado.valorUnitario,
-              frete: 0,
-              previsaoDias: itemEncontrado.previsaoDias || 0,
-              condicaoPagamento: '',
-              marca: marcaFinal !== '-' ? marcaFinal : ''
-            });
+            if (cotExistente >= 0) {
+              novasCotacoes[cotExistente].valorUnitario = valorExtraido;
+              if (itemEncontrado.previsaoDias !== undefined && itemEncontrado.previsaoDias !== null) novasCotacoes[cotExistente].previsaoDias = itemEncontrado.previsaoDias;
+              novasCotacoes[cotExistente].marca = marcaFinal !== '-' ? marcaFinal : (novasCotacoes[cotExistente].marca || '');
+            } else {
+              novasCotacoes.push({
+                fornecedorId: String(fornId),
+                valorUnitario: valorExtraido,
+                frete: 0,
+                previsaoDias: itemEncontrado.previsaoDias || 0,
+                condicaoPagamento: '',
+                marca: marcaFinal !== '-' ? marcaFinal : ''
+              });
+            }
+            return { ...itemReq, cotacoes: novasCotacoes };
           }
-          return { ...itemReq, cotacoes: novasCotacoes };
         }
         return itemReq;
       });
 
       if (mudouAlgum) {
+        console.log("Novos Itens com cotacoes:", novosItens);
         // Atualiza silenciosamente no backend
         fetch(`/api/requisicoes/${r.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ itens: novosItens })
         }).catch(err => console.error("Erro ao salvar cotações da IA no DB:", err));
+      } else {
+        console.log("NENHUM PREÇO MUDOU (não bateu nome ou sem valor).");
       }
 
       return { ...r, itens: novosItens };
@@ -326,12 +337,10 @@ const Orcamentos = ({ setView }) => {
         }
       });
 
-      const reqAtualizada = { ...reqAtual, textosCotacoes: textosDestaReq };
-      
       await fetch(`/api/requisicoes/${reqId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqAtualizada)
+        body: JSON.stringify({ textosCotacoes: textosDestaReq })
       });
     } catch (e) {
       console.error('Erro ao salvar rascunho dos PDFs', e);
@@ -484,6 +493,53 @@ const Orcamentos = ({ setView }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Erro ao aprovar orçamento e gerar pedidos');
 
+      // --- SALVAR NO ARQUIVO DE COTAÇÕES (APROVADA) ---
+      try {
+        const req = requisicoes.find(r => r.id === reqId);
+        if (req) {
+          const tabelaParaSalvar = [];
+          req.itens.forEach(item => {
+            const vencedorId = vencedores[item.codigo];
+            if (vencedorId) {
+               const cot = (item.cotacoes || []).find(c => c.id === vencedorId);
+               if (cot) {
+                 const fornNome = getNomeFornecedor(cot.fornecedorId);
+                 const descItem = Number(cot.desconto) || 0;
+                 const valorFinalUnit = Number(cot.valorUnitario) * (1 - descItem / 100);
+                 const subTotal = valorFinalUnit * Number(item.quantidade);
+                 
+                 tabelaParaSalvar.push([
+                   fornNome,
+                   item.descricao,
+                   item.quantidade,
+                   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorFinalUnit),
+                   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subTotal)
+                 ]);
+               }
+            }
+          });
+          
+          if (tabelaParaSalvar.length > 0) {
+            await fetch('/api/cotacoes-arquivadas', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                requisicao_id: String(reqId),
+                fornecedor_id: 'MULTIPLOS',
+                fornecedor_nome: 'Fornecedores Vencedores',
+                tipo_arquivamento: 'APROVADA',
+                dados_json: { titulo: 'Cotação Vencedora (Aprovada)', resumo: `Pedido Oficial gerado na Omie para a Requisição #${reqId}`, tabela: tabelaParaSalvar },
+                texto_original_pdf: '', 
+                usuario_salvamento: 'Comprador (Sistema)' 
+              })
+            });
+          }
+        }
+      } catch (errArq) {
+        console.error('Erro ao salvar cotação aprovada no arquivo:', errArq);
+      }
+      // -------------------------------------------------
+
       alert(`Sucesso! ${data.pedidosGerados?.length || 0} pedido(s) gerado(s) na Omie.`);
       if (setView) {
         setView('compras');
@@ -499,6 +555,50 @@ const Orcamentos = ({ setView }) => {
     }
   };
 
+  // ----- Garante que o fornecedor exista na cotação para aparecer no Resumo -----
+  const garantirFornecedorNaCotacao = async (reqId, fornId) => {
+    if (!fornId) return false;
+    const req = requisicoes.find(r => r.id === reqId);
+    if (!req || !req.itens) return false;
+
+    let precisaSalvar = false;
+    const novoCotacoes = {};
+
+    req.itens.forEach(item => {
+      const cotacoesAtuais = item.cotacoes || [];
+      novoCotacoes[item.codigo] = [...cotacoesAtuais];
+
+      const jaExiste = cotacoesAtuais.some(c => String(c.fornecedorId) === String(fornId));
+      if (!jaExiste) {
+        precisaSalvar = true;
+        novoCotacoes[item.codigo].push({
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          fornecedorId: String(fornId),
+          valorUnitario: 0,
+          previsaoDias: 0,
+          frete: 0,
+          marca: ''
+        });
+      }
+    });
+
+    if (precisaSalvar) {
+      try {
+        const res = await fetch(`/api/requisicoes/${reqId}/salvar-cotacoes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cotacoes: novoCotacoes })
+        });
+        if (res.ok) {
+          return true; // indicando que salvou e precisa recarregar
+        }
+      } catch (err) {
+        console.error('Erro ao garantir fornecedor nas cotações', err);
+      }
+    }
+    return false;
+  };
+
   // ----- Gerador de Link Externo -----
   const gerarLinkFornecedor = async (reqId) => {
     const fornId = fornecedorSelecionado[reqId];
@@ -509,6 +609,11 @@ const Orcamentos = ({ setView }) => {
 
     setGerandoLink(true);
     try {
+      const precisouSalvar = await garantirFornecedorNaCotacao(reqId, fornId);
+      if (precisouSalvar) {
+        fetchDados(); // Atualiza a tela para mostrar o fornecedor no Resumo
+      }
+
       const response = await fetch('/api/cotacao-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -584,7 +689,7 @@ const Orcamentos = ({ setView }) => {
     }
   };
 
-  const baixarCartaCotacaoPDF = (reqId) => {
+  const baixarCartaCotacaoPDF = async (reqId) => {
     const req = requisicoes.find(r => r.id === reqId);
     if (!req) return;
     
@@ -594,6 +699,11 @@ const Orcamentos = ({ setView }) => {
     let cnpj = "____________________";
 
     if (fornId) {
+      const precisouSalvar = await garantirFornecedorNaCotacao(reqId, fornId);
+      if (precisouSalvar) {
+        fetchDados(); // Atualiza a tela para mostrar o fornecedor no Resumo
+      }
+      
       fornNome = getNomeFornecedor(fornId);
       const fornecedorObj = fornecedores.find(f => String(f.codigo_cliente_omie) === String(fornId));
       cnpj = fornecedorObj?.cnpj_cpf || 'Não informado';
@@ -614,10 +724,7 @@ const Orcamentos = ({ setView }) => {
         <!-- Cabeçalho -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
           <div style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-            <svg viewBox="0 0 100 100" width="80" height="80">
-              <path d="M50 0 C22.4 0 0 22.4 0 50 C0 77.6 22.4 100 50 100 C77.6 100 100 77.6 100 50 C100 22.4 77.6 0 50 0 Z" fill="#84cc16"/>
-              <path d="M50 20 C33.4 20 20 33.4 20 50 C20 66.6 33.4 80 50 80 C66.6 80 80 66.6 80 50 C80 33.4 66.6 20 50 20 Z" fill="#0ea5e9"/>
-            </svg>
+            <img src="${logoYamaguchi}" alt="Logo Yamaguchi" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
           </div>
           <div style="text-align: right; line-height: 1.4;">
             <strong style="font-size: 16px;">KAZUNORI YAMAGUCHI</strong><br/>
@@ -661,9 +768,7 @@ const Orcamentos = ({ setView }) => {
           </tbody>
         </table>
 
-        <h2 style="font-size: 14px; margin-bottom: 10px;">Outras Informações</h2>
         <div style="line-height: 1.6;">
-          <strong>Fornecedor Selecionado:</strong> ${fornNome} (CNPJ: ${cnpj})<br/>
           <strong>Categoria:</strong> ${req.categoriaCompra || 'Compra de Material Para Uso e Consumo'}<br/>
           <strong>Carta de Cotação - incluído em:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br/>
         </div>
@@ -720,7 +825,7 @@ const Orcamentos = ({ setView }) => {
 
         resumo[fornKey].valorTotal += subtotalBase;
 
-        if (cot.previsaoDias) {
+        if (cot.previsaoDias !== undefined && cot.previsaoDias !== null && cot.previsaoDias !== '') {
           resumo[fornKey].prazos.push(cot.previsaoDias);
         }
         resumo[fornKey].cotacoes.push(cot);
@@ -810,10 +915,7 @@ const Orcamentos = ({ setView }) => {
         <!-- Cabeçalho -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
           <div style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-            <svg viewBox="0 0 100 100" width="80" height="80">
-              <path d="M50 0 C22.4 0 0 22.4 0 50 C0 77.6 22.4 100 50 100 C77.6 100 100 77.6 100 50 C100 22.4 77.6 0 50 0 Z" fill="#84cc16"/>
-              <path d="M50 20 C33.4 20 20 33.4 20 50 C20 66.6 33.4 80 50 80 C66.6 80 80 66.6 80 50 C80 33.4 66.6 20 50 20 Z" fill="#0ea5e9"/>
-            </svg>
+            <img src="${logoYamaguchi}" alt="Logo Yamaguchi" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
           </div>
           <div style="text-align: right; line-height: 1.4;">
             <strong style="font-size: 16px;">KAZUNORI YAMAGUCHI</strong><br/>
@@ -874,7 +976,7 @@ const Orcamentos = ({ setView }) => {
               <td style="text-align: center;">${item.quantidade}</td>
               <td style="text-align: right;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorUnitFinal)}</td>
               <td style="text-align: right; font-weight: bold;">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotalBase)}</td>
-              <td style="text-align: right;">${cot.previsaoDias || '-'}d</td>
+              <td style="text-align: right;">${(cot.previsaoDias !== undefined && cot.previsaoDias !== null && cot.previsaoDias !== '') ? cot.previsaoDias : '-'}d</td>
             </tr>
           `;
         }
@@ -885,8 +987,7 @@ const Orcamentos = ({ setView }) => {
         </tbody>
       </table>
 
-      <h2 style="font-size: 14px; margin-bottom: 10px;">Outras Informações</h2>
-      <div style="line-height: 1.6;">
+      <div style="line-height: 1.6; margin-top: 20px;">
         <strong>Categoria:</strong> ${req.categoriaCompra || 'Compra de Material Para Uso e Consumo'}<br/>
         <strong>Carta de Cotação - incluído em:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br/>
       </div>
@@ -927,7 +1028,7 @@ const Orcamentos = ({ setView }) => {
       }
 
       setModalFornecedorAberto(false);
-      setNovoForn({ razao_social: '', nome_fantasia: '', cnpj_cpf: '' });
+      setNovoForn({ razao_social: '', nome_fantasia: '', cnpj_cpf: '', email: '', cep: '', endereco: '', cidade: '', estado: '' });
     } catch (err) {
       alert('Erro: ' + err.message);
     } finally {
@@ -1121,6 +1222,19 @@ const Orcamentos = ({ setView }) => {
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginLeft: '20px' }} onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    onClick={() => baixarCartaCotacaoPDF(req.id, resumo.fornId)}
+                                    title="Baixar Cotação em PDF deste Fornecedor"
+                                    style={{
+                                      padding: '4px 8px', borderRadius: '4px', cursor: 'pointer',
+                                      background: 'rgba(239, 68, 68, 0.1)', 
+                                      border: '1px solid rgba(239, 68, 68, 0.3)', 
+                                      color: '#ef4444',
+                                      display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', fontSize: '0.75rem'
+                                    }}
+                                  >
+                                    <Download size={14} /> PDF
+                                  </button>
                                   <button
                                     onClick={() => gerarOuCopiarLinkEspecifico(req.id, resumo.fornId)}
                                     title="Copiar Link para este fornecedor"
@@ -1320,8 +1434,8 @@ const Orcamentos = ({ setView }) => {
 
       {/* Modal de Cadastro de Fornecedor */}
       {modalFornecedorAberto && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--cor-fundo-cartao)', padding: '24px', borderRadius: '12px', width: '450px', maxWidth: '95%', border: '1px solid var(--cor-borda-cartao)', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--cor-fundo-cartao)', padding: '24px', borderRadius: '12px', width: '700px', maxWidth: '95%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid var(--cor-borda-cartao)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--cor-texto-principal)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Building size={20} color="var(--cor-destaque)" /> Novo Fornecedor
@@ -1330,46 +1444,72 @@ const Orcamentos = ({ setView }) => {
                 <X size={24} />
               </button>
             </div>
-
+            
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-secundario)' }}>Razão Social *</label>
-              <input
-                type="text"
-                value={novoForn.razao_social}
-                onChange={e => setNovoForn({ ...novoForn, razao_social: e.target.value })}
-                placeholder="Nome oficial da empresa"
-                style={{ width: '100%', padding: '10px', background: 'var(--cor-fundo-principal)', color: 'var(--cor-texto-principal)', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', outline: 'none' }}
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>Razão Social / Nome do Vendedor *</label>
+              <input 
+                type="text" 
+                value={novoForn.razao_social} 
+                onChange={e => setNovoForn({...novoForn, razao_social: e.target.value})} 
+                placeholder="Ex: MERCADO LIVRE - AUTO PECAS LTDA"
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} 
               />
             </div>
-
+            
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-secundario)' }}>Nome Fantasia</label>
-              <input
-                type="text"
-                value={novoForn.nome_fantasia}
-                onChange={e => setNovoForn({ ...novoForn, nome_fantasia: e.target.value })}
-                placeholder="Como a empresa é conhecida (Opcional)"
-                style={{ width: '100%', padding: '10px', background: 'var(--cor-fundo-principal)', color: 'var(--cor-texto-principal)', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', outline: 'none' }}
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>Nome Fantasia (Opcional)</label>
+              <input 
+                type="text" 
+                value={novoForn.nome_fantasia} 
+                onChange={e => setNovoForn({...novoForn, nome_fantasia: e.target.value})} 
+                placeholder="Ex: Mercado Livre"
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} 
               />
             </div>
-
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-secundario)' }}>CNPJ ou CPF *</label>
-              <input
-                type="text"
-                value={novoForn.cnpj_cpf}
-                onChange={e => setNovoForn({ ...novoForn, cnpj_cpf: e.target.value })}
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>CNPJ ou CPF *</label>
+              <input 
+                type="text" 
+                value={novoForn.cnpj_cpf} 
+                onChange={e => setNovoForn({...novoForn, cnpj_cpf: e.target.value})} 
                 placeholder="Somente números ou com pontuação"
-                style={{ width: '100%', padding: '10px', background: 'var(--cor-fundo-principal)', color: 'var(--cor-texto-principal)', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} 
               />
             </div>
+            
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>E-mail</label>
+                <input type="email" value={novoForn.email} onChange={e => setNovoForn({...novoForn, email: e.target.value})} placeholder="vendas@empresa.com" style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} />
+              </div>
+              <div style={{ width: '120px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>CEP</label>
+                <input type="text" value={novoForn.cep} onChange={e => setNovoForn({...novoForn, cep: e.target.value})} placeholder="00000-000" style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} />
+              </div>
+            </div>
 
-            <button
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
+              <div style={{ flex: 2 }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>Endereço</label>
+                <input type="text" value={novoForn.endereco} onChange={e => setNovoForn({...novoForn, endereco: e.target.value})} placeholder="Rua / Avenida" style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>Cidade</label>
+                <input type="text" value={novoForn.cidade} onChange={e => setNovoForn({...novoForn, cidade: e.target.value})} placeholder="Cidade" style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} />
+              </div>
+              <div style={{ width: '60px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9rem', fontWeight: '500', color: 'var(--cor-texto-principal)' }}>UF</label>
+                <input type="text" value={novoForn.estado} onChange={e => setNovoForn({...novoForn, estado: e.target.value.toUpperCase()})} placeholder="SP" maxLength={2} style={{ width: '100%', padding: '10px', border: '1px solid var(--cor-borda-cartao)', borderRadius: '6px', background: 'var(--cor-fundo-secundario)', color: 'var(--cor-texto-principal)', outline: 'none' }} />
+              </div>
+            </div>
+            
+            <button 
               onClick={salvarNovoFornecedor}
               disabled={salvandoFornecedor || !novoForn.razao_social || !novoForn.cnpj_cpf}
-              style={{
-                width: '100%', padding: '12px', background: 'var(--cor-destaque)', color: 'var(--cor-texto-inverso)', border: 'none',
-                borderRadius: '6px', cursor: (salvandoFornecedor || !novoForn.razao_social || !novoForn.cnpj_cpf) ? 'not-allowed' : 'pointer',
+              style={{ 
+                width: '100%', padding: '12px', background: 'var(--cor-destaque)', color: 'var(--cor-texto-inverso)', border: 'none', 
+                borderRadius: '6px', cursor: (salvandoFornecedor || !novoForn.razao_social || !novoForn.cnpj_cpf) ? 'not-allowed' : 'pointer', 
                 fontWeight: 'bold', fontSize: '1rem', transition: 'background 0.2s',
                 opacity: (salvandoFornecedor || !novoForn.razao_social || !novoForn.cnpj_cpf) ? 0.6 : 1
               }}
@@ -1580,6 +1720,7 @@ const Orcamentos = ({ setView }) => {
         fornId={dadosModalIA.fornId}
         fornNome={dadosModalIA.fornNome}
         tipo={dadosModalIA.tipo}
+        itensRequisicao={(requisicoes.find(r => r.id === dadosModalIA.reqId)?.itens || []).map(i => ({ codigo: i.codigo, descricao: i.descricao, quantidade: i.quantidade }))}
         onTextSaved={handleTextSaved}
         onPrecosExtraidos={handlePrecosExtraidos}
       />

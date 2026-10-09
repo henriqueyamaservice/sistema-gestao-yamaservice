@@ -81,24 +81,39 @@ async function sincronizarProdutosPrd() {
   const produtosOmiePrd = [];
 
   try {
-    // 1. Busca todos os produtos da Omie (paginado)
+    // 1. Busca todos os produtos da Omie (paginado com retry)
     do {
-      const response = await chamarOmie('ListarProdutos', {
-        pagina,
-        registros_por_pagina,
-        apenas_importado_api: "N",
-        filtrar_apenas_omiepdv: "N",
-        inativo: "N",
-        exibir_caracteristicas: "S", 
-        exibir_tabelas_preco: "S",   
-        exibir_obs: "S",             
-        exibir_kit: "S",             
-        exibir_info_variacoes: "S"
-      });
+      let response = null;
+      let tentativas = 0;
+      const MAX_TENTATIVAS = 3;
 
-      if (response.erro) {
-        console.error('[OMIE PRODUTOS] Falha ao buscar página', pagina);
-        break;
+      while (tentativas < MAX_TENTATIVAS) {
+        tentativas++;
+        response = await chamarOmie('ListarProdutos', {
+          pagina,
+          registros_por_pagina,
+          apenas_importado_api: "N",
+          filtrar_apenas_omiepdv: "N",
+          inativo: "N",
+          exibir_caracteristicas: "S", 
+          exibir_tabelas_preco: "S",   
+          exibir_obs: "S",             
+          exibir_kit: "S",             
+          exibir_info_variacoes: "S"
+        });
+
+        if (!response.erro && response.dados) {
+          break; // Sucesso na página
+        }
+
+        console.warn(`[OMIE PRODUTOS] ⚠️ Tentativa ${tentativas}/${MAX_TENTATIVAS} falhou na página ${pagina}: ${response.mensagem || 'Falha de comunicação'}. Aguardando 2s...`);
+        await sleep(2000);
+      }
+
+      if (response.erro || !response.dados) {
+        console.error(`[OMIE PRODUTOS] ❌ Falha definitiva ao buscar página ${pagina} após ${MAX_TENTATIVAS} tentativas. Continuando próximas páginas...`);
+        pagina++;
+        continue;
       }
 
       const { dados } = response;
@@ -169,12 +184,13 @@ async function sincronizarProdutosPrd() {
       }
     }
 
-    // Opcional: E os produtos PRD locais que sumiram ou ficaram inativos na Omie?
-    // Podemos marcar como inativo="S" no local se não vieram na listagem (já que filtramos por inativos="N").
-    const codigosOmieSet = new Set(produtosOmiePrd.map(p => p.codigo));
-    for (const [codigo, prodLocal] of mapaLocal.entries()) {
-      if (codigo.startsWith('PRD') && !codigosOmieSet.has(codigo)) {
-        prodLocal.inativo = "S";
+    // Só marca inativo se a varredura percorreu todas as páginas até o final
+    if (pagina > total_de_paginas && produtosOmiePrd.length >= 1000) {
+      const codigosOmieSet = new Set(produtosOmiePrd.map(p => p.codigo));
+      for (const [codigo, prodLocal] of mapaLocal.entries()) {
+        if (codigo.startsWith('PRD') && !codigosOmieSet.has(codigo)) {
+          prodLocal.inativo = "S";
+        }
       }
     }
 

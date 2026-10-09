@@ -1,93 +1,155 @@
-# Sistema de Almoxarifado
+# 🏢 Sistema de Gestão Yamaservice
 
-Um sistema completo de gerenciamento de almoxarifado, desenvolvido com separação entre Front-end e Back-end. O sistema permite listar produtos, criar requisições de material e interagir com pedidos, contando com rotinas de integração com o ERP Omie.
+[![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Bundler-Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Framework-Express.js-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![MariaDB](https://img.shields.io/badge/Database-MariaDB%20%2F%20MySQL-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
+[![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-## 🗂 Estrutura do Projeto
+Plataforma corporativa integrada para gestão operacional, logística, compras, oficina e recebimento fiscal, contando com sincronização nativa em tempo real com o **ERP Omie**, leitura automatizada de **DF-e SEFAZ** e inteligência artificial para cotações.
 
-O projeto é um monorepo simples contendo as duas aplicações:
+---
 
-- **Raiz do projeto (`/`)**: Front-end (React + Vite)
-- **Pasta `/back-end`**: Back-end (Node.js + Express)
+## 🧭 Módulos do Sistema
 
-## 🚀 Tecnologias Utilizadas
+### 📦 1. Almoxarifado & Controle de Estoque
+- **Estoque em Tempo Real**: Visão completa dos produtos cadastrados, saldos físicos e integração com o Omie.
+- **Controle de Lotes e Validades (FEFO)**: Rastreamento inteligente de vencimentos (*First Expired, First Out*).
+- **Requisições de Materiais**: Terminal para saídas de balcão, requisição rápida por técnicos e aprovações.
+- **Conferência Física**: Bipagem ágil por leitor de código de barras (EAN).
+- **Remessas Omie**: Integração automática de saídas e requisições no ERP com vínculo de Projetos e Departamentos.
+
+### 💼 2. Compras & Inteligência Artificial
+- **Gestão de Cotações & Orçamentos**: Controle completo de cotações com múltiplos fornecedores e concorrência de preços.
+- **Assistente IA de Orçamentos**: Leitura inteligente e extração automatizada de itens, preços e condições de propostas comerciais em PDF ou texto.
+- **Histórico de Compras**: Rastreamento histórico de aquisições por item e fornecedor.
+- **Geração de Pedidos**: Emissão direta de pedidos de compra no ERP Omie.
+
+### 🧾 3. Recebimento Fiscal (NF-e)
+- **Entrada Automatizada**: Importação via chave de acesso de 44 dígitos ou upload de arquivos XML.
+- **Integração SEFAZ DF-e**: Consulta e download direto de notas fiscais emitidas contra o CNPJ utilizando Certificado Digital A1.
+- **Conferência Fiscal em 7 Abas**:
+  - *Itens*: Vínculo De-Para entre produto da nota e cadastro Omie.
+  - *Transporte*: Dados do frete, transportadora e volumes.
+  - *Totais & Impostos*: Conferência dos valores fiscais da NF-e.
+  - *Parcelas (Duplicatas)*: Prazos e valores financeiros.
+  - *Departamentos & Projetos*: Rateio contábil e de centro de custo.
+  - *Informações Adicionais*: Mensagens fiscais e de interesse do contribuinte.
+  - *Observações Internas*: Registro de ocorrências no recebimento.
+- **Submodal de Tributação**: Conferência minuciosa de ICMS, IPI, PIS, COFINS e substituição tributária.
+- **Conciliação Física x Fiscal**: Abatimento financeiro automático em caso de falta física comprovada.
+
+### 🛠️ 4. Ordens de Serviço & Oficina
+- **Gestão Completa de O.S.**: Abertura, diagnóstico, apontamento de peças, serviços e finalização.
+- **Terminal Totem da Oficina**: Interface de apontamento dedicada para mecânicos e técnicos registrarem tempo e materiais utilizados.
+- **Plano de Manutenção Preventiva**: Acompanhamento de revisões periódicas de frotas e geradores com alerta preditivo.
+- **Blindagem de Odômetro/Horímetro**: Travas contra retrocesso de quilometragem e horímetro.
+- **Auditoria com Diff Visual**: Comparador de alterações antes/depois no desbloqueio e edição de ordens de serviço finalizadas.
+
+### ⛽ 5. Controle de Combustível & Abastecimento
+- Registro de abastecimentos de veículos e geradores com cálculo automatizado de consumo médio (km/l).
+- Assistente rápido de abastecimento e integração com o estoque de combustíveis.
+
+### 🔐 6. Usuários & Permissões
+- Gestão granular de perfis de acesso por módulo (*Almoxarifado, Compras, Oficina, Recebimento Fiscal, Frentista, Gerência*).
+- Autenticação protegida e alternância rápida de módulos pelo menu do usuário.
+
+---
+
+## 🏗️ Arquitetura e Tecnologias
 
 ### Front-end
-- **React 19**
-- **Vite** (Bundler e Dev Server)
-- **Lucide React** (Biblioteca de ícones)
-- **CSS** (Vanilla CSS)
+- **React 19**: Interface moderna, reativa e componentizada.
+- **Vite**: Build tool veloz e ambiente de desenvolvimento otimizado.
+- **CSS Modules (`.module.css`)**: Estilização isolada por componente, sem classes globais conflitantes, utilizando variáveis CSS nativas (`var(--cor-...)`) para suporte a temas.
+- **Lucide React**: Ícones corporativos consistentes.
 
 ### Back-end
-- **Node.js**
-- **Express.js** (Framework de rotas)
-- **CORS** & **Dotenv** (Gerenciamento de ambiente)
-- **Armazenamento (JSON)**: Os dados são simulados em arquivos `.json` salvos localmente na pasta `back-end/data/`.
+- **Node.js + Express**: API REST modular e performática.
+- **MariaDB / MySQL**: Banco de dados relacional com pool assíncrono de conexões (`mysql2`).
+- **Axios & Integrações SOAP/REST**: Comunicação com APIs da Omie e WebServices SEFAZ.
 
 ---
 
-## 🛠️ Como Executar o Sistema Localmente
+## 🚀 Como Executar o Projeto Localmente
 
-### 1. Inicializando o Back-end
-O back-end roda por padrão na porta **3000**.
-```bash
-# Entre na pasta do back-end
-cd back-end
+### Pré-requisitos
+- [Node.js](https://nodejs.org/) (versão 18 ou superior)
+- [MariaDB](https://mariadb.org/) ou [MySQL](https://www.mysql.com/) (porta padrão 3306)
+- Git
 
-# Instale as dependências (caso não tenha feito ainda)
-npm install
+---
 
-# Inicie o servidor
-npm run dev
-# ou
-node server.js
+### 1. Configurando o Banco de Dados
+Crie a base de dados no seu servidor MariaDB/MySQL:
+```sql
+CREATE DATABASE almoxarifado_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 2. Inicializando o Front-end
-O front-end roda com o Vite na porta padrão (ex: **5173**).
-Em um novo terminal:
-```bash
-# Na raiz do projeto (pasta sistema-almoxarifado)
-
-# Instale as dependências do front-end
-npm install
-
-# Inicie o servidor de desenvolvimento
-npm run dev
-```
-
-## 📏 Regras de Negócio e Processos
-
-### Perfis de Usuários
-- **Almoxarifado**: Solicita a reposição de itens (Requisição) e é o responsável físico por receber a mercadoria quando o caminhão chega. **Não tem permissão/função para cadastrar produtos novos**.
-- **Compras**: Recebe a requisição do Almoxarifado, faz a cotação, **cadastra produtos novos diretamente na Omie** (gerando o Pedido de Compra) e envia para faturamento.
-
-### Recebimento de Produtos & Estoque
-- **Estoque Físico x Trânsito**: O fato do setor de Compras ter feito o pedido na Omie **não soma o produto no estoque**. O produto fica com status de "Aguardando Recebimento".
-- **Bipagem Individual**: Quando o produto chega, o funcionário do Almoxarifado usa a tela de "Recebimento de Produtos" e bipa item a item usando o código de barras, garantindo conferência cega. Apenas neste momento o estoque físico no sistema é atualizado.
-- **Recebimento Parcial**: Caso falte algum produto na entrega (ex: comprou 100, chegaram 90), o Almoxarifado recebe apenas os 90, e o sistema exige uma **Observação Obrigatória**. O pedido ganha o status de "Recebido Parcialmente" para que o setor de Compras possa gerenciar a pendência junto ao fornecedor.
-
 ---
 
-## 🔌 API e Rotas do Back-end
-
-A API está configurada para gerenciar os produtos, requisições e integração simulada com o Omie.
-
-- `GET /api/produtos`: Retorna os produtos (requer sincronização prévia com a Omie).
-- `POST /api/requisicao`: Cria uma nova requisição de itens no almoxarifado.
-- `GET /api/requisicoes`: Lista todas as requisições geradas.
-- `GET /api/pedidos`: Lista pedidos que estão com status de "Aguardando Recebimento" na Omie.
-- `POST /api/pedidos/:id/receber`: Confirma o recebimento de um pedido e atualiza (simulado) na Omie.
-
----
-
-## ⚙️ Integração com a Omie
-
-O sistema possui uma rotina preparada para sincronizar informações diretamente com o ERP Omie:
-
-1. Acesse a pasta `back-end`.
-2. Renomeie o arquivo `.env.example` para `.env` e preencha as variáveis de ambiente necessárias (App Key / App Secret).
-3. Para buscar os produtos da Omie, rode o script de sincronização:
+### 2. Configurando e Iniciando o Back-end
+1. Acesse o diretório do servidor:
    ```bash
-   npm run sync:omie
+   cd back-end
    ```
-Esse comando irá preencher/atualizar o arquivo `produtos.json` dentro da pasta `back-end/data/`.
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Crie o arquivo `.env` baseado no `.env.example`:
+   ```env
+   PORT=3000
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_USER=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_NAME=almoxarifado_db
+
+   # Integração Omie ERP
+   OMIE_APP_KEY=sua_app_key
+   OMIE_APP_SECRET=seu_app_secret
+
+   # Integração IA (Opcional para Assistente de Cotações)
+   GROQ_API_KEY=sua_chave_groq
+   OPENAI_API_KEY=sua_chave_openai
+   ```
+4. Inicie o servidor:
+   ```bash
+   npm run dev
+   # ou
+   node --openssl-legacy-provider server.js
+   ```
+   *O backend estará rodando em `http://localhost:3000`.*
+
+---
+
+### 3. Configurando e Iniciando o Front-end
+1. Em outro terminal, na raiz do projeto:
+   ```bash
+   npm install
+   ```
+2. Inicie o servidor Vite:
+   ```bash
+   npm run dev
+   ```
+3. Abra o navegador no endereço indicado (geralmente `http://localhost:5173`).
+
+---
+
+## 🐳 Executando com Docker
+
+O projeto possui suporte a Docker Compose para deploy integrado em servidores VPS:
+
+```bash
+# Na raiz do projeto
+docker-compose up -d --build
+```
+
+Os serviços subirão automaticamente na rede isolada com persistência de volumes de dados.
+
+---
+
+## 📄 Licença
+Propriedade de **Yamaservice Gestão**. Todos os direitos reservados.
